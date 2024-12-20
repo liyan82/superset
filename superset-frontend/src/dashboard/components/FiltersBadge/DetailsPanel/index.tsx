@@ -135,7 +135,7 @@ const DetailsPanelPopover = ({
             .ant-popover-inner {
               background-color: ${theme.colors.grayscale.dark2}cc;
               .ant-popover-inner-content {
-                padding: ${theme.gridUnit * 2}px;
+                padding: ${theme.sizeUnit * 2}px;
               }
             }
             &.ant-popover-placement-bottom,

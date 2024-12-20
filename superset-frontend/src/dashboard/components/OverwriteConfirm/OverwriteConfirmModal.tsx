@@ -36,7 +36,7 @@ const STICKY_HEADER_HEIGHT = 32;
 
 const StyledTitle = styled.h2`
   ${({ theme }) => `
-     color:  ${theme.colors.grayscale.dark1}
+     color:  ${theme.colorText}
    `}
 `;
 

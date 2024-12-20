@@ -25,7 +25,7 @@ import { kebabCase } from 'lodash';
 const StyledDropdownButton = styled.div`
   .ant-btn-group {
     button.ant-btn {
-      background-color: ${({ theme }) => theme.colors.primary.dark1};
+      background-color: ${({ theme }) => theme.colorPrimaryText};
       border-color: transparent;
       color: ${({ theme }) => theme.colors.grayscale.light5};
       font-size: 12px;
@@ -33,7 +33,7 @@ const StyledDropdownButton = styled.div`
       outline: none;
       &:first-of-type {
         border-radius: ${({ theme }) =>
-          `${theme.gridUnit}px 0 0 ${theme.gridUnit}px`};
+          `${theme.sizeUnit}px 0 0 ${theme.sizeUnit}px`};
         margin: 0;
       }
 
@@ -44,17 +44,17 @@ const StyledDropdownButton = styled.div`
       &:nth-of-type(2) {
         margin: 0;
         border-radius: ${({ theme }) =>
-          `0 ${theme.gridUnit}px ${theme.gridUnit}px 0`};
-        width: ${({ theme }) => theme.gridUnit * 9}px;
+          `0 ${theme.sizeUnit}px ${theme.sizeUnit}px 0`};
+        width: ${({ theme }) => theme.sizeUnit * 9}px;
         &:before,
         &:hover:before {
           border-left: 1px solid ${({ theme }) => theme.colors.grayscale.light5};
           content: '';
           display: block;
-          height: ${({ theme }) => theme.gridUnit * 8}px;
+          height: ${({ theme }) => theme.sizeUnit * 8}px;
           margin: 0;
           position: absolute;
-          width: ${({ theme }) => theme.gridUnit * 0.25}px;
+          width: ${({ theme }) => theme.sizeUnit * 0.25}px;
         }
 
         &:disabled:before {

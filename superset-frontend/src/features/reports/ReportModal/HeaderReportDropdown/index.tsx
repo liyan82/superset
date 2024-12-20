@@ -52,7 +52,7 @@ import { MenuItemWithCheckboxContainer } from 'src/explore/components/useExplore
 const extensionsRegistry = getExtensionsRegistry();
 
 const deleteColor = (theme: SupersetTheme) => css`
-  color: ${theme.colors.error.base};
+  color: ${theme.colorError};
 `;
 
 const onMenuHover = (theme: SupersetTheme) => css`
@@ -61,18 +61,18 @@ const onMenuHover = (theme: SupersetTheme) => css`
     margin-top: 0px;
     margin-bottom: 4px;
     :hover {
-      color: ${theme.colors.grayscale.dark1};
+      color: ${theme.colorText};
     }
   }
   :hover {
-    background-color: ${theme.colors.secondary.light5};
+    background-color: ${theme.colorPrimaryBg};
   }
 `;
 
 const onMenuItemHover = (theme: SupersetTheme) => css`
   &:hover {
-    color: ${theme.colors.grayscale.dark1};
-    background-color: ${theme.colors.secondary.light5};
+    color: ${theme.colorText};
+    background-color: ${theme.colorPrimaryBg};
   }
 `;
 
@@ -82,7 +82,7 @@ const StyledDropdownItemWithIcon = styled.div`
   justify-content: space-between;
   align-items: center;
   > *:first-child {
-    margin-right: ${({ theme }) => theme.gridUnit}px;
+    margin-right: ${({ theme }) => theme.sizeUnit}px;
   }
 `;
 
@@ -262,7 +262,7 @@ export default function HeaderReportDropDown({
           checked={isReportActive}
           onClick={(checked: boolean) => toggleActiveKey(report, checked)}
           size="small"
-          css={{ marginLeft: theme.gridUnit * 2 }}
+          css={{ marginLeft: theme.sizeUnit * 2 }}
         />
       </Menu.Item>
       <Menu.Item onClick={() => setShowModal(true)}>

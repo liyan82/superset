@@ -555,9 +555,9 @@ export default function TableChart<D extends DataRecord = DataRecord>(
             <div
               css={css`
                 max-width: 242px;
-                padding: 0 ${theme.gridUnit * 2}px;
+                padding: 0 ${theme.sizeUnit * 2}px;
                 color: ${theme.colors.grayscale.base};
-                font-size: ${theme.typography.sizes.s}px;
+                font-size: ${theme.fontSizeSM}px;
               `}
             >
               {t(
@@ -576,7 +576,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
                 <span
                   css={css`
                     float: right;
-                    font-size: ${theme.typography.sizes.s}px;
+                    font-size: ${theme.fontSizeSM}px;
                   `}
                 >
                   {selectedComparisonColumns.includes(column.key) && (
@@ -823,9 +823,9 @@ export default function TableChart<D extends DataRecord = DataRecord>(
             color: ${basicColorFormatters &&
             basicColorFormatters[row.index][originKey]?.arrowColor ===
               ColorSchemeEnum.Green
-              ? theme.colors.success.base
-              : theme.colors.error.base};
-            margin-right: ${theme.gridUnit}px;
+              ? theme.colorSuccess
+              : theme.colorError};
+            margin-right: ${theme.sizeUnit}px;
           `;
 
           if (
@@ -835,9 +835,9 @@ export default function TableChart<D extends DataRecord = DataRecord>(
             arrowStyles = css`
               color: ${basicColorColumnFormatters[row.index][column.key]
                 ?.arrowColor === ColorSchemeEnum.Green
-                ? theme.colors.success.base
-                : theme.colors.error.base};
-              margin-right: ${theme.gridUnit}px;
+                ? theme.colorSuccess
+                : theme.colorError};
+              margin-right: ${theme.sizeUnit}px;
             `;
           }
 
@@ -981,8 +981,8 @@ export default function TableChart<D extends DataRecord = DataRecord>(
                   display: flex;
                   align-items: center;
                   & svg {
-                    margin-left: ${theme.gridUnit}px;
-                    color: ${theme.colors.grayscale.dark1} !important;
+                    margin-left: ${theme.sizeUnit}px;
+                    color: ${theme.colorText} !important;
                   }
                 `}
               >

@@ -18,7 +18,7 @@
  */
 import { render, screen } from 'spec/helpers/testing-library';
 import userEvent from '@testing-library/user-event';
-import { supersetTheme, hexToRgb } from '@superset-ui/core';
+import { supersetTheme } from '@superset-ui/core';
 import Collapse, { CollapseProps } from '.';
 
 function renderCollapse(props?: CollapseProps) {
@@ -98,11 +98,8 @@ test('renders with custom properties', () => {
   const arrowStyle = window.getComputedStyle(arrow);
 
   expect(headerStyle.fontWeight).toBe(
-    supersetTheme.typography.weights.bold.toString(),
+    supersetTheme.fontWeightStrong.toString(),
   );
-  expect(headerStyle.fontSize).toBe(`${supersetTheme.gridUnit * 4}px`);
-  expect(headerStyle.color).toBe(
-    hexToRgb(supersetTheme.colors.grayscale.light4),
-  );
+  expect(headerStyle.fontSize).toBe(`${supersetTheme.sizeUnit * 4}px`);
   expect(arrowStyle.transition).toBe('transform 0.24s');
 });

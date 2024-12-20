@@ -55,7 +55,7 @@ import { useDefaultTimeFilter } from '../../DateFilterControl/utils';
 import { Clauses, ExpressionTypes } from '../types';
 
 const StyledInput = styled(Input)`
-  margin-bottom: ${({ theme }) => theme.gridUnit * 4}px;
+  margin-bottom: ${({ theme }) => theme.sizeUnit * 4}px;
 `;
 
 export const StyledFormItem = styled(FormItem)`
@@ -457,8 +457,8 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
   const subjectComponent = (
     <Select
       css={(theme: SupersetTheme) => ({
-        marginTop: theme.gridUnit * 4,
-        marginBottom: theme.gridUnit * 4,
+        marginTop: theme.sizeUnit * 4,
+        marginBottom: theme.sizeUnit * 4,
       })}
       data-test="select-element"
       options={columns.map(column => ({
@@ -483,7 +483,7 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
   const operatorsAndOperandComponent = (
     <>
       <Select
-        css={(theme: SupersetTheme) => ({ marginBottom: theme.gridUnit * 4 })}
+        css={(theme: SupersetTheme) => ({ marginBottom: theme.sizeUnit * 4 })}
         options={(props.operators ?? OPERATORS_OPTIONS)
           .filter(op => isOperatorRelevantWrapper(op, subject))
           .map((option, index) => ({

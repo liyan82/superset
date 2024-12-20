@@ -38,18 +38,18 @@ const LimitSelectStyled = styled.span`
   ${({ theme }) => `
     .ant-dropdown-trigger {
       align-items: center;
-      color: ${theme.colors.grayscale.dark2};
+      color: ${theme.colorIcon};
       display: flex;
       font-size: 12px;
-      margin-right: ${theme.gridUnit * 2}px;
+      margin-right: ${theme.sizeUnit * 2}px;
       text-decoration: none;
       border: 0;
       background: transparent;
       span {
         display: inline-block;
-        margin-right: ${theme.gridUnit * 2}px;
+        margin-right: ${theme.sizeUnit * 2}px;
         &:last-of-type: {
-          margin-right: ${theme.gridUnit * 4}px;
+          margin-right: ${theme.sizeUnit * 4}px;
         }
       }
     }

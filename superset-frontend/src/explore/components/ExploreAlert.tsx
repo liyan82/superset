@@ -34,18 +34,18 @@ interface ControlPanelAlertProps {
 
 const AlertContainer = styled.div`
   ${({ theme }) => css`
-    margin: ${theme.gridUnit * 4}px;
-    padding: ${theme.gridUnit * 4}px;
+    margin: ${theme.sizeUnit * 4}px;
+    padding: ${theme.sizeUnit * 4}px;
 
-    border: 1px solid ${theme.colors.info.base};
-    background-color: ${theme.colors.info.light2};
+    border: 1px solid ${theme.colorInfoBorder};
+    background-color: ${theme.colorInfoBg};
     border-radius: 2px;
 
     color: ${theme.colors.info.dark2};
-    font-size: ${theme.typography.sizes.m}px;
+    font-size: ${theme.fontSize}px;
 
     p {
-      margin-bottom: ${theme.gridUnit}px;
+      margin-bottom: ${theme.sizeUnit}px;
     }
 
     & a,
@@ -53,21 +53,21 @@ const AlertContainer = styled.div`
       color: inherit;
       text-decoration: underline;
       &:hover {
-        color: ${theme.colors.info.dark1};
+        color: ${theme.colorInfoText};
       }
     }
 
     &.alert-type-warning {
-      border-color: ${theme.colors.warning.base};
-      background-color: ${theme.colors.warning.light2};
+      border-color: ${theme.colorErrorBorder};
+      background-color: ${theme.colorErrorBg};
 
       p {
-        color: ${theme.colors.warning.dark2};
+        color: ${theme.colorErrorText};
       }
 
       & a:hover,
       & span[role='button']:hover {
-        color: ${theme.colors.warning.dark1};
+        color: ${theme.colorErrorText};
       }
     }
   `}
@@ -82,7 +82,7 @@ const ButtonContainer = styled.div`
 `;
 
 const Title = styled.p`
-  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  font-weight: ${({ theme }) => theme.fontWeightStrong};
 `;
 
 const typeChart = {

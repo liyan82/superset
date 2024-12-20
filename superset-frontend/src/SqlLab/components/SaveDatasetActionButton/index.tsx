@@ -38,19 +38,19 @@ const SaveDatasetActionButton = ({
     DropdownButton as FC<DropdownButtonProps>,
   )`
     &.ant-dropdown-button button.ant-btn.ant-btn-default {
-      font-weight: ${theme.gridUnit * 150};
+      font-weight: ${theme.sizeUnit * 150};
       background-color: ${theme.colors.primary.light4};
-      color: ${theme.colors.primary.dark1};
+      color: ${theme.colorPrimaryText};
       &:nth-of-type(2) {
         &:before,
         &:hover:before {
-          border-left: 2px solid ${theme.colors.primary.dark2};
+          border-left: 2px solid ${theme.colorBorder};
         }
       }
     }
     span[name='caret-down'] {
-      margin-left: ${theme.gridUnit * 1}px;
-      color: ${theme.colors.primary.dark2};
+      margin-left: ${theme.sizeUnit * 1}px;
+      color: ${theme.colorPrimaryText};
     }
   `;
 

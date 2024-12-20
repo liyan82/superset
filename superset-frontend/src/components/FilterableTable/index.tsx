@@ -41,7 +41,7 @@ const StyledFilterableTable = styled.div`
     overflow: hidden;
 
     .ant-table-cell {
-      font-weight: ${theme.typography.weights.bold};
+      font-weight: ${theme.fontWeightStrong};
       background-color: ${theme.colors.grayscale.light5};
     }
 
@@ -49,7 +49,7 @@ const StyledFilterableTable = styled.div`
     .virtual-table-cell {
       min-width: 0px;
       align-self: center;
-      font-size: ${theme.typography.sizes.s}px;
+      font-size: ${theme.fontSizeSM}px;
     }
 
     .even-row {
@@ -61,8 +61,8 @@ const StyledFilterableTable = styled.div`
     }
 
     .cell-text-for-measuring {
-      font-family: ${theme.typography.families.sansSerif};
-      font-size: ${theme.typography.sizes.s}px;
+      font-family: ${theme.fontFamily};
+      font-size: ${theme.fontSizeSM}px;
     }
   `}
 `;

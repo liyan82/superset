@@ -91,8 +91,9 @@ export default function Button(props: ButtonProps) {
   } = props;
 
   const theme = useTheme();
-  const { colors, transitionTiming, borderRadius, typography } = theme;
-  const { primary, grayscale, success, warning } = colors;
+  const { transitionTiming, borderRadius, fontSizeSM, fontWeightStrong } =
+    theme;
+  const { primary, grayscale, warning } = theme.colors;
 
   let height = 32;
   let padding = 18;
@@ -112,7 +113,7 @@ export default function Button(props: ButtonProps) {
   let colorHover;
   let borderWidth = 0;
   let borderStyle = 'none';
-  let borderColor;
+  let borderColor = theme.colorBorder;
   let borderColorHover;
   let borderColorDisabled = 'transparent';
 
@@ -130,14 +131,14 @@ export default function Button(props: ButtonProps) {
     colorHover = color;
   } else if (buttonStyle === 'warning') {
     backgroundColor = warning.base;
-    backgroundColorHover = mix(0.1, grayscale.dark2, warning.base);
-    backgroundColorActive = mix(0.2, grayscale.dark2, warning.base);
+    backgroundColorHover = mix(0.1, grayscale.dark2, theme.colorWarningActive);
+    backgroundColorActive = mix(0.2, grayscale.dark2, theme.colorWarningActive);
     color = grayscale.light5;
     colorHover = color;
   } else if (buttonStyle === 'success') {
-    backgroundColor = success.base;
-    backgroundColorHover = mix(0.1, grayscale.light5, success.base);
-    backgroundColorActive = mix(0.2, grayscale.dark2, success.base);
+    backgroundColor = theme.colorSuccessText;
+    backgroundColorHover = mix(0.1, grayscale.light5, theme.colorSuccessActive);
+    backgroundColorActive = mix(0.2, grayscale.dark2, theme.colorSuccessActive);
     color = grayscale.light5;
     colorHover = color;
   } else if (buttonStyle === 'link') {
@@ -156,7 +157,7 @@ export default function Button(props: ButtonProps) {
     renderedChildren = Children.toArray(children);
   }
   const firstChildMargin =
-    showMarginRight && renderedChildren.length > 1 ? theme.gridUnit * 2 : 0;
+    showMarginRight && renderedChildren.length > 1 ? theme.sizeUnit * 2 : 0;
 
   const effectiveButtonStyle: ButtonStyle = buttonStyle ?? 'default';
 
@@ -179,13 +180,13 @@ export default function Button(props: ButtonProps) {
         alignItems: 'center',
         justifyContent: 'center',
         lineHeight: 1.5715,
-        fontSize: typography.sizes.s,
-        fontWeight: typography.weights.bold,
+        fontSize: fontSizeSM,
+        fontWeight: fontWeightStrong,
         height,
         padding: `0px ${padding}px`,
         transition: `all ${transitionTiming}s`,
-        minWidth: cta ? theme.gridUnit * 36 : undefined,
-        minHeight: cta ? theme.gridUnit * 8 : undefined,
+        minWidth: cta ? theme.sizeUnit * 36 : undefined,
+        minHeight: cta ? theme.sizeUnit * 8 : undefined,
         boxShadow: 'none',
         borderWidth,
         borderStyle,
@@ -223,7 +224,7 @@ export default function Button(props: ButtonProps) {
         },
         marginLeft: 0,
         '& + .superset-button': {
-          marginLeft: theme.gridUnit * 2,
+          marginLeft: theme.sizeUnit * 2,
         },
         '& > span > :first-of-type': {
           marginRight: firstChildMargin,
@@ -245,7 +246,7 @@ export default function Button(props: ButtonProps) {
             css={{
               cursor: 'not-allowed',
               '& > .superset-button': {
-                marginLeft: theme.gridUnit * 2,
+                marginLeft: theme.sizeUnit * 2,
               },
             }}
           >

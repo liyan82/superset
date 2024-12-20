@@ -66,7 +66,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({
     const icon =
       type === 'warning' ? <WarningOutlined /> : <ExclamationCircleOutlined />;
     const color =
-      type === 'warning' ? theme.colors.warning.base : theme.colors.error.base;
+      type === 'warning' ? theme.colorWarningText : theme.colorErrorText;
     return (
       <div className={className} style={{ cursor: 'pointer' }}>
         <span style={{ color }}>{icon} </span>
@@ -76,7 +76,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({
   };
   const preStyle = {
     whiteSpace: 'pre-wrap',
-    fontFamily: theme.typography.families.sansSerif,
+    fontFamily: theme.fontFamilyCode,
   };
   const renderDescription = () => (
     <div>
