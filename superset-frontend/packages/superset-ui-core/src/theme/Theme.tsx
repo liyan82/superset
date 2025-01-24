@@ -17,12 +17,15 @@
  * under the License.
  */
 /* eslint-disable react-prefer-function-component/react-prefer-function-component */
+// eslint-disable-next-line no-restricted-syntax
+import React from 'react';
 import {
   theme as antdThemeImport,
   ThemeConfig as AntdThemeConfig,
   ConfigProvider,
 } from 'antd-v5';
 import tinycolor from 'tinycolor2';
+
 import {
   ThemeProvider as EmotionThemeProvider,
   CacheProvider as EmotionCacheProvider,
@@ -36,28 +39,36 @@ import {
   allowedAntdTokens,
   SharedAntdTokens,
   SystemColors,
+  ColorVariants,
+  DeprecatedColorVariations,
   DeprecatedThemeColors,
   LegacySupersetTheme,
-  DeprecatedColorVariations,
-  // SupersetSpecificTokens // <- Remove if truly unused here
+  SupersetSpecificTokens,
 } from './types';
 
-// We have old references to color-literal usage in this file
 /* eslint-disable theme-colors/no-literal-colors */
+
+type AllowedAntdTokenKeys = Extract<
+  (typeof allowedAntdTokens)[number],
+  keyof AntdTokens
+>;
 
 export class Theme {
   theme: SupersetTheme;
 
   private static readonly defaultTokens = {
+    // Default colors
     colorPrimary: '#20a7c9',
     colorError: '#e04355',
     colorWarning: '#fcc700',
     colorSuccess: '#5ac189',
     colorInfo: '#66bcfe',
 
+    // Forcing some default tokens
     fontFamily: `'Inter', Helvetica, Arial`,
     fontFamilyCode: `'Fira Code', 'Courier New', monospace`,
 
+    // Extra tokens
     transitionTiming: 0.3,
     brandIconMaxWidth: 37,
     fontSizeXS: '8',
@@ -69,7 +80,6 @@ export class Theme {
 
   private antdConfig: AntdThemeConfig;
 
-  // Note: rename or remove unused parameters if you get warnings.
   private constructor({
     seed,
     antdConfig,
@@ -79,6 +89,9 @@ export class Theme {
     antdConfig?: AntdThemeConfig;
     isDark?: boolean;
   }) {
+    this.updateTheme = this.updateTheme.bind(this);
+    this.SupersetThemeProvider = this.SupersetThemeProvider.bind(this);
+
     if (seed && antdConfig) {
       throw new Error('Pass either theme or antdConfig, not both.');
     } else if (antdConfig) {
@@ -89,11 +102,13 @@ export class Theme {
   }
 
   static fromSeed(seed?: Partial<SupersetTheme>, isDark = false): Theme {
-    return new Theme({ seed, isDark });
+    const theme = new Theme({ seed, isDark });
+    return theme;
   }
 
   static fromAntdConfig(antdConfig: AntdThemeConfig): Theme {
-    return new Theme({ antdConfig });
+    const theme = new Theme({ antdConfig });
+    return theme;
   }
 
   private static genDeprecatedColorVariations(
@@ -102,12 +117,8 @@ export class Theme {
   ): DeprecatedColorVariations {
     const bg = isDark ? '#FFF' : '#000';
     const fg = isDark ? '#000' : '#FFF';
-    const adjustColor = (
-      baseColor: string,
-      perc: number,
-      target: string,
-    ): string => tinycolor.mix(baseColor, target, perc).toHexString();
-
+    const adjustColor = (c: string, perc: number, tgt: string): string =>
+      tinycolor.mix(c, tgt, perc).toHexString();
     return {
       base: color,
       light1: adjustColor(color, 20, fg),
@@ -127,6 +138,9 @@ export class Theme {
     systemColors: SystemColors,
     isDark: boolean,
   ): DeprecatedThemeColors {
+    /* This method provides a set of color variations based on the system colors.
+     * Goal is to deprecate usage of these in the future
+     */
     const sc = systemColors;
     return {
       primary: Theme.genDeprecatedColorVariations(sc.colorPrimary, isDark),
@@ -165,16 +179,19 @@ export class Theme {
     const antdTokens = Theme.getFilteredAntdTheme(antdConfig);
     const systemColors = Theme.getSystemColors(antdTokens);
 
-    return {
+    const theme: SupersetTheme = {
       colors: Theme.getColors(systemColors, isDark),
       ...Theme.defaultTokens,
       ...antdTokens,
     };
+    return theme;
   }
 
   private static getFilteredAntdTheme(
     antdConfig: AntdThemeConfig,
   ): SharedAntdTokens {
+    // This method generates all antd tokens and filters out the ones not allowed
+    // in Superset
     const theme = Theme.getAntdTokens(antdConfig);
     return Object.fromEntries(
       allowedAntdTokens.map(key => [key, theme[key]]),
@@ -194,15 +211,21 @@ export class Theme {
     };
   }
 
-  private static getAntdTokens(antdConfig: AntdThemeConfig): AntdTokens {
-    return antdThemeImport.getDesignToken(antdConfig);
+  mergeTheme(partialTheme: Partial<LegacySupersetTheme>): void {
+    // const mergedTheme = merge({}, this.theme, partialTheme);
+    // const isDark = tinycolor(mergedTheme.colorBgBase).isDark();
+    // const antdConfig = Theme.getAntdConfig(systemColors, isDark);
+    // this.updateTheme(mergedTheme, antdConfig, isDark);
   }
 
   private updateTheme(theme: SupersetTheme, antdConfig: AntdThemeConfig): void {
     this.theme = theme;
     this.antdConfig = antdConfig;
-    // No more calling setState in a class. We'll just store it.
-    // If you want dynamic theme updates, you'd handle that differently.
+    this.updateProviders(
+      this.theme,
+      this.antdConfig,
+      createCache({ key: 'superset' }),
+    );
   }
 
   public getFontSize(size?: string): string {
@@ -215,6 +238,10 @@ export class Theme {
       xxl: 'fontSizeXXL',
     };
     return this.theme[sizeMap[size || 'm']] || this.theme.fontSize;
+  }
+
+  private static getAntdTokens(antdConfig: AntdThemeConfig): AntdTokens {
+    return antdThemeImport.getDesignToken(antdConfig);
   }
 
   private isThemeDark(): boolean {
@@ -233,27 +260,31 @@ export class Theme {
     const tokens = Theme.getFilteredAntdTheme(antdConfig);
     const systemColors = Theme.getSystemColors(tokens);
     const isDark = this.isThemeDark();
+
     this.theme = {
       colors: Theme.getColors(systemColors, isDark),
       ...Theme.defaultTokens,
       ...tokens,
     };
-    // no dynamic provider updates from here
+    this.updateProviders(
+      this.theme,
+      this.antdConfig,
+      createCache({ key: 'superset' }),
+    );
   }
 
-  mergeTheme(_partialTheme: Partial<LegacySupersetTheme>): void {
-    // If you need a dynamic merge, do it and then call updateTheme,
-    // otherwise remove or keep this as a no-op
-  }
-
-  getColorVariants(color: string) {
+  getColorVariants(color: string): ColorVariants {
+    const firstLetterCapped = color.charAt(0).toUpperCase() + color.slice(1);
     if (color === 'default' || color === 'grayscale') {
       const isDark = this.isThemeDark();
+
       const flipBrightness = (baseColor: string): string => {
         if (!isDark) return baseColor;
         const { r, g, b } = tinycolor(baseColor).toRgb();
-        return tinycolor({ r: 255 - r, g: 255 - g, b: 255 - b }).toHexString();
+        const invertedColor = tinycolor({ r: 255 - r, g: 255 - g, b: 255 - b });
+        return invertedColor.toHexString();
       };
+
       return {
         active: flipBrightness('#222'),
         textActive: flipBrightness('#444'),
@@ -266,7 +297,7 @@ export class Theme {
         bg: flipBrightness('#F4F4F4'),
       };
     }
-    const firstLetterCapped = color.charAt(0).toUpperCase() + color.slice(1);
+
     return {
       active: this.theme[`color${firstLetterCapped}Active`],
       textActive: this.theme[`color${firstLetterCapped}TextActive`],
@@ -280,15 +311,34 @@ export class Theme {
     };
   }
 
-  // Provide a simple, non-Hook-based provider for your app.
+  private updateProviders(
+    theme: SupersetTheme,
+    antdConfig: AntdThemeConfig,
+    emotionCache: any,
+  ): void {
+    // Overridden at runtime by SupersetThemeProvider using setThemeState
+  }
+
   SupersetThemeProvider({ children }: { children: React.ReactNode }) {
     if (!this.theme || !this.antdConfig) {
       throw new Error('Theme is not initialized.');
     }
+
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [themeState, setThemeState] = React.useState({
+      theme: this.theme,
+      antdConfig: this.antdConfig,
+      emotionCache: createCache({ key: 'superset' }),
+    });
+
+    this.updateProviders = (theme, antdConfig, emotionCache) => {
+      setThemeState({ theme, antdConfig, emotionCache });
+    };
+
     return (
-      <EmotionCacheProvider value={createCache({ key: 'superset' })}>
-        <EmotionThemeProvider theme={this.theme}>
-          <ConfigProvider theme={this.antdConfig} prefixCls="antd5">
+      <EmotionCacheProvider value={themeState.emotionCache}>
+        <EmotionThemeProvider theme={themeState.theme}>
+          <ConfigProvider theme={themeState.antdConfig} prefixCls="antd5">
             {children}
           </ConfigProvider>
         </EmotionThemeProvider>

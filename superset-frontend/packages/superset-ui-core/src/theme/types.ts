@@ -17,11 +17,17 @@
  * under the License.
  */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+// eslint-disable-next-line no-restricted-syntax
 import { theme as antdThemeImport } from 'antd-v5';
 import tinycolor from 'tinycolor2';
 
+/**
+ * Grab all antd tokens via getDesignToken(...).
+ * (Same as in the original file.)
+ */
 export type AntdTokens = ReturnType<typeof antdThemeImport.getDesignToken>;
 
+/** Minimal color system references. */
 export interface SystemColors {
   colorPrimary: string;
   colorError: string;
@@ -66,12 +72,17 @@ export interface DeprecatedThemeColors {
 }
 
 export interface LegacySupersetTheme {
+  // Old colors structure with light/dark semantics still heavily referenced in code base
+  // TODO: replace/realign with antd-type tokens
   colors: DeprecatedThemeColors;
   transitionTiming: number;
 }
 
 export interface SupersetSpecificTokens {
+  // Brand-related
   brandIconMaxWidth: number;
+
+  // Font-related
   fontSizeXS: string;
   fontSizeXXL: string;
   fontWeightNormal: string;
@@ -79,10 +90,238 @@ export interface SupersetSpecificTokens {
   fontWeightMedium: string;
 }
 
+/**
+ * This array is used to define which keys from the full Antd token set
+ * we actually allow in the SupersetTheme.
+ */
 export const allowedAntdTokens = [
-  // ...
+  'borderRadius',
+  'borderRadiusLG',
+  'borderRadiusOuter',
+  'borderRadiusSM',
+  'borderRadiusXS',
+  'boxShadow',
+  'boxShadowCard',
+  'boxShadowDrawerDown',
+  'boxShadowDrawerLeft',
+  'boxShadowDrawerRight',
+  'boxShadowDrawerUp',
+  'boxShadowPopoverArrow',
+  'boxShadowSecondary',
+  'boxShadowTabsOverflowBottom',
+  'boxShadowTabsOverflowLeft',
+  'boxShadowTabsOverflowRight',
+  'boxShadowTabsOverflowTop',
+  'boxShadowTertiary',
+  'colorError',
+  'colorErrorActive',
+  'colorErrorBg',
+  'colorErrorBgActive',
+  'colorErrorBgHover',
+  'colorErrorBorder',
+  'colorErrorBorderHover',
+  'colorErrorHover',
+  'colorErrorOutline',
+  'colorErrorText',
+  'colorErrorTextActive',
+  'colorErrorTextHover',
+  'colorPrimary',
+  'colorPrimaryActive',
+  'colorPrimaryBg',
+  'colorPrimaryBgHover',
+  'colorPrimaryBorder',
+  'colorPrimaryBorderHover',
+  'colorPrimaryHover',
+  'colorPrimaryText',
+  'colorPrimaryTextActive',
+  'colorPrimaryTextHover',
+  'colorSuccess',
+  'colorSuccessActive',
+  'colorSuccessBg',
+  'colorSuccessBgHover',
+  'colorSuccessBorder',
+  'colorSuccessBorderHover',
+  'colorSuccessHover',
+  'colorSuccessText',
+  'colorSuccessTextActive',
+  'colorSuccessTextHover',
+  'colorBgBase',
+  'colorBgBlur',
+  'colorBgContainer',
+  'colorBgContainerDisabled',
+  'colorBgElevated',
+  'colorBgLayout',
+  'colorBgMask',
+  'colorBgSpotlight',
+  'colorBgTextActive',
+  'colorBgTextHover',
+  'colorBorder',
+  'colorBorderBg',
+  'colorBorderSecondary',
+  'colorFill',
+  'colorFillAlter',
+  'colorFillContent',
+  'colorFillContentHover',
+  'colorFillQuaternary',
+  'colorFillSecondary',
+  'colorFillTertiary',
+  'colorHighlight',
+  'colorIcon',
+  'colorIconHover',
+  'colorInfo',
+  'colorInfoActive',
+  'colorInfoBg',
+  'colorInfoBgHover',
+  'colorInfoBorder',
+  'colorInfoBorderHover',
+  'colorInfoHover',
+  'colorInfoText',
+  'colorInfoTextActive',
+  'colorInfoTextHover',
+  'colorLink',
+  'colorLinkActive',
+  'colorLinkHover',
+  'colorSplit',
+  'colorText',
+  'colorTextBase',
+  'colorTextDescription',
+  'colorTextDisabled',
+  'colorTextHeading',
+  'colorTextLabel',
+  'colorTextLightSolid',
+  'colorTextPlaceholder',
+  'colorTextQuaternary',
+  'colorTextSecondary',
+  'colorTextTertiary',
+  'colorWarning',
+  'colorWarningActive',
+  'colorWarningBg',
+  'colorWarningBgHover',
+  'colorWarningBorder',
+  'colorWarningBorderHover',
+  'colorWarningHover',
+  'colorWarningOutline',
+  'colorWarningText',
+  'colorWarningTextActive',
+  'colorWarningTextHover',
+  'colorWhite',
+  'controlHeight',
+  'controlHeightLG',
+  'controlHeightSM',
+  'controlHeightXS',
+  'controlInteractiveSize',
+  'controlItemBgActive',
+  'controlItemBgActiveDisabled',
+  'controlItemBgActiveHover',
+  'controlItemBgHover',
+  'controlOutline',
+  'controlOutlineWidth',
+  'controlPaddingHorizontal',
+  'controlPaddingHorizontalSM',
+  'controlTmpOutline',
+  'fontFamily',
+  'fontFamilyCode',
+  'fontHeight',
+  'fontHeightLG',
+  'fontHeightSM',
+  'fontSize',
+  'fontSizeHeading1',
+  'fontSizeHeading2',
+  'fontSizeHeading3',
+  'fontSizeHeading4',
+  'fontSizeHeading5',
+  'fontSizeIcon',
+  'fontSizeLG',
+  'fontSizeSM',
+  'fontSizeXL',
+  'fontWeightStrong',
+  'lineHeight',
+  'lineHeightHeading1',
+  'lineHeightHeading2',
+  'lineHeightHeading3',
+  'lineHeightHeading4',
+  'lineHeightHeading5',
+  'lineHeightLG',
+  'lineHeightSM',
+  'lineType',
+  'lineWidth',
+  'lineWidthBold',
+  'lineWidthFocus',
+  'linkDecoration',
+  'linkFocusDecoration',
+  'linkHoverDecoration',
+  'margin',
+  'marginLG',
+  'marginMD',
+  'marginSM',
+  'marginXL',
+  'marginXS',
+  'marginXXL',
+  'marginXXS',
+  'motion',
+  'motionBase',
+  'motionDurationFast',
+  'motionDurationMid',
+  'motionDurationSlow',
+  'motionEaseInBack',
+  'motionEaseInOut',
+  'motionEaseInOutCirc',
+  'motionEaseInQuint',
+  'motionEaseOut',
+  'motionEaseOutBack',
+  'motionEaseOutCirc',
+  'motionEaseOutQuint',
+  'motionUnit',
+  'opacityImage',
+  'opacityLoading',
+  'padding',
+  'paddingContentHorizontal',
+  'paddingContentHorizontalLG',
+  'paddingContentHorizontalSM',
+  'paddingContentVertical',
+  'paddingContentVerticalLG',
+  'paddingContentVerticalSM',
+  'paddingLG',
+  'paddingMD',
+  'paddingSM',
+  'paddingXL',
+  'paddingXS',
+  'paddingXXS',
+  'screenLG',
+  'screenLGMax',
+  'screenLGMin',
+  'screenMD',
+  'screenMDMax',
+  'screenMDMin',
+  'screenSM',
+  'screenSMMax',
+  'screenSMMin',
+  'screenXL',
+  'screenXLMax',
+  'screenXLMin',
+  'screenXS',
+  'screenXSMax',
+  'screenXSMin',
+  'screenXXL',
+  'screenXXLMin',
+  'size',
+  'sizeLG',
+  'sizeMD',
+  'sizeMS',
+  'sizePopupArrow',
+  'sizeSM',
+  'sizeStep',
+  'sizeUnit',
+  'sizeXL',
+  'sizeXS',
+  'sizeXXL',
+  'sizeXXS',
+  'wireframe',
+  'zIndexBase',
+  'zIndexPopupBase',
 ] as const;
 
+/** We build a narrower type from these allowed keys. */
 export type AllowedAntdTokenKeys = Extract<
   (typeof allowedAntdTokens)[number],
   keyof AntdTokens
@@ -90,6 +329,7 @@ export type AllowedAntdTokenKeys = Extract<
 
 export type SharedAntdTokens = Pick<AntdTokens, AllowedAntdTokenKeys>;
 
+/** The final shape for our custom theme object, combining old theme + shared antd + superset specifics. */
 export type SupersetTheme = LegacySupersetTheme &
   SharedAntdTokens &
   SupersetSpecificTokens;
