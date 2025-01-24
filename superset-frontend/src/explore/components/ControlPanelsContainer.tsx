@@ -746,13 +746,8 @@ export const ControlPanelsContainer = (props: ControlPanelsContainerProps) => {
     }
 
     const errorColor = dataTabHasHadNoErrors.current
-<<<<<<< HEAD
-      ? colors.error.base
-      : colors.warning.base;
-=======
       ? theme.colorWarningText
       : theme.colorErrorText;
->>>>>>> 4738750eba (feat: messing with the theme)
 
     return (
       <>
@@ -781,13 +776,8 @@ export const ControlPanelsContainer = (props: ControlPanelsContainerProps) => {
       </>
     );
   }, [
-<<<<<<< HEAD
-    colors.error.base,
-    colors.warning.base,
-=======
     theme.colorErrorText,
     theme.colorWarningText,
->>>>>>> 4738750eba (feat: messing with the theme)
     dataTabHasHadNoErrors,
     props.errorMessage,
   ]);

@@ -18,7 +18,6 @@
  */
 import { Meta, StoryFn } from '@storybook/react';
 import { Layout, Row, Col, Card } from 'antd-v5';
-import { useTheme } from '@superset-ui/core';
 import ErrorAlert from './ErrorAlert';
 
 const { Content } = Layout;
