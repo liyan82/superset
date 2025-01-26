@@ -43,15 +43,9 @@ import {
   DeprecatedColorVariations,
   DeprecatedThemeColors,
   LegacySupersetTheme,
-  SupersetSpecificTokens,
 } from './types';
 
 /* eslint-disable theme-colors/no-literal-colors */
-
-type AllowedAntdTokenKeys = Extract<
-  (typeof allowedAntdTokens)[number],
-  keyof AntdTokens
->;
 
 export class Theme {
   theme: SupersetTheme;

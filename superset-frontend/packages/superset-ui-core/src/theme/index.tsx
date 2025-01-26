@@ -20,7 +20,7 @@ import emotionStyled from '@emotion/styled';
 import { useTheme as useThemeBasic } from '@emotion/react';
 // import { theme as antdThemeImport } from 'antd-v5';
 import { Theme } from './Theme';
-import type { SupersetTheme } from './Theme';
+import type { SupersetTheme } from './types';
 
 export {
   css,

@@ -19,7 +19,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line no-restricted-syntax
 import { theme as antdThemeImport } from 'antd-v5';
-import tinycolor from 'tinycolor2';
 
 /**
  * Grab all antd tokens via getDesignToken(...).
