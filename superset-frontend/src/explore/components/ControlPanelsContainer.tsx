@@ -177,7 +177,7 @@ const ControlPanelsTabs = styled(Tabs)`
 
     .ant-collapse-ghost > .ant-collapse-item {
       &:not(:last-child) {
-        border-bottom: 1px solid ${theme.colorTextTertiary};
+        border-bottom: 1px solid ${theme.colorSplit};
       }
 
       & > .ant-collapse-header {

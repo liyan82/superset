@@ -51,7 +51,7 @@ export function useTheme() {
 const styled = emotionStyled;
 
 // launching in in dark mode for now while iterating
-const themeObject = Theme.fromSeed({}, true);
+const themeObject = Theme.fromSeed({}, false);
 /*
 const themeObject = Theme.fromSeed({
   token: {

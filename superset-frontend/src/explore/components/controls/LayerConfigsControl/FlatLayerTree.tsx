@@ -47,13 +47,13 @@ export const StyledLayerTreeItem = styled(LayerTreeItem)`
     & .layer-tree-item-close {
       border-right: solid;
       border-right-width: 1px;
-      border-right-color: ${theme.colors.grayscale.light2};
+      border-right-color: ${theme.colorSplit};
     }
 
     & .layer-tree-item-edit {
       border-left: solid;
       border-left-width: 1px;
-      border-left-color: ${theme.colors.grayscale.light2};
+      border-left-color: ${theme.colorSplit};
     }
 
     & .layer-tree-item-title {

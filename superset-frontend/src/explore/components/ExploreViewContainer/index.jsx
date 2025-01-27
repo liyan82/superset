@@ -106,7 +106,7 @@ const ExplorePanelContainer = styled.div`
     display: flex;
     flex: 1;
     flex-wrap: nowrap;
-    border-top: 1px solid ${theme.colors.grayscale.light2};
+    border-top: 1px solid ${theme.colorSplit};
     .explore-column {
       display: flex;
       flex-direction: column;
@@ -115,12 +115,12 @@ const ExplorePanelContainer = styled.div`
     }
     .data-source-selection {
       padding: ${theme.sizeUnit * 2}px 0;
-      border-right: 1px solid ${theme.colors.grayscale.light2};
+      border-right: 1px solid ${theme.colorSplit};
     }
     .main-explore-content {
       flex: 1;
       min-width: ${theme.sizeUnit * 128}px;
-      border-left: 1px solid ${theme.colors.grayscale.light2};
+      border-left: 1px solid ${theme.colorSplit};
       padding: 0 ${theme.sizeUnit * 4}px;
       .panel {
         margin-bottom: 0;

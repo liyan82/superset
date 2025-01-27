@@ -102,8 +102,8 @@ const StyledResizable = styled(Resizable)`
 
       &--bottom-right {
         position: absolute;
-        border-right: 1px solid ${theme.colorBorder};
-        border-bottom: 1px solid ${theme.colorBorder};
+        border-right: 1px solid ${theme.colorSplit};
+        border-bottom: 1px solid ${theme.colorSplit};
         right: ${theme.sizeUnit * 4}px;
         bottom: ${theme.sizeUnit * 4}px;
         width: ${theme.sizeUnit * 2}px;
@@ -117,8 +117,8 @@ const StyledResizable = styled(Resizable)`
         top: 50%;
         transform: translate(0, -50%);
         position: absolute;
-        border-left: 1px solid ${theme.colorBorder};
-        border-right: 1px solid ${theme.colorBorder};
+        border-left: 1px solid ${theme.colorSplit};
+        border-right: 1px solid ${theme.colorSplit};
       }
 
       &--bottom {
@@ -128,8 +128,8 @@ const StyledResizable = styled(Resizable)`
         left: 50%;
         transform: translate(-50%);
         position: absolute;
-        border-top: 1px solid ${theme.colorBorder};
-        border-bottom: 1px solid ${theme.colorBorder};
+        border-top: 1px solid ${theme.colorSplit};
+        border-bottom: 1px solid ${theme.colorSplit};
       }
     }
   `}

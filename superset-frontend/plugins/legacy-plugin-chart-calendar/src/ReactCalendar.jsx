@@ -233,7 +233,7 @@ export default styled(Calendar)`
       left: 50%;
       margin-left: -${theme.sizeUnit}px;
       border-width: ${theme.sizeUnit}px ${theme.sizeUnit}px 0;
-      border-top-color: ${theme.colorText};
+      border-top-color: ${theme.colorSplit};
     }
   `}
 `;

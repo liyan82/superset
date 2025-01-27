@@ -113,7 +113,7 @@ export default styled.div`
     }
 
     .right-border-only {
-      border-right: 2px solid ${theme.colorBorder};
+      border-right: 2px solid ${theme.colorSplit};
     }
     table .right-border-only:last-child {
       border-right: none;

@@ -93,8 +93,8 @@ const Styles = styled.div`
   }
 
   .gutter {
-    border-top: 1px solid ${({ theme }) => theme.colors.grayscale.light2};
-    border-bottom: 1px solid ${({ theme }) => theme.colors.grayscale.light2};
+    border-top: 1px solid ${({ theme }) => theme.colorSplit};
+    border-bottom: 1px solid ${({ theme }) => theme.colorSplit};
     width: ${({ theme }) => theme.sizeUnit * 9}px;
     margin: ${({ theme }) => theme.sizeUnit * GUTTER_SIZE_FACTOR}px auto;
   }

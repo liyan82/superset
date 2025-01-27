@@ -39,7 +39,7 @@ export const StyledTopSection = styled.div`
 `;
 
 export const StyledBottomSection = styled.div`
-  border-top: 1px solid ${({ theme }) => theme.colors.grayscale.light2};
+  border-top: 1px solid ${({ theme }) => theme.colorSplit};
   padding: ${({ theme }) =>
     `${theme.sizeUnit * 4}px ${theme.sizeUnit * 4}px ${theme.sizeUnit * 6}px`};
   .ant-select {
