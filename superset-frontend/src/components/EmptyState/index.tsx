@@ -98,7 +98,7 @@ const EmptyStateContainer = styled.div`
 const Title = styled.p<{ size: EmptyStateSize }>`
   ${({ theme, size }) => css`
     font-size: ${size === 'large' ? theme.fontSizeLG : theme.fontSize}px;
-    color: ${theme.colors.grayscale.light1};
+    color: ${theme.colorTextQuaternary};
     margin-top: ${size === 'large' ? theme.sizeUnit * 4 : theme.sizeUnit * 2}px;
     font-weight: ${theme.fontWeightStrong};
   `}
@@ -107,7 +107,7 @@ const Title = styled.p<{ size: EmptyStateSize }>`
 const Description = styled.p<{ size: EmptyStateSize }>`
   ${({ theme, size }) => css`
     font-size: ${size === 'large' ? theme.fontSize : theme.fontSizeSM}px;
-    color: ${theme.colors.grayscale.light1};
+    color: ${theme.colorTextQuaternary};
     margin-top: ${theme.sizeUnit * 2}px;
   `}
 `;

@@ -90,7 +90,7 @@ const LeftBarStyles = styled.div`
     flex-direction: column;
 
     .divider {
-      border-bottom: 1px solid ${theme.colorBorder};
+      border-bottom: 1px solid ${theme.colorSplit};
       margin: ${theme.sizeUnit * 4}px 0;
     }
   `}
