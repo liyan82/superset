@@ -27,6 +27,8 @@ import { theme as antdThemeImport } from 'antd-v5';
 export type AntdTokens = ReturnType<typeof antdThemeImport.getDesignToken>;
 
 /** Minimal color system references. */
+export type FontSizeKey = 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl';
+
 export interface SystemColors {
   colorPrimary: string;
   colorError: string;
@@ -100,8 +102,6 @@ export const allowedAntdTokens = [
   'borderRadiusSM',
   'borderRadiusXS',
   'boxShadow',
-  'boxShadowCard',
-  'boxShadowDrawerDown',
   'boxShadowDrawerLeft',
   'boxShadowDrawerRight',
   'boxShadowDrawerUp',

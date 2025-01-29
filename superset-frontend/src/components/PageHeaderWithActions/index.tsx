@@ -161,7 +161,7 @@ export const PageHeaderWithActions = ({
             >
               <Button
                 css={menuTriggerStyles}
-                buttonStyle="tertiary"
+                buttonStyle="secondary"
                 aria-label={t('Menu actions trigger')}
                 tooltip={tooltipProps?.text}
                 placement={tooltipProps?.placement}

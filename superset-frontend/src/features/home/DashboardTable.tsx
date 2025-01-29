@@ -194,7 +194,7 @@ function DashboardTable({
                 {t('Dashboard')}
               </>
             ),
-            buttonStyle: 'tertiary',
+            buttonStyle: 'secondary',
             onClick: () => {
               window.location.assign('/dashboard/new');
             },

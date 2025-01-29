@@ -62,7 +62,7 @@ const TableSelectorWrapper = styled.div`
     }
 
     .divider {
-      border-bottom: 1px solid ${theme.colorPrimaryBorder};
+      border-bottom: 1px solid ${theme.colorSplit};
       margin: 15px 0;
     }
 

@@ -32,7 +32,7 @@ import { MenuObjectProps } from 'src/types/bootstrapTypes';
 const StyledHeader = styled.div`
   margin-bottom: ${({ theme }) => theme.sizeUnit * 4}px;
   .header {
-    background-color: ${({ theme }) => theme.colorBgLayout};
+    background-color: ${({ theme }) => theme.colorBgBase};
     font-weight: ${({ theme }) => theme.fontWeightStrong};
     margin-right: ${({ theme }) => theme.sizeUnit * 3}px;
     text-align: left;
@@ -69,12 +69,13 @@ const StyledHeader = styled.div`
     padding-left: 10px;
   }
   .menu {
-    background-color: ${({ theme }) => theme.colorBgLayout};
+    background-color: ${({ theme }) => theme.colorBgBase};
   }
 
   .menu > .antd5-menu {
     padding: ${({ theme }) => theme.sizeUnit * 5}px
       ${({ theme }) => theme.sizeUnit * 8}px;
+    line-height: ${({ theme }) => theme.sizeUnit * 5}px;
 
     .antd5-menu-item {
       border-radius: ${({ theme }) => theme.borderRadius}px;
@@ -85,7 +86,8 @@ const StyledHeader = styled.div`
     }
     .antd5-menu-item:hover,
     .antd5-menu-item:has(> span > .active) {
-      background-color: ${({ theme }) => theme.colors.primary.light4};
+      background-color: ${({ theme }) => theme.colorPrimaryBgHover};
+      color: ${({ theme }) => theme.colorPrimaryActive};
     }
   }
 
@@ -127,14 +129,7 @@ export interface ButtonProps {
   name: ReactNode;
   onClick?: OnClickHandler;
   'data-test'?: string;
-  buttonStyle:
-    | 'primary'
-    | 'secondary'
-    | 'dashed'
-    | 'link'
-    | 'warning'
-    | 'success'
-    | 'tertiary';
+  buttonStyle: 'primary' | 'secondary' | 'dashed' | 'link';
 }
 
 export interface SubMenuProps {

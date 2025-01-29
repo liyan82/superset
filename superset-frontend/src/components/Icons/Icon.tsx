@@ -47,20 +47,16 @@ const AntdIconComponent = ({
   iconSize,
   viewBox,
   ...rest
-}: Omit<IconType, 'ref' | 'css'>) => {
+}: Omit<IconType, 'ref' | 'css'>) => (
   // Ensure props like iconColor and iconSize don't get passed to the DOM
-  return (
-    <AntdIcon
-      viewBox={viewBox || '0 0 24 24'}
-      style={{
-        color: iconColor, // Use iconColor explicitly
-        fontSize: iconSize, // Use iconSize explicitly
-      }}
-      {...rest}
-    />
-  );
-};
-
+  <AntdIcon
+    viewBox={viewBox || '0 0 24 24'}
+    style={{
+      color: iconColor, // Use iconColor explicitly
+    }}
+    {...rest}
+  />
+);
 // Styled version of AntdIconComponent
 export const StyledIcon = styled(AntdIconComponent)<IconType>`
   ${({ iconColor }) => iconColor && `color: ${iconColor};`};
@@ -68,7 +64,8 @@ export const StyledIcon = styled(AntdIconComponent)<IconType>`
     // Fixing alignment on some of the icons
     line-height: 0px;
   }
-  font-size: ${({ iconSize, theme }) => themeObject.getFontSize(iconSize)}px;
+  font-size: ${({ iconSize }) =>
+    iconSize ? themeObject.getFontSize(iconSize) : 24}px;
 `;
 
 export interface IconProps extends IconType {

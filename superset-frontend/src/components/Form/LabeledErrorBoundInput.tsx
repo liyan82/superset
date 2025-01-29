@@ -155,7 +155,7 @@ const LabeledErrorBoundInput = ({
         <Button
           type="link"
           htmlType="button"
-          buttonStyle="default"
+          buttonStyle="secondary"
           onClick={() => {
             window.open(get_url);
             return true;

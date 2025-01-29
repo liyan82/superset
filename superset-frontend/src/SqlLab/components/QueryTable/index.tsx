@@ -283,7 +283,7 @@ const QueryTable = ({
             <ModalTrigger
               className="ResultsModal"
               triggerNode={
-                <Button buttonSize="xsmall" buttonStyle="tertiary">
+                <Button buttonSize="xsmall" buttonStyle="secondary">
                   {t('View')}
                 </Button>
               }

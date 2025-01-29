@@ -158,7 +158,7 @@ const RunQueryActionButton = ({
               trigger: 'click',
             }
           : {
-              buttonStyle: shouldShowStopBtn ? 'warning' : 'primary',
+              buttonStyle: shouldShowStopBtn ? 'danger' : 'primary',
             })}
       >
         {buildText(shouldShowStopBtn, selectedText)}

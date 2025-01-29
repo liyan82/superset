@@ -43,6 +43,7 @@ import {
   DeprecatedColorVariations,
   DeprecatedThemeColors,
   LegacySupersetTheme,
+  FontSizeKey,
 } from './types';
 
 /* eslint-disable theme-colors/no-literal-colors */
@@ -73,6 +74,15 @@ export class Theme {
   };
 
   private antdConfig: AntdThemeConfig;
+
+  private static readonly sizeMap: Record<FontSizeKey, string> = {
+    xs: 'fontSizeXS',
+    s: 'fontSizeSM',
+    m: 'fontSize',
+    l: 'fontSizeLG',
+    xl: 'fontSizeXL',
+    xxl: 'fontSizeXXL',
+  };
 
   private constructor({
     seed,
@@ -188,7 +198,7 @@ export class Theme {
     // in Superset
     const theme = Theme.getAntdTokens(antdConfig);
     return Object.fromEntries(
-      allowedAntdTokens.map(key => [key, theme[key]]),
+      allowedAntdTokens.map(key => [key, (theme as Record<string, any>)[key]]),
     ) as SharedAntdTokens;
   }
 
@@ -222,16 +232,13 @@ export class Theme {
     );
   }
 
-  public getFontSize(size?: string): string {
-    const sizeMap: Record<string, any> = {
-      xs: 'fontSizeXS',
-      s: 'fontSizeSM',
-      m: 'fontSize',
-      l: 'fontSizeLG',
-      xl: 'fontSizeXL',
-      xxl: 'fontSizeXXL',
-    };
-    return this.theme[sizeMap[size || 'm']] || this.theme.fontSize;
+  private getToken(token: string): any {
+    return (this.theme as Record<string, any>)[token];
+  }
+
+  public getFontSize(size?: FontSizeKey): string {
+    const fontSizeKey = Theme.sizeMap[size || 'm'];
+    return this.getToken(fontSizeKey) || this.getToken('fontSize');
   }
 
   private static getAntdTokens(antdConfig: AntdThemeConfig): AntdTokens {
@@ -292,16 +299,17 @@ export class Theme {
       };
     }
 
+    const theme = this.getToken.bind(this);
     return {
-      active: this.theme[`color${firstLetterCapped}Active`],
-      textActive: this.theme[`color${firstLetterCapped}TextActive`],
-      text: this.theme[`color${firstLetterCapped}Text`],
-      textHover: this.theme[`color${firstLetterCapped}TextHover`],
-      hover: this.theme[`color${firstLetterCapped}Hover`],
-      borderHover: this.theme[`color${firstLetterCapped}BorderHover`],
-      border: this.theme[`color${firstLetterCapped}Border`],
-      bgHover: this.theme[`color${firstLetterCapped}BgHover`],
-      bg: this.theme[`color${firstLetterCapped}Bg`],
+      active: theme(`color${firstLetterCapped}Active`),
+      textActive: theme(`color${firstLetterCapped}TextActive`),
+      text: theme(`color${firstLetterCapped}Text`),
+      textHover: theme(`color${firstLetterCapped}TextHover`),
+      hover: theme(`color${firstLetterCapped}Hover`),
+      borderHover: theme(`color${firstLetterCapped}BorderHover`),
+      border: theme(`color${firstLetterCapped}Border`),
+      bgHover: theme(`color${firstLetterCapped}BgHover`),
+      bg: theme(`color${firstLetterCapped}Bg`),
     };
   }
 

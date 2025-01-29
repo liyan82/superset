@@ -103,7 +103,7 @@ export const HeaderContainer = styled.div`
 
 export const LabelsContainer = styled.div`
   padding: ${({ theme }) => theme.sizeUnit}px;
-  border: solid 1px ${({ theme }) => theme.colorBorderSecondary};
+  border: solid 1px ${({ theme }) => theme.colorSplit};
   border-radius: ${({ theme }) => theme.sizeUnit}px;
 `;
 
@@ -133,13 +133,11 @@ export const DndLabelsContainer = styled.div<{
   padding: ${theme.sizeUnit}px;
   border: ${
     !isLoading && isDragging
-      ? `dashed 1px ${
-          canDrop ? theme.colors.info.dark1 : theme.colors.error.dark1
-        }`
+      ? `dashed 1px ${canDrop ? theme.colorBorder : theme.colorErrorBgHover}`
       : `solid 1px ${
           isLoading && isDragging
-            ? theme.colors.warning.light1
-            : theme.colors.grayscale.light2
+            ? theme.colorWarningBgHover
+            : theme.colorBorder
         }`
   };
   border-radius: ${theme.sizeUnit}px;
@@ -151,9 +149,7 @@ export const DndLabelsContainer = styled.div<{
   }
   &:before {
     display: ${isDragging || isLoading ? 'block' : 'none'};
-    background-color: ${
-      canDrop ? theme.colorPrimary : theme.colors.error.light1
-    };
+    background-color: ${canDrop ? theme.colorPrimary : theme.colorErrorBgHover};
     z-index: 10;
     opacity: 10%;
     top: 1px;

@@ -92,9 +92,7 @@ export default function Label(props: LabelProps) {
       borderColor: borderColorHover,
       opacity: 1,
     },
-    ...(monospace
-      ? { 'font-family': theme.typography.families.monospace }
-      : {}),
+    ...(monospace ? { 'font-family': theme.fontFamilyCode } : {}),
   };
   if (monospace) {
     css['font-family'] = theme.fontFamilyCode;

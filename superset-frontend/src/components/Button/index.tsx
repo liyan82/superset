@@ -24,23 +24,23 @@ import {
   MouseEventHandler,
 } from 'react';
 
-import { mix } from 'polished';
 import cx from 'classnames';
 import { Button as AntdButton } from 'antd-v5';
 import { useTheme } from '@superset-ui/core';
 import { Tooltip, TooltipProps } from 'src/components/Tooltip';
-import { ButtonProps as AntdButtonProps } from 'antd-v5/lib/button';
+import {
+  ButtonProps as AntdButtonProps,
+  ButtonType,
+  ButtonVariantType,
+  ButtonColorType,
+} from 'antd-v5/lib/button';
 
 export type OnClickHandler = MouseEventHandler<HTMLElement>;
 
 export type ButtonStyle =
   | 'primary'
   | 'secondary'
-  | 'tertiary'
-  | 'success'
-  | 'warning'
   | 'danger'
-  | 'default'
   | 'link'
   | 'dashed';
 
@@ -55,25 +55,6 @@ export type ButtonProps = Omit<AntdButtonProps, 'css'> &
     cta?: boolean;
     showMarginRight?: boolean;
   };
-
-const decideType = (buttonStyle: ButtonStyle) => {
-  const typeMap: Record<
-    ButtonStyle,
-    'primary' | 'default' | 'dashed' | 'link'
-  > = {
-    primary: 'primary',
-    danger: 'primary',
-    warning: 'primary',
-    success: 'primary',
-    secondary: 'default',
-    default: 'default',
-    tertiary: 'dashed',
-    dashed: 'dashed',
-    link: 'link',
-  };
-
-  return typeMap[buttonStyle];
-};
 
 export default function Button(props: ButtonProps) {
   const {
@@ -91,9 +72,7 @@ export default function Button(props: ButtonProps) {
   } = props;
 
   const theme = useTheme();
-  const { transitionTiming, borderRadius, fontSizeSM, fontWeightStrong } =
-    theme;
-  const { primary, grayscale, warning } = theme.colors;
+  const { fontSizeSM, fontWeightStrong } = theme;
 
   let height = 32;
   let padding = 18;
@@ -105,47 +84,23 @@ export default function Button(props: ButtonProps) {
     padding = 10;
   }
 
-  let backgroundColor;
-  let backgroundColorHover;
-  let backgroundColorActive;
-  let backgroundColorDisabled = grayscale.light2;
-  let color;
-  let colorHover;
-  let borderWidth = 0;
-  let borderStyle = 'none';
-  let borderColor = theme.colorBorder;
-  let borderColorHover;
-  let borderColorDisabled = 'transparent';
+  let antdType: ButtonType = 'default';
+  let variant: ButtonVariantType = 'solid';
+  let color: ButtonColorType = 'primary';
 
-  if (buttonStyle === 'tertiary' || buttonStyle === 'dashed') {
-    backgroundColor = grayscale.light5;
-    backgroundColorHover = grayscale.light5;
-    backgroundColorActive = grayscale.light5;
-    backgroundColorDisabled = grayscale.light5;
-    borderWidth = 1;
-    borderStyle = buttonStyle === 'dashed' ? 'dashed' : 'solid';
-    borderColor = primary.dark1;
-    borderColorHover = primary.light1;
-    borderColorDisabled = grayscale.light2;
+  if (!buttonStyle || buttonStyle === 'primary') {
+    variant = 'solid';
+  } else if (buttonStyle === 'secondary') {
+    variant = 'outlined';
+    color = 'default';
+  } else if (buttonStyle === 'dashed') {
+    color = 'primary';
+    variant = 'dashed';
   } else if (buttonStyle === 'danger') {
-    colorHover = color;
-  } else if (buttonStyle === 'warning') {
-    backgroundColor = warning.base;
-    backgroundColorHover = mix(0.1, grayscale.dark2, theme.colorWarningActive);
-    backgroundColorActive = mix(0.2, grayscale.dark2, theme.colorWarningActive);
-    color = grayscale.light5;
-    colorHover = color;
-  } else if (buttonStyle === 'success') {
-    backgroundColor = theme.colorSuccessText;
-    backgroundColorHover = mix(0.1, grayscale.light5, theme.colorSuccessActive);
-    backgroundColorActive = mix(0.2, grayscale.dark2, theme.colorSuccessActive);
-    color = grayscale.light5;
-    colorHover = color;
+    color = 'danger';
   } else if (buttonStyle === 'link') {
-    backgroundColor = 'transparent';
-    backgroundColorHover = 'transparent';
-    backgroundColorActive = 'transparent';
-    color = primary.dark1;
+    variant = 'link';
+    antdType = 'default';
   }
 
   const element = children as ReactElement;
@@ -159,14 +114,16 @@ export default function Button(props: ButtonProps) {
   const firstChildMargin =
     showMarginRight && renderedChildren.length > 1 ? theme.sizeUnit * 2 : 0;
 
-  const effectiveButtonStyle: ButtonStyle = buttonStyle ?? 'default';
+  const effectiveButtonStyle: ButtonStyle = buttonStyle ?? 'primary';
 
   const button = (
     <AntdButton
       href={disabled ? undefined : href}
       disabled={disabled}
-      type={decideType(effectiveButtonStyle)}
+      type={antdType}
+      variant={variant}
       danger={effectiveButtonStyle === 'danger'}
+      color={color}
       className={cx(
         className,
         'superset-button',
@@ -184,44 +141,8 @@ export default function Button(props: ButtonProps) {
         fontWeight: fontWeightStrong,
         height,
         padding: `0px ${padding}px`,
-        transition: `all ${transitionTiming}s`,
         minWidth: cta ? theme.sizeUnit * 36 : undefined,
         minHeight: cta ? theme.sizeUnit * 8 : undefined,
-        boxShadow: 'none',
-        borderWidth,
-        borderStyle,
-        borderColor,
-        borderRadius,
-        color,
-        background: backgroundColor,
-        ...(colorHover || backgroundColorHover || borderColorHover
-          ? {
-              [`&.superset-button.superset-button-${buttonStyle}:hover`]: {
-                ...(colorHover && { color: colorHover }),
-                ...(backgroundColorHover && {
-                  background: backgroundColorHover,
-                }),
-                ...(borderColorHover && { borderColor: borderColorHover }),
-              },
-            }
-          : {}),
-        '&:active': {
-          color,
-          backgroundColor: backgroundColorActive,
-        },
-        '&:focus': {
-          color,
-          backgroundColor,
-          borderColor,
-        },
-        '&[disabled], &[disabled]:hover': {
-          color: grayscale.base,
-          backgroundColor:
-            buttonStyle === 'link' ? 'transparent' : backgroundColorDisabled,
-          borderColor:
-            buttonStyle === 'link' ? 'transparent' : borderColorDisabled,
-          pointerEvents: 'none',
-        },
         marginLeft: 0,
         '& + .superset-button': {
           marginLeft: theme.sizeUnit * 2,

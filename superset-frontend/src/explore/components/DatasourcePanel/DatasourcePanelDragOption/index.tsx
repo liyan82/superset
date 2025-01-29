@@ -41,6 +41,7 @@ const DatasourceItemContainer = styled.div`
     // hack to make the drag preview image corners rounded
     transform: translate(0, 0);
     color: ${theme.colorText};
+    background-color: ${theme.colorBgLayout};
     border-radius: 4px;
 
     > div {

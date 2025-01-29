@@ -480,7 +480,7 @@ export default class CRUDCollection extends PureComponent<
             <StyledButtonWrapper>
               <Button
                 buttonSize="small"
-                buttonStyle="tertiary"
+                buttonStyle="secondary"
                 onClick={this.onAddItem}
                 data-test="add-item-button"
               >

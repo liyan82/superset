@@ -84,20 +84,22 @@ const App = () => (
         {routes.map(({ path, Component, props = {}, Fallback = Loading }) => (
           <Route path={path} key={path}>
             <Suspense fallback={<Fallback />}>
-              <Layout.Content
-                css={css`
-                  display: flex;
-                  flex-direction: column;
-                `}
-              >
-                <ErrorBoundary
+              <Layout>
+                <Layout.Content
                   css={css`
-                    margin: 16px;
+                    display: flex;
+                    flex-direction: column;
                   `}
                 >
-                  <Component user={bootstrapData.user} {...props} />
-                </ErrorBoundary>
-              </Layout.Content>
+                  <ErrorBoundary
+                    css={css`
+                      margin: 16px;
+                    `}
+                  >
+                    <Component user={bootstrapData.user} {...props} />
+                  </ErrorBoundary>
+                </Layout.Content>
+              </Layout>
             </Suspense>
           </Route>
         ))}

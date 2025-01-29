@@ -1617,7 +1617,6 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
                     placeholder={t('Condition')}
                     value={currentAlert?.validator_config_json?.op || undefined}
                     options={CONDITIONS}
-                    css={inputSpacer}
                   />
                 </div>
               </StyledInputContainer>
