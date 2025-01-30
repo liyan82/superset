@@ -33,7 +33,7 @@ import {
   TimeFormatter,
   ValueFormatter,
 } from '@superset-ui/core';
-import { SortSeriesType } from '@superset-ui/chart-controls';
+import { SortSeriesType, LegendPaddingType } from '@superset-ui/chart-controls';
 import { format } from 'echarts/core';
 import type { LegendComponentOption } from 'echarts/components';
 import type { SeriesOption } from 'echarts';
@@ -425,6 +425,7 @@ export function getLegendProps(
   theme: SupersetTheme,
   zoomable = false,
   legendState?: LegendState,
+  padding?: LegendPaddingType,
 ): LegendComponentOption | LegendComponentOption[] {
   const legend: LegendComponentOption | LegendComponentOption[] = {
     orient: [LegendOrientation.Top, LegendOrientation.Bottom].includes(
@@ -446,6 +447,10 @@ export function getLegendProps(
   switch (orientation) {
     case LegendOrientation.Left:
       legend.left = 0;
+      legend.textStyle = {
+        overflow: 'truncate',
+        width: Math.max((padding?.left || 205) - 45, 10),
+      };
       break;
     case LegendOrientation.Right:
       legend.right = 0;
@@ -467,7 +472,7 @@ export function getChartPadding(
   show: boolean,
   orientation: LegendOrientation,
   margin?: string | number | null,
-  padding?: { top?: number; bottom?: number; left?: number; right?: number },
+  padding?: LegendPaddingType,
   isHorizontal?: boolean,
 ): {
   bottom: number;
