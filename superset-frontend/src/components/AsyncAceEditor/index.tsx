@@ -194,7 +194,7 @@ export default function AsyncAceEditor(
                 .ace_tooltip {
                   margin-left: ${supersetTheme.sizeUnit * 2}px;
                   padding: 0px;
-                  border: 1px solid ${supersetTheme.colors.grayscale.light1};
+                  border: 1px solid ${supersetTheme.colorBorder};
                 }
 
                 & .tooltip-detail {
