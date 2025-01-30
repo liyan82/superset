@@ -503,7 +503,7 @@ const AdhocFilterEditPopoverSimpleTabContent: FC<Props> = props => {
             advancedDataTypesState.parsedAdvancedDataType
           }
         >
-          <div style={{ marginTop: '16px' }}></div>
+          <div style={{ marginTop: '16px' }} />
           <Input
             data-test="adhoc-filter-simple-value"
             name="filter-value"
