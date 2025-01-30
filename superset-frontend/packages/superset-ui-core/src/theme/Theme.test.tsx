@@ -25,13 +25,13 @@ describe('Theme Class', () => {
     const theme = Theme.fromSeed({}, false);
     const themeConfig = theme.theme;
     expect(themeConfig.colorBgElevated).toBe('#ffffff');
-    expect(themeConfig.colorText).toBe('rgba(0, 0, 0, 0.88)');
+    expect(themeConfig.colorText).toBe('rgba(0,0,0,0.88)');
   });
 
   test('should apply custom system colors and dark mode', () => {
     const theme = Theme.fromSeed({}, true);
     const themeConfig = theme.theme;
-    expect(themeConfig.colorText).toBe('rgba(255, 255, 255, 0.85)');
+    expect(themeConfig.colorText).toBe('rgba(255,255,255,0.85)');
   });
 });
 
