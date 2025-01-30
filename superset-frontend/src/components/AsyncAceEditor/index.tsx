@@ -245,6 +245,7 @@ export default function AsyncAceEditor(
               tabSize={tabSize}
               defaultValue={defaultValue}
               setOptions={{ fontFamily }}
+              style={{ border: `1px solid ${supersetTheme.colors.grayscale.light2}` }}
               {...props}
             />
           </>
