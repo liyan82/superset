@@ -40,19 +40,6 @@ services:
     volumes:
       - redis:/data
 
-  db:
-    env_file:
-      - path: docker/.env # default
-        required: true
-      - path: docker/.env-local # optional override
-        required: false
-    image: postgres:15
-    container_name: superset_db
-    restart: unless-stopped
-    volumes:
-      - db_home:/var/lib/postgresql/data
-      - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-
   superset:
     env_file:
       - path: docker/.env # default
@@ -85,8 +72,6 @@ services:
       - path: docker/.env-local # optional override
         required: false
     depends_on:
-      db:
-        condition: service_started
       redis:
         condition: service_started
     user: "root"
@@ -96,6 +81,12 @@ services:
     environment:
       SUPERSET_LOAD_EXAMPLES: "${SUPERSET_LOAD_EXAMPLES:-yes}"
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
+      DATABASE_HOST: "host.docker.internal"
+      DATABASE_PORT: "5432"
+      DATABASE_DB: "superset"
+      DATABASE_USER: "superset"
+      DATABASE_PASSWORD: "your_secure_password"
+      SUPERSET__SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://superset:your_secure_password@host.docker.internal:5432/superset"
 
   superset-worker:
     build:
@@ -145,8 +136,6 @@ services:
 
 volumes:
   superset_home:
-    external: false
-  db_home:
     external: false
   redis:
     external: false
