@@ -52,8 +52,7 @@ services:
     command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
     user: "root"
     restart: unless-stopped
-    ports:
-      - 8088:8088
+    network_mode: "host"
     depends_on:
       superset-init:
         condition: service_completed_successfully
@@ -75,18 +74,19 @@ services:
       redis:
         condition: service_started
     user: "root"
+    network_mode: "host"
     volumes: *superset-volumes
     healthcheck:
       disable: true
     environment:
       SUPERSET_LOAD_EXAMPLES: "${SUPERSET_LOAD_EXAMPLES:-yes}"
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
-      DATABASE_HOST: "host.docker.internal"
+      DATABASE_HOST: 127.0.0.1
       DATABASE_PORT: "5432"
       DATABASE_DB: "superset"
       DATABASE_USER: "superset"
-      DATABASE_PASSWORD: "your_secure_password"
-      SUPERSET__SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://superset:your_secure_password@host.docker.internal:5432/superset"
+      DATABASE_PASSWORD: "yeef2FATH4tiff"
+      SUPERSET__SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://superset:yeef2FATH4tiff@127.0.0.1:5432/superset"
 
   superset-worker:
     build:
