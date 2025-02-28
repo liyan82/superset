@@ -47,7 +47,7 @@ services:
       - ./docker/healthcheck-external-db.sh:/app/docker/healthcheck-external-db.sh
     restart: "no"
     healthcheck:
-      test: ["CMD", "sh", "-c", "sh /app/docker/healthcheck-external-db.sh || exit 0; exit 1"]
+      test: ["CMD", "sh", "-c", "sh /app/docker/healthcheck-external-db.sh | grep -q 'initialization not needed'"]
       interval: 5s
       timeout: 10s
       retries: 3
@@ -93,7 +93,7 @@ services:
         required: false
     depends_on:
       db-healthcheck:
-        condition: service_healthy
+        condition: service_completed_successfully
       redis:
         condition: service_started
     user: "root"

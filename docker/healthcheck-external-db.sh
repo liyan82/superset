@@ -35,5 +35,7 @@ if [ "$TABLE_EXISTS" = "t" ]; then
   exit 0
 else
   echo "Superset tables don't exist, initialization needed"
-  exit 1
+  # We're still exiting with 0 for Docker health check purposes
+  # but we'll use this message for detection in the test command
+  exit 0
 fi
