@@ -44,10 +44,10 @@ services:
       DB_PASSWORD: yeef2FATH4tiff
       DB_NAME: superset
     volumes:
-      - ./docker/healthcheck-external-db.sh:docker/healthcheck-external-db.sh
+      - ./docker/healthcheck-external-db.sh:/app/docker/healthcheck-external-db.sh
     restart: "no"
     healthcheck:
-      test: ["CMD", "sh", "-c", "sh ./docker/healthcheck-external-db.sh || exit 0; exit 1"]
+      test: ["CMD", "sh", "-c", "sh /app/docker/healthcheck-external-db.sh || exit 0; exit 1"]
       interval: 5s
       timeout: 10s
       retries: 3
