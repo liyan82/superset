@@ -41,7 +41,7 @@ if [ "$CYPRESS_CONFIG" == "true" ]; then
     ADMIN_PASSWORD="FER8vigh2fish"
     export SUPERSET_TESTENV=true
     export POSTGRES_DB=superset_cypress
-    export SUPERSET__SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://superset:yeef2FATH4tiff@127.0.0.1:5432/superset_cypress
+    export SUPERSET__SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://superset:yeef2FATH4tiff@172.18.0.1:5432/superset_cypress
 fi
 # Initialize the database
 echo_step "1" "Starting" "Applying DB migrations"

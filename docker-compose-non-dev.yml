@@ -33,6 +33,26 @@ x-common-build: &common-build
     - apache/superset-cache:3.10-slim-bookworm
 
 services:
+  db-healthcheck:
+    image: alpine:latest
+    container_name: superset_db_healthcheck
+    command: [ "sh", "./docker/healthcheck-external-db.sh" ]
+    environment:
+      DB_HOST: 172.18.0.1
+      DB_PORT: 5432
+      DB_USER: superset
+      DB_PASSWORD: yeef2FATH4tiff
+      DB_NAME: superset
+    volumes:
+      - ./docker/healthcheck-external-db.sh:docker/healthcheck-external-db.sh
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "sh ./docker/healthcheck-external-db.sh || exit 0; exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
   redis:
     image: redis:7
     container_name: superset_cache
@@ -49,10 +69,11 @@ services:
     build:
       <<: *common-build
     container_name: superset_app
-    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
+    command: [ "/app/docker/docker-bootstrap.sh", "app-gunicorn" ]
     user: "root"
     restart: unless-stopped
-    network_mode: "host"
+    ports:
+      - 8088:8088
     depends_on:
       superset-init:
         condition: service_completed_successfully
@@ -64,35 +85,36 @@ services:
     container_name: superset_init
     build:
       <<: *common-build
-    command: ["/app/docker/docker-init.sh"]
+    command: [ "/app/docker/docker-init.sh" ]
     env_file:
       - path: docker/.env # default
         required: true
       - path: docker/.env-local # optional override
         required: false
     depends_on:
+      db-healthcheck:
+        condition: service_healthy
       redis:
         condition: service_started
     user: "root"
-    network_mode: "host"
     volumes: *superset-volumes
     healthcheck:
       disable: true
     environment:
       SUPERSET_LOAD_EXAMPLES: "${SUPERSET_LOAD_EXAMPLES:-yes}"
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
-      DATABASE_HOST: 127.0.0.1
+      DATABASE_HOST: 172.18.0.1
       DATABASE_PORT: "5432"
       DATABASE_DB: "superset"
       DATABASE_USER: "superset"
       DATABASE_PASSWORD: "yeef2FATH4tiff"
-      SUPERSET__SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://superset:yeef2FATH4tiff@127.0.0.1:5432/superset"
+      SUPERSET__SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://superset:yeef2FATH4tiff@172.18.0.1:5432/superset"
 
   superset-worker:
     build:
       <<: *common-build
     container_name: superset_worker
-    command: ["/app/docker/docker-bootstrap.sh", "worker"]
+    command: [ "/app/docker/docker-bootstrap.sh", "worker" ]
     env_file:
       - path: docker/.env # default
         required: true
@@ -117,7 +139,7 @@ services:
     build:
       <<: *common-build
     container_name: superset_worker_beat
-    command: ["/app/docker/docker-bootstrap.sh", "beat"]
+    command: [ "/app/docker/docker-bootstrap.sh", "beat" ]
     env_file:
       - path: docker/.env # default
         required: true
