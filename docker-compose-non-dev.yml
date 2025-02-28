@@ -36,7 +36,7 @@ services:
   db-healthcheck:
     image: alpine:latest
     container_name: superset_db_healthcheck
-    command: [ "sh", "./docker/healthcheck-external-db.sh" ]
+    command: [ "sh", "/app/docker/healthcheck-external-db.sh" ]
     environment:
       DB_HOST: 172.18.0.1
       DB_PORT: 5432
