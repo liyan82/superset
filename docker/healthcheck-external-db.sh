@@ -8,7 +8,7 @@ if ! command -v psql > /dev/null; then
 fi
 
 # Use environment variables from the container
-DB_HOST=127.0.0.1
+DB_HOST=172.18.0.1
 DB_PORT=5432
 DB_USER=superset
 DB_PASSWORD=yeef2FATH4tiff
