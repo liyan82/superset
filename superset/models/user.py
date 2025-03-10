@@ -1,16 +1,28 @@
 from flask_appbuilder.security.sqla.models import User
-from sqlalchemy import Column, Boolean
+from sqlalchemy import Column, Boolean, String
+from sqlalchemy.ext.declarative import declared_attr
+from flask_appbuilder import Model
 
 
-class CustomUser(User):
-    """
-    Extends the base User model with subscription-related fields
-    """
-    # You can add direct fields if needed
-    is_paid_user = Column(Boolean, default=False)
-    trial_used = Column(Boolean, default=False)
+# Option 1: Add columns to existing User class (recommended)
+# This uses SQLAlchemy's declared_attr pattern for extensions
 
-    # Use property methods for derived values
+class UserSubscriptionMixin:
+    """Mixin that adds subscription fields to the User model"""
+
+    @declared_attr
+    def is_paid_user(cls):
+        return Column(Boolean, default=False)
+
+    @declared_attr
+    def trial_used(cls):
+        return Column(Boolean, default=False)
+
+    @declared_attr
+    def stripe_customer_id(cls):
+        return Column(String(255), nullable=True)
+
+    # Property methods remain unchanged
     @property
     def has_active_subscription(self):
         for subscription in self.subscriptions:
@@ -32,3 +44,7 @@ class CustomUser(User):
             import json
             return json.loads(sub.plan.features)
         return {}
+
+
+# Apply the mixin to User
+User.__bases__ = (UserSubscriptionMixin,) + User.__bases__

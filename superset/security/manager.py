@@ -2736,11 +2736,6 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
 
 
 class SubscriptionSecurityManager(SecurityManager):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Import locally to avoid circular imports
-        from superset.models.user import CustomUser
-        self.user_model = CustomUser
 
     def is_subscription_valid_for_route(self, route):
         """Check if the current user's subscription allows access to a route"""
