@@ -39,6 +39,7 @@ class UserAttribute(Model, AuditMixinNullable):
     user = relationship(
         security_manager.user_model, backref="extra_attributes", foreign_keys=[user_id]
     )
+    # Use string reference to avoid circular dependency with Dashboard model
     welcome_dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
-    welcome_dashboard = relationship("Dashboard")
+    welcome_dashboard = relationship("Dashboard", foreign_keys=[welcome_dashboard_id])
     avatar_url = Column(String(100))

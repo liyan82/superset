@@ -15,19 +15,22 @@
 # specific language governing permissions and limitations
 # under the License.
 from . import (
+    base,
     alerts,
     api,
-    base,
     core,
     css_templates,
     dynamic_plugins,
     health,
     sql_lab,
     tags,
+    admin,  # Move admin after tags
+    subscription,  # Move subscription after tags
 )
 from .log import api as log_api, views
 
 __all__ = [
+    "admin",
     "alerts",
     "api",
     "base",
@@ -37,6 +40,7 @@ __all__ = [
     "health",
     "log_api",
     "views",
+    "subscription",
     "sql_lab",
     "tags",
 ]

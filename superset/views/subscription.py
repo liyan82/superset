@@ -10,7 +10,8 @@ from superset.models.subscription import SubscriptionPlan, UserSubscription, Pay
 
 class SubscriptionView(BaseView):
     route_base = "/subscription"
-
+    default_view = "plans"  # Set the default view to the plans method
+    
     @expose('/plans')
     def plans(self):
         """Show available subscription plans"""
