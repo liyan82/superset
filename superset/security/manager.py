@@ -22,7 +22,6 @@ import re
 import time
 from collections import defaultdict
 from typing import Any, Callable, cast, NamedTuple, Optional, TYPE_CHECKING
-from superset.models.user import CustomUser
 
 from flask import current_app, Flask, g, Request
 from flask import redirect, url_for, flash, request
@@ -2737,7 +2736,11 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
 
 
 class SubscriptionSecurityManager(SecurityManager):
-    user_model = CustomUser
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Import locally to avoid circular imports
+        from superset.models.user import CustomUser
+        self.user_model = CustomUser
 
     def is_subscription_valid_for_route(self, route):
         """Check if the current user's subscription allows access to a route"""
