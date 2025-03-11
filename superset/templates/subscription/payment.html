@@ -1,0 +1,96 @@
+{% extends "appbuilder/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Payment for {{ plan.name }}</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Subscription Details</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>{{ plan.name }}</h4>
+                            <p>{{ plan.description }}</p>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <h4>${{ "%.2f"|format(plan.price) }} / {{ plan.billing_cycle }}</h4>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <form method="post">
+                        <div class="form-group">
+                            <label for="payment_method">Payment Method</label>
+                            <select class="form-control" id="payment_method" name="payment_method">
+                                <option value="credit_card">Credit Card</option>
+                                <option value="paypal">PayPal</option>
+                            </select>
+                        </div>
+                        
+                        <div id="credit_card_details">
+                            <div class="form-group">
+                                <label for="card_number">Card Number</label>
+                                <input type="text" class="form-control" id="card_number" placeholder="Card Number">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="expiration">Expiration (MM/YY)</label>
+                                        <input type="text" class="form-control" id="expiration" placeholder="MM/YY">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="cvv">CVV</label>
+                                        <input type="text" class="form-control" id="cvv" placeholder="CVV">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block">Complete Payment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Order Summary</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table">
+                        <tr>
+                            <td>{{ plan.name }} ({{ plan.billing_cycle }})</td>
+                            <td class="text-right">${{ "%.2f"|format(plan.price) }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total</th>
+                            <th class="text-right">${{ "%.2f"|format(plan.price) }}</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#payment_method').change(function() {
+            if ($(this).val() === 'credit_card') {
+                $('#credit_card_details').show();
+            } else {
+                $('#credit_card_details').hide();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "appbuilder/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Subscription Plans</h1>
+    
+    <div class="row">
+        {% if plans %}
+            {% for plan in plans %}
+                <div class="col-md-4">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">{{ plan.name }}</h3>
+                        </div>
+                        <div class="panel-body">
+                            <p>{{ plan.description }}</p>
+                            <h4>${{ "%.2f"|format(plan.price) }} / {{ plan.billing_cycle }}</h4>
+                            
+                            <h5>Features:</h5>
+                            <ul class="list-unstyled">
+                                {% if plan.features %}
+                                    {% for feature in plan.features.split(',') %}
+                                        <li><i class="fa fa-check text-success"></i> {{ feature.strip() }}</li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li><i class="fa fa-info-circle text-info"></i> No specific features listed</li>
+                                {% endif %}
+                            </ul>
+                            
+                            <a href="{{ url_for('.subscribe', plan_id=plan.id) }}" class="btn btn-primary btn-block">
+                                Subscribe
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    No subscription plans are currently available.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

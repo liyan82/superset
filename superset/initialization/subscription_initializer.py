@@ -24,6 +24,7 @@ class SubscriptionAppInitializer(SupersetAppInitializer):
             UserSubscriptionAdmin,
             PaymentAdmin
         )
+        from superset.initialization.subscription_user_initializer import init_subscription_user_views
 
         # Initialize payment processor
         from superset.utils.payment import PaymentProcessor
@@ -51,3 +52,6 @@ class SubscriptionAppInitializer(SupersetAppInitializer):
             "Payments",
             category="Admin"
         )
+        
+        # Replace the default user model view with our subscription-enhanced version
+        init_subscription_user_views(self.superset_app, appbuilder)

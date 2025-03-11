@@ -1,0 +1,34 @@
+{% extends "appbuilder/general/model/edit.html" %}
+
+{% block content %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add some styling to make subscription fields more visible
+        const subscriptionFields = [
+            'is_paid_user',
+            'trial_used',
+            'stripe_customer_id'
+        ];
+        
+        subscriptionFields.forEach(function(field) {
+            const formGroup = document.querySelector(`#${field}`).closest('.form-group');
+            if (formGroup) {
+                // Add a subscription section header before the first subscription field
+                if (field === 'is_paid_user') {
+                    const subscriptionHeader = document.createElement('div');
+                    subscriptionHeader.className = 'subscription-header';
+                    subscriptionHeader.innerHTML = '<h4 style="margin-top: 30px; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid #eee;">Subscription Information</h4>';
+                    formGroup.parentNode.insertBefore(subscriptionHeader, formGroup);
+                }
+                
+                // Highlight subscription fields
+                formGroup.style.backgroundColor = '#f8f9fa';
+                formGroup.style.padding = '10px';
+                formGroup.style.borderRadius = '4px';
+                formGroup.style.marginBottom = '10px';
+            }
+        });
+    });
+</script>
+{% endblock %}

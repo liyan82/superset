@@ -1,0 +1,127 @@
+{% extends "appbuilder/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Manage Your Subscription</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            {% if subscription %}
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Current Subscription</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>{{ subscription.plan.name }}</h4>
+                                <p>{{ subscription.plan.description }}</p>
+                                
+                                <h5>Status: 
+                                    {% if subscription.status == 'active' %}
+                                        <span class="label label-success">Active</span>
+                                    {% elif subscription.status == 'cancelled' %}
+                                        <span class="label label-warning">Cancelled</span>
+                                    {% elif subscription.status == 'expired' %}
+                                        <span class="label label-danger">Expired</span>
+                                    {% else %}
+                                        <span class="label label-default">{{ subscription.status }}</span>
+                                    {% endif %}
+                                </h5>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Subscription Details:</h5>
+                                <ul class="list-unstyled">
+                                    <li><strong>Started:</strong> {{ subscription.start_date.strftime('%Y-%m-%d') }}</li>
+                                    <li><strong>Ends:</strong> {{ subscription.end_date.strftime('%Y-%m-%d') }}</li>
+                                    <li>
+                                        <strong>Auto-renew:</strong>
+                                        {% if subscription.is_auto_renew %}
+                                            <span class="text-success">Yes</span>
+                                        {% else %}
+                                            <span class="text-danger">No</span>
+                                        {% endif %}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        {% if subscription.status == 'active' %}
+                            <hr>
+                            <form method="post" action="{{ url_for('.cancel') }}" onsubmit="return confirm('Are you sure you want to cancel your subscription?');">
+                                <button type="submit" class="btn btn-danger">Cancel Subscription</button>
+                            </form>
+                        {% elif subscription.status == 'cancelled' or subscription.status == 'expired' %}
+                            <hr>
+                            <a href="{{ url_for('.plans') }}" class="btn btn-primary">View Available Plans</a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Payment History</h3>
+                    </div>
+                    <div class="panel-body">
+                        {% if subscription.payments %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in subscription.payments %}
+                                        <tr>
+                                            <td>{{ payment.payment_date.strftime('%Y-%m-%d') }}</td>
+                                            <td>${{ "%.2f"|format(payment.amount) }}</td>
+                                            <td>{{ payment.payment_method }}</td>
+                                            <td>
+                                                {% if payment.status == 'success' %}
+                                                    <span class="label label-success">Success</span>
+                                                {% elif payment.status == 'failed' %}
+                                                    <span class="label label-danger">Failed</span>
+                                                {% else %}
+                                                    <span class="label label-default">{{ payment.status }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="alert alert-info">
+                                No payment history available.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <h4>No Active Subscription</h4>
+                    <p>You don't have an active subscription at the moment.</p>
+                    <a href="{{ url_for('.plans') }}" class="btn btn-primary">View Available Plans</a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Need Help?</h3>
+                </div>
+                <div class="panel-body">
+                    <p>If you have any questions about your subscription or need assistance, please contact our support team:</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fa fa-envelope"></i> <a href="mailto:support@example.com">support@example.com</a></li>
+                        <li><i class="fa fa-phone"></i> (123) 456-7890</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
