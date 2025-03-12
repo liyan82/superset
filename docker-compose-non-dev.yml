@@ -49,7 +49,7 @@ services:
     build:
       <<: *common-build
     container_name: superset_app
-    command: [ "/app/docker/docker-bootstrap.sh", "app-gunicorn" ]
+    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
     user: "root"
     restart: unless-stopped
     ports:
@@ -65,7 +65,7 @@ services:
     container_name: superset_init
     build:
       <<: *common-build
-    command: [ "/app/docker/conditional-init.sh" ]
+    command: ["/app/docker/conditional-init.sh"]
     env_file:
       - path: docker/.env # default
         required: true
@@ -92,7 +92,7 @@ services:
     build:
       <<: *common-build
     container_name: superset_worker
-    command: [ "/app/docker/docker-bootstrap.sh", "worker" ]
+    command: ["/app/docker/docker-bootstrap.sh", "worker"]
     env_file:
       - path: docker/.env # default
         required: true
@@ -117,7 +117,7 @@ services:
     build:
       <<: *common-build
     container_name: superset_worker_beat
-    command: [ "/app/docker/docker-bootstrap.sh", "beat" ]
+    command: ["/app/docker/docker-bootstrap.sh", "beat"]
     env_file:
       - path: docker/.env # default
         required: true
