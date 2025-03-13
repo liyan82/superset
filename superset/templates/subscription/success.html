@@ -1,0 +1,48 @@
+{% extends "appbuilder/base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Subscription Successful!</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="text-center">
+                        <i class="fa fa-check-circle fa-5x text-success" style="margin: 20px 0;"></i>
+                        
+                        <h3>Thank you for your subscription!</h3>
+                        <p class="lead">Your {{ subscription.plan.name }} subscription has been successfully activated.</p>
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>Subscription Details</h4>
+                                <ul class="list-unstyled">
+                                    <li><strong>Plan:</strong> {{ subscription.plan.name }}</li>
+                                    <li><strong>Price:</strong> ${{ "%.2f"|format(subscription.plan.price) }} / {{ subscription.plan.billing_cycle }}</li>
+                                    <li><strong>Status:</strong> <span class="label label-success">Active</span></li>
+                                    <li><strong>Start Date:</strong> {{ subscription.start_date.strftime('%Y-%m-%d') }}</li>
+                                    <li><strong>Renewal Date:</strong> {{ subscription.end_date.strftime('%Y-%m-%d') }}</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>What's Next?</h4>
+                                <p>You now have full access to all premium features associated with your subscription plan.</p>
+                                <p>You can manage your subscription at any time from your account settings.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center" style="margin-top: 30px;">
+                            <a href="{{ url_for('SupersetIndexView.index') }}" class="btn btn-primary">Return to Dashboard</a>
+                            <a href="{{ url_for('SubscriptionView.manage') }}" class="btn btn-default">Manage Subscription</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

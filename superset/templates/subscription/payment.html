@@ -24,31 +24,33 @@
                     <hr>
                     
                     <form method="post">
+                        <!-- CSRF Token -->
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
                         <div class="form-group">
                             <label for="payment_method">Payment Method</label>
                             <select class="form-control" id="payment_method" name="payment_method">
                                 <option value="credit_card">Credit Card</option>
-                                <option value="paypal">PayPal</option>
                             </select>
                         </div>
                         
                         <div id="credit_card_details">
                             <div class="form-group">
                                 <label for="card_number">Card Number</label>
-                                <input type="text" class="form-control" id="card_number" placeholder="Card Number">
+                                <input type="text" class="form-control" id="card_number" name="card_number" placeholder="Card Number">
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="expiration">Expiration (MM/YY)</label>
-                                        <input type="text" class="form-control" id="expiration" placeholder="MM/YY">
+                                        <input type="text" class="form-control" id="expiration" name="expiration" placeholder="MM/YY">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="cvv">CVV</label>
-                                        <input type="text" class="form-control" id="cvv" placeholder="CVV">
+                                        <input type="text" class="form-control" id="cvv" name="cvv" placeholder="CVV">
                                     </div>
                                 </div>
                             </div>
@@ -84,13 +86,8 @@
 
 <script>
     $(document).ready(function() {
-        $('#payment_method').change(function() {
-            if ($(this).val() === 'credit_card') {
-                $('#credit_card_details').show();
-            } else {
-                $('#credit_card_details').hide();
-            }
-        });
+        // Credit card details are always shown since it's the only option now
+        $('#credit_card_details').show();
     });
 </script>
 {% endblock %}
