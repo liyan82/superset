@@ -63,7 +63,7 @@
                         <h3 class="panel-title">Payment History</h3>
                     </div>
                     <div class="panel-body">
-                        {% if subscription.payments %}
+                        {% if subscription.payments and subscription.payments|length > 0 %}
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
@@ -95,6 +95,22 @@
                         {% else %}
                             <div class="alert alert-info">
                                 No payment history available.
+                                <a href="{{ url_for('.link_all_user_payments') }}" class="btn btn-xs btn-primary pull-right">Link My Payments</a>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Admin actions -->
+                        {% if is_admin %}
+                            <div class="well well-sm" style="margin-top: 15px;">
+                                <h5>Admin Actions:</h5>
+                                <a href="{{ url_for('.fix_missing_payment_links') }}" class="btn btn-sm btn-info">Fix All Orphaned Payments</a>
+                                
+                                <h5 style="margin-top: 15px;">Debug Info:</h5>
+                                <ul>
+                                    <li>Subscription ID: {{ subscription.id }}</li>
+                                    <li>Has payments attribute: {{ subscription.payments is defined }}</li>
+                                    <li>Payments length: {{ subscription.payments|length if subscription.payments is defined else 'N/A' }}</li>
+                                </ul>
                             </div>
                         {% endif %}
                     </div>
