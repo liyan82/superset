@@ -890,6 +890,7 @@ class Superset(BaseSupersetView):
         datasource.raise_for_access()
         return json_success(json.dumps(sanitize_datasource_data(datasource.data)))
 
+    
     @event_logger.log_this
     @expose("/welcome/")
     def welcome(self) -> FlaskResponse:

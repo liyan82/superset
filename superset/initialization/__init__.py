@@ -724,4 +724,6 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
 class SupersetIndexView(IndexView):
     @expose("/")
     def index(self) -> FlaskResponse:
-        return redirect("/superset/welcome/")
+        from flask import render_template
+        # Render public index page directly without checking authentication
+        return render_template("superset/public_index.html")
