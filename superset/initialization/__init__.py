@@ -286,6 +286,38 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             category_icon="",
         )
 
+        # Import your views here to avoid circular imports
+        from superset.views.subscription import (
+            SubscriptionView,
+        )
+        from superset.views.admin import (
+            SubscriptionPlanAdmin,
+            UserSubscriptionAdmin,
+            PaymentAdmin
+        )
+
+        # Register subscription views
+        appbuilder.add_view(
+            SubscriptionView,
+            "Subscription",
+            category="Account"
+        )
+        appbuilder.add_view(
+            SubscriptionPlanAdmin,
+            "Subscription Plans",
+            category="Admin"
+        )
+        appbuilder.add_view(
+            UserSubscriptionAdmin,
+            "User Subscriptions",
+            category="Admin"
+        )
+        appbuilder.add_view(
+            PaymentAdmin,
+            "Payments",
+            category="Admin"
+        )
+
         #
         # Setup views with no menu
         #

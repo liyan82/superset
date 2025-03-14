@@ -257,6 +257,10 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         "PermissionViewMenu",
         "ViewMenu",
         "User",
+        "Admin",
+        "Subscription Plans",
+        "User Subscriptions",
+        "Payments",
     } | USER_MODEL_VIEWS
 
     ALPHA_ONLY_VIEW_MENUS = {
@@ -1182,6 +1186,7 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         role.permissions = role_pvms
 
     def _is_admin_only(self, pvm: PermissionView) -> bool:
+        logger.info("========== Checking if %s is admin only", pvm.view_menu.name)
         """
         Return True if the FAB permission/view is accessible to only Admin users,
         False otherwise.

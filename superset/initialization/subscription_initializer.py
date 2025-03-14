@@ -15,43 +15,10 @@ class SubscriptionAppInitializer(SupersetAppInitializer):
         """Set up subscription-related functionality."""
         appbuilder = self.superset_app.appbuilder
 
-        # Import your views here to avoid circular imports
-        from superset.views.subscription import (
-            SubscriptionView,
-        )
-        from superset.views.admin import (
-            SubscriptionPlanAdmin,
-            UserSubscriptionAdmin,
-            PaymentAdmin
-        )
-        from superset.initialization.subscription_user_initializer import init_subscription_user_views
-
         # Initialize payment processor
         from superset.utils.payment import PaymentProcessor
         payment_processor = PaymentProcessor(self.superset_app)
         self.superset_app.payment_processor = payment_processor
 
-        # Register subscription views
-        appbuilder.add_view(
-            SubscriptionView,
-            "Subscription",
-            category="Account"
-        )
-        appbuilder.add_view(
-            SubscriptionPlanAdmin,
-            "Subscription Plans",
-            category="Admin"
-        )
-        appbuilder.add_view(
-            UserSubscriptionAdmin,
-            "User Subscriptions",
-            category="Admin"
-        )
-        appbuilder.add_view(
-            PaymentAdmin,
-            "Payments",
-            category="Admin"
-        )
-        
         # Replace the default user model view with our subscription-enhanced version
-        init_subscription_user_views(self.superset_app, appbuilder)
+        # init_subscription_user_views(self.superset_app, appbuilder)
