@@ -52,6 +52,7 @@ dependencies = [
     "flask-migrate>=3.1.0, <4.0",
     "flask-session>=0.4.0, <1.0",
     "flask-wtf>=1.1.0, <2.0",
+    "flask-mail>=0.9.1, <1.0",
     "geopy",
     "greenlet>=3.0.3, <=3.1.1",
     "gunicorn>=22.0.0; sys_platform != 'win32'",
