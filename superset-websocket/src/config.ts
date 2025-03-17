@@ -62,7 +62,7 @@ function defaultConfig(): ConfigType {
     redisStreamReadCount: 100,
     redisStreamReadBlockMs: 5000,
     jwtAlgorithms: ['HS256'],
-    jwtSecret: '',
+    jwtSecret: 'dvmBi5HRwnYCh72R+hHpCDfLWDWNAMBKwZnvBHNqWm4=',
     jwtCookieName: 'async-token',
     jwtChannelIdKey: 'channel',
     socketResponseTimeoutMs: 60 * 1000,
