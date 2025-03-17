@@ -184,6 +184,10 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         from superset.views.tags import TagModelView, TagView
         from superset.views.users.api import CurrentUserRestApi, UserRestApi
 
+        # Import the views for our Stripe integration
+        from superset.views.subscription import SubscriptionView
+        from superset.views.stripe_webhook import StripeWebhookView
+
         set_app_error_handlers(self.superset_app)
 
         #
@@ -317,6 +321,9 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             "Payments",
             category="Admin"
         )
+
+        # Register Stripe webhook without menu
+        appbuilder.add_view_no_menu(StripeWebhookView)
 
         #
         # Setup views with no menu
@@ -700,6 +707,9 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             csrf_exempt_list = self.config["WTF_CSRF_EXEMPT_LIST"]
             for ex in csrf_exempt_list:
                 csrf.exempt(ex)
+            
+            # Add exemption for Stripe webhook
+            csrf.exempt("/stripe-webhook/")
 
     def configure_async_queries(self) -> None:
         if feature_flag_manager.is_feature_enabled("GLOBAL_ASYNC_QUERIES"):

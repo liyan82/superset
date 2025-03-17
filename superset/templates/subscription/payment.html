@@ -1,93 +1,89 @@
+<!-- /Users/yanli/Code/superset/superset/templates/subscription/payment.html -->
 {% extends "appbuilder/base.html" %}
 
 {% block content %}
 <div class="container">
-    <h1>Payment for {{ plan.name }}</h1>
-    
-    <div class="row">
-        <div class="col-md-8">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Subscription Details</h3>
-                </div>
-                <div class="panel-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4>{{ plan.name }}</h4>
-                            <p>{{ plan.description }}</p>
-                        </div>
-                        <div class="col-md-6 text-right">
-                            <h4>${{ "%.2f"|format(plan.price) }} / {{ plan.billing_cycle }}</h4>
-                        </div>
-                    </div>
-                    
-                    <hr>
-                    
-                    <form method="post">
-                        <!-- CSRF Token -->
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        
-                        <div class="form-group">
-                            <label for="payment_method">Payment Method</label>
-                            <select class="form-control" id="payment_method" name="payment_method">
-                                <option value="credit_card">Credit Card</option>
-                            </select>
-                        </div>
-                        
-                        <div id="credit_card_details">
-                            <div class="form-group">
-                                <label for="card_number">Card Number</label>
-                                <input type="text" class="form-control" id="card_number" name="card_number" placeholder="Card Number">
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="expiration">Expiration (MM/YY)</label>
-                                        <input type="text" class="form-control" id="expiration" name="expiration" placeholder="MM/YY">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="cvv">CVV</label>
-                                        <input type="text" class="form-control" id="cvv" name="cvv" placeholder="CVV">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary btn-block">Complete Payment</button>
-                    </form>
-                </div>
-            </div>
+  <h1>Payment for {{ plan.name }}</h1>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h3 class="panel-title">Subscription Details</h3>
         </div>
-        
-        <div class="col-md-4">
-            <div class="panel panel-info">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Order Summary</h3>
-                </div>
-                <div class="panel-body">
-                    <table class="table">
-                        <tr>
-                            <td>{{ plan.name }} ({{ plan.billing_cycle }})</td>
-                            <td class="text-right">${{ "%.2f"|format(plan.price) }}</td>
-                        </tr>
-                        <tr>
-                            <th>Total</th>
-                            <th class="text-right">${{ "%.2f"|format(plan.price) }}</th>
-                        </tr>
-                    </table>
-                </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h4>{{ plan.name }}</h4>
+              <p>{{ plan.description }}</p>
             </div>
+            <div class="col-md-6 text-right">
+              <h4>${{ "%.2f"|format(plan.price) }} / {{ plan.billing_cycle }}</h4>
+            </div>
+          </div>
+
+          <hr>
+
+          <div id="checkout-container">
+            <form id="payment-form">
+              <!-- Hidden inputs for JavaScript -->
+              <input type="hidden" id="plan-price" value="{{ plan.price }}">
+              <input type="hidden" id="plan-id" value="{{ plan_id }}">
+              <input type="hidden" id="stripe-publishable-key" value="{{ stripe_publishable_key }}">
+              <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
+
+              <!-- Email display -->
+              <div id="email-container">
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+                </div>
+              </div>
+
+              <div id="link-authentication-element">
+                <!-- Elements will create authentication element here -->
+              </div>
+              <div id="payment-element-container" class="mt-3">
+                <!-- Stripe Payment Element will be mounted here -->
+              </div>
+
+              <div id="payment-message" class="alert alert-danger mt-3" style="display:none;"></div>
+
+              <button id="submit-button" class="btn btn-primary btn-block mt-4">
+                <span id="button-text">Pay now</span>
+                <span id="spinner" style="display:none;">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </span>
+              </button>
+            </form>
+          </div>
         </div>
+      </div>
     </div>
+
+    <div class="col-md-4">
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <h3 class="panel-title">Order Summary</h3>
+        </div>
+        <div class="panel-body">
+          <table class="table">
+            <tr>
+              <td>{{ plan.name }} ({{ plan.billing_cycle }})</td>
+              <td class="text-right">${{ "%.2f"|format(plan.price) }}</td>
+            </tr>
+            <tr>
+              <th>Total</th>
+              <th class="text-right">${{ "%.2f"|format(plan.price) }}</th>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script>
-    $(document).ready(function() {
-        // Credit card details are always shown since it's the only option now
-        $('#credit_card_details').show();
-    });
-</script>
+<!-- Load external scripts with proper CSP compliance -->
+<script src="https://js.stripe.com/v3/"></script>
+<script src="{{ url_for('static', filename='assets/js/stripe-checkout.js') }}"></script>
 {% endblock %}

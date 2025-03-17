@@ -38,6 +38,7 @@ class UserSubscription(Model):
     start_date = Column(DateTime, nullable=False, default=datetime.datetime.now)
     end_date = Column(DateTime)
     is_auto_renew = Column(Boolean, default=True)
+    external_subscription_id = Column(String(255), nullable=True)
 
     # Relationships
     user = relationship('User', backref='subscriptions')
