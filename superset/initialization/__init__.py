@@ -735,5 +735,8 @@ class SupersetIndexView(IndexView):
     @expose("/")
     def index(self) -> FlaskResponse:
         from flask import render_template
+        from flask import redirect, g
         # Render public index page directly without checking authentication
+        if g.user is not None and g.user.is_authenticated:
+            return redirect("/superset/welcome/")
         return render_template("superset/public_index.html")
