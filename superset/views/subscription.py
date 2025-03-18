@@ -8,7 +8,7 @@ from flask import redirect, url_for, request, flash, g, current_app, jsonify
 from flask_babel import lazy_gettext as _
 from sqlalchemy import or_, text
 
-from flask_appbuilder.security.sqla.models import User
+from flask_appbuilder.security.sqla.models import User, Role
 from stripe import PaymentIntent
 
 from superset.models.subscription import SubscriptionPlan, UserSubscription, Payment
@@ -407,15 +407,12 @@ class SubscriptionView(BaseView):
     def update_user_paid_status(self, user_id, is_paid=True):
         """Update a user's is_paid_user status using direct SQL"""
         try:
-            # Create update query
-            stmt = text(
-                "UPDATE ab_user SET is_paid_user = :is_paid WHERE id = :user_id")
-
-            # Execute the query
-            self.appbuilder.session.execute(stmt,
-                                            {"is_paid": is_paid, "user_id": user_id})
-
-            # Commit the changes
+            # self.appbuilder.session.begin()
+            user = self.appbuilder.session.query(User).get(user_id)
+            paid_role = self.appbuilder.session.query(Role).filter_by(id=4).first()
+            stmt = text("UPDATE ab_user SET is_paid_user = :is_paid, changed_on = :changed_on WHERE id = :user_id")
+            self.appbuilder.session.execute(stmt, {"is_paid": is_paid, "user_id": user_id, "changed_on": datetime.datetime.now()})
+            user.roles.append(paid_role)
             self.appbuilder.session.commit()
 
             current_app.logger.info(
