@@ -2,30 +2,39 @@ import datetime
 import json
 
 import stripe
+from flask import (
+    current_app,
+    flash,
+    g,
+    jsonify,
+    make_response,
+    redirect,
+    request,
+    url_for,
+)
 from flask_appbuilder import BaseView, expose, has_access
+from flask_appbuilder.security.sqla.models import Role, User
 from flask_appbuilder.views import ModelView
-from flask import redirect, url_for, request, flash, g, current_app, jsonify
 from flask_babel import lazy_gettext as _
 from sqlalchemy import or_, text
+from stripe import PaymentIntent, StripeError
+from werkzeug.wrappers import Response
 
-from flask_appbuilder.security.sqla.models import User, Role
-from stripe import PaymentIntent
-
-from superset.models.subscription import SubscriptionPlan, UserSubscription, Payment
+from superset.models.subscription import Payment, SubscriptionPlan, UserSubscription
 from superset.utils.payment import PaymentProcessor
 
 
 class SubscriptionView(BaseView):
     route_base = "/subscription"
     default_view = "index"  # Set the default view to the index method
-    payment_processor = None
-    calculateTax = False
+    payment_processor: PaymentProcessor
+    calculate_tax: bool = False
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.payment_processor = PaymentProcessor(current_app)
 
-    def _get_user(self):
+    def _get_user(self) -> User:
         """Get a fresh User instance with all extensions applied"""
         from sqlalchemy.orm import joinedload
         # Make sure to eagerly load the subscriptions relationship and payments
@@ -35,31 +44,31 @@ class SubscriptionView(BaseView):
         ).get(g.user.id)
 
         # Force SQLAlchemy to load the subscriptions
-        if hasattr(user, 'subscriptions'):
+        if hasattr(user, "subscriptions"):
             _ = user.subscriptions
             # Force SQLAlchemy to load payments for each subscription
             for subscription in user.subscriptions:
-                if hasattr(subscription, 'payments'):
+                if hasattr(subscription, "payments"):
                     _ = subscription.payments
 
         return user
 
-    @expose('/')
-    @expose('/index')
-    def index(self):
+    @expose("/")
+    @expose("/index")
+    def index(self) -> Response:
         """Smart entry point that either shows plans or redirects to manage page"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
 
         if user.has_active_subscription:
             # Redirect to manage page if they're already subscribed
-            return redirect(url_for('.manage'))
+            return redirect(url_for(".manage"))
         else:
             # Show plans page if they don't have an active subscription
             return self.plans()
 
-    @expose('/plans')
-    def plans(self):
+    @expose("/plans")
+    def plans(self) -> Response:
         """Show available subscription plans"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
@@ -67,122 +76,122 @@ class SubscriptionView(BaseView):
         if user.has_active_subscription:
             flash(_("You already have an active subscription. Manage it below."),
                   "info")
-            return redirect(url_for('.manage'))
+            return redirect(url_for(".manage"))
 
         plans = self.appbuilder.session.query(SubscriptionPlan).filter_by(
             is_active=True).all()
-        return self.render_template('subscription/plans.html',
+        return self.render_template("subscription/plans.html",
                                     plans=plans,
                                     user=user)
 
-    @expose('/subscribe/<int:plan_id>', methods=['GET', 'POST'])
+    @expose("/subscribe/<int:plan_id>", methods=["GET", "POST"])
     @has_access
-    def subscribe(self, plan_id):
+    def subscribe(self, plan_id: int) -> Response:
         """Process new subscription - redirects to payment page"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
 
         if user.has_active_subscription:
             flash(
-                _("You already have an active subscription. Please cancel it before subscribing to a new plan."),
+                _("You already have an active subscription. "
+                  "Please cancel it before subscribing to a new plan."),
                 "warning")
-            return redirect(url_for('.manage'))
+            return redirect(url_for(".manage"))
 
         plan = self.appbuilder.session.query(SubscriptionPlan).get(plan_id)
         if not plan:
             flash(_("Invalid subscription plan"), "danger")
-            return redirect(url_for('.plans'))
+            return redirect(url_for(".plans"))
 
         # Redirect to payment page with plan_id
-        return redirect(url_for('.payment', plan_id=plan_id))
+        return redirect(url_for(".payment", plan_id=plan_id))
 
-    @expose('/payment/<int:plan_id>', methods=['GET', 'POST'])
+    @expose("/payment/<int:plan_id>", methods=["GET", "POST"])
     @has_access
-    def payment(self, plan_id):
+    def payment(self, plan_id: int) -> Response:
         """Show payment form using Stripe Checkout"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
 
         if user.has_active_subscription:
             flash(
-                _("You already have an active subscription. Please cancel it before subscribing to a new plan."),
+                _("You already have an active subscription. "
+                  "Please cancel it before subscribing to a new plan."),
                 "warning")
-            return redirect(url_for('.manage'))
+            return redirect(url_for(".manage"))
 
         plan = self.appbuilder.session.query(SubscriptionPlan).get(plan_id)
         if not plan:
             flash(_("Invalid subscription plan"), "danger")
-            return redirect(url_for('.plans'))
+            return redirect(url_for(".plans"))
 
         # Pass the plan and stripe publishable key to the template
         # The client_secret will be fetched via AJAX
-        return self.render_template('subscription/payment.html',
+        return self.render_template("subscription/payment.html",
                                     plan=plan,
                                     user=user,
                                     plan_id=plan_id,
                                     stripe_publishable_key=current_app.config.get(
-                                        'STRIPE_PUBLIC_KEY'))
+                                        "STRIPE_PUBLIC_KEY"))
 
-    @expose('/create-payment-intent', methods=['POST'])
+    @expose("/create-payment-intent", methods=["POST"])
     @has_access
-    def create_payment_intent(self):
+    def create_payment_intent(self) -> Response:
         try:
             data = json.loads(request.data)
-            order_amount = data['orderAmount']
+            order_amount = data["orderAmount"]
 
             # Convert to float first (in case it's a string), then to cents as integer
             amount_in_cents = int(float(order_amount) * 100)
 
-            intent: PaymentIntent
-
-            if self.calculateTax:
+            if self.calculate_tax:
                 tax_calculation = self.payment_processor.calculate_tax(order_amount, "usd")
-                intent: PaymentIntent = stripe.PaymentIntent.create(
-                    amount=tax_calculation['amount_total'],
-                    currency='usd',
+                intent = stripe.PaymentIntent.create(
+                    amount=tax_calculation["amount_total"],
+                    currency="usd",
                     automatic_payment_methods={
-                        'enabled': True,
+                        "enabled": True,
                     },
                     metadata={
-                      'tax_calculation': tax_calculation['id']
+                      "tax_calculation": tax_calculation["id"]
                     }
                 )
             else:
-                intent: PaymentIntent = stripe.PaymentIntent.create(
+                intent = stripe.PaymentIntent.create(
                     amount=amount_in_cents,
-                    currency='usd',
+                    currency="usd",
                     automatic_payment_methods={
-                        'enabled': True,
+                        "enabled": True,
                                               }
                 )
 
             # send payment intent to client
-            current_app.logger.info(f'Created payment intent for {intent.amount} {intent.currency} with id: {intent.id} and client_secret: {intent.client_secret}')
-            return jsonify({'clientSecret': intent.client_secret})
-        except stripe.error.StripeError as e:
-            return jsonify({'error': {'message': str(e)}}), 400
+            current_app.logger.info(f"Created payment intent for {intent.amount} {intent.currency} with id: {intent.id} and client_secret: {intent.client_secret}")
+            return jsonify({"clientSecret": intent.client_secret})
+        except StripeError as e:
+            return make_response(jsonify({"error": {"message": str(e)}}), 400)
         except Exception as e:
-            return jsonify({'error': {'message': str(e)}}), 400
+            return make_response(jsonify({"error": {"message": str(e)}}), 400)
 
 
 
-    @expose('/create-checkout-session', methods=['POST'])
+    @expose("/create-checkout-session", methods=["POST"])
     @has_access
-    def create_checkout_session(self):
+    def create_checkout_session(self) -> Response:
         """API endpoint to create a Stripe Checkout Session"""
         # Get a fresh User instance
         user = self._get_user()
 
         # Get plan_id from the request
         data = json.loads(request.data)
-        plan_id = data.get('plan_id')
+        plan_id = data.get("plan_id")
 
         if not plan_id:
-            return jsonify({"error": "Missing plan_id parameter"}), 400
+            return make_response(jsonify({"error": "Missing plan_id parameter"}), 400)
 
         plan = self.appbuilder.session.query(SubscriptionPlan).get(plan_id)
         if not plan:
-            return jsonify({"error": "Invalid subscription plan"}), 400
+            return make_response(jsonify({"error": "Invalid subscription plan"}), 400)
 
         # Create Stripe Checkout Session
         success, session_id, client_secret = self.payment_processor.create_checkout_session(
@@ -191,49 +200,51 @@ class SubscriptionView(BaseView):
         )
 
         if not success:
-            return jsonify({"error": client_secret}), 500
-        
+            return make_response(jsonify({"error": client_secret}), 500)
+
         # Log the client secret for debugging (redact in production)
         current_app.logger.info(f"Client secret: {client_secret}")
-            
+
         return jsonify({
             "checkoutSessionClientSecret": client_secret
         })
 
-    @expose('/payment-complete', methods=['POST'])
+    @expose("/payment-complete", methods=["POST"])
     @has_access
-    def payment_complete(self):
+    def payment_complete(self) -> Response:
         """Handle successful payment completion via AJAX"""
         # Get a fresh User instance
         user = self._get_user()
 
         # Get session_id and subscription_id from the request
         data = json.loads(request.data)
-        intent_id = data.get('payment_intent_id')
-        plan_id = data.get('plan_id')
+        intent_id = data.get("payment_intent_id")
+        plan_id = data.get("plan_id")
 
         plan = self.appbuilder.session.query(SubscriptionPlan).get(plan_id)
         if not plan:
-            return jsonify({"error": "Invalid subscription plan"}), 400
+            return make_response(jsonify({"error": "Invalid subscription plan"}), 400)
 
         if not intent_id:
-            return jsonify({"error": "Payment was no successful because Stripe does not response."}), 400
+            return make_response(jsonify({
+                "error": "Payment was not successful because Stripe did not respond."
+            }), 400)
 
         # Retrieve the checkout session from Stripe to verify
         intent = self.payment_processor.retrieve_intent(intent_id)
         if not intent:
-            return jsonify({"error": "Error retrieving payment information"}), 500
+            return make_response(jsonify({"error": "Error retrieving payment information"}), 500)
 
         # Verify the payment was successful
-        if intent.status != 'succeeded':
-            return jsonify({"error": "Payment not completed successfully"}), 400
+        if intent.status != "succeeded":
+            return make_response(jsonify({"error": "Payment not completed successfully"}), 400)
 
         # Create subscription in our database
         end_date = datetime.datetime.now() + self.calc_subscription_period(plan)
         subscription = UserSubscription(
             user_id=user.id,
             plan_id=plan.id,
-            status='active',
+            status="active",
             start_date=datetime.datetime.now(),
             end_date=end_date,
             is_auto_renew=True,
@@ -249,9 +260,9 @@ class SubscriptionView(BaseView):
             user_id=user.id,
             subscription_id=subscription.id,  # Link payment to subscription
             amount=plan.price,
-            payment_method='stripe',
+            payment_method="stripe",
             transaction_id=intent_id,
-            status='success'
+            status="success"
         )
 
         # Add payment to session and commit both subscription and payment
@@ -274,9 +285,9 @@ class SubscriptionView(BaseView):
             "subscription_id": subscription.id
         })
 
-    @expose('/subscription-success')
+    @expose("/subscription-success")
     @has_access
-    def subscription_success(self):
+    def subscription_success(self) -> Response:
         """Show subscription success page"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
@@ -286,15 +297,15 @@ class SubscriptionView(BaseView):
 
         if not subscription:
             flash(_("No active subscription found"), "danger")
-            return redirect(url_for('.plans'))
+            return redirect(url_for(".plans"))
 
-        return self.render_template('subscription/success.html',
+        return self.render_template("subscription/success.html",
                                     subscription=subscription,
                                     user=user)
 
-    @expose('/manage')
+    @expose("/manage")
     @has_access
-    def manage(self):
+    def manage(self) -> Response:
         """Manage existing subscription"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
@@ -305,9 +316,10 @@ class SubscriptionView(BaseView):
         # If no subscription, redirect to plans page
         if not subscription:
             flash(
-                _("You don't have an active subscription. Choose a plan below to subscribe."),
+                _("You don't have an active subscription. "
+                  "Choose a plan below to subscribe."),
                 "info")
-            return redirect(url_for('.plans'))
+            return redirect(url_for(".plans"))
 
         # Explicitly load payments
         from sqlalchemy.orm import joinedload
@@ -324,9 +336,9 @@ class SubscriptionView(BaseView):
             current_app.logger.info(f"Subscription ID: {subscription.id}")
             current_app.logger.info(f"Number of payments from helper: {len(payments)}")
             current_app.logger.info(
-                f"Number of payments from subscription: {len(subscription.payments) if subscription.payments else 0}")
+                f"Number of payments from subscription: {len(subscription.payments) if subscription.payments else 0}")  # noqa: E501
 
-            # If we have payments but they're not showing up in subscription.payments, manually add them
+            # If we have payments but they're not showing up in subscription.payments, manually add them  # noqa: E501
             if payments and (
                 not subscription.payments or len(subscription.payments) == 0):
                 current_app.logger.info(
@@ -336,14 +348,14 @@ class SubscriptionView(BaseView):
         # Check if user is admin
         is_admin = self.is_admin_user(user)
 
-        return self.render_template('subscription/manage.html',
+        return self.render_template("subscription/manage.html",
                                     subscription=subscription,
                                     user=user,
                                     is_admin=is_admin)
 
-    @expose('/cancel', methods=['POST'])
+    @expose("/cancel", methods=["POST"])
     @has_access
-    def cancel(self):
+    def cancel(self) -> Response:
         """Cancel subscription"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
@@ -353,16 +365,15 @@ class SubscriptionView(BaseView):
 
         if subscription:
             # If we have a Stripe subscription ID, cancel in Stripe
-            if hasattr(subscription,
-                       'stripe_subscription_id') and subscription.stripe_subscription_id:
+            if hasattr(subscription, "stripe_subscription_id") and subscription.stripe_subscription_id:  # noqa: E501
                 success = self.payment_processor.cancel_subscription(
                     subscription.stripe_subscription_id)
                 if not success:
                     flash(_("Error cancelling subscription with payment provider"),
                           "danger")
-                    return redirect(url_for('.manage'))
+                    return redirect(url_for(".manage"))
 
-            subscription.status = 'cancelled'
+            subscription.status = "cancelled"
             subscription.is_auto_renew = False
             self.appbuilder.session.commit()
 
@@ -373,17 +384,17 @@ class SubscriptionView(BaseView):
         return redirect(url_for('.manage'))
 
     # Helper methods
-    def calc_subscription_period(self, plan):
+    def calc_subscription_period(self, plan: SubscriptionPlan) -> datetime.timedelta:
         """Calculate subscription end date based on billing cycle"""
-        if plan.billing_cycle == 'monthly':
+        if plan.billing_cycle == "monthly":
             return datetime.timedelta(days=30)
-        elif plan.billing_cycle == 'quarterly':
+        elif plan.billing_cycle == "quarterly":
             return datetime.timedelta(days=90)
-        elif plan.billing_cycle == 'yearly':
+        elif plan.billing_cycle == "yearly":
             return datetime.timedelta(days=365)
         return datetime.timedelta(days=30)  # Default to monthly
 
-    def check_subscription_payments(self, subscription_id):
+    def check_subscription_payments(self, subscription_id: int) -> list[Payment]:
         """Helper function to check if a subscription has payments"""
         try:
             # Find both directly linked payments and possibly orphaned ones for this subscription
@@ -404,14 +415,14 @@ class SubscriptionView(BaseView):
             current_app.logger.error(f"Error checking payments: {str(e)}")
             return []
 
-    def update_user_paid_status(self, user_id, is_paid=True):
+    def update_user_paid_status(self, user_id: int, is_paid: bool = True) -> None:
         """Update a user's is_paid_user status using direct SQL"""
         try:
             # self.appbuilder.session.begin()
             user = self.appbuilder.session.query(User).get(user_id)
             paid_role = self.appbuilder.session.query(Role).filter_by(id=4).first()
-            stmt = text("UPDATE ab_user SET is_paid_user = :is_paid, changed_on = :changed_on WHERE id = :user_id")
-            self.appbuilder.session.execute(stmt, {"is_paid": is_paid, "user_id": user_id, "changed_on": datetime.datetime.now()})
+            stmt = text("UPDATE ab_user SET is_paid_user = :is_paid, changed_on = :changed_on WHERE id = :user_id")  # noqa: E501
+            self.appbuilder.session.execute(stmt, {"is_paid": is_paid, "user_id": user_id, "changed_on": datetime.datetime.now()})  # noqa: E501
             user.roles.append(paid_role)
             self.appbuilder.session.commit()
 
@@ -421,16 +432,16 @@ class SubscriptionView(BaseView):
             current_app.logger.error(f"Error updating user paid status: {str(e)}")
             self.appbuilder.session.rollback()
 
-    def is_admin_user(self, user=None):
+    def is_admin_user(self, user: User | None = None) -> bool:
         """Helper function to check if a user has the Admin role"""
         if user is None:
             user = g.user
 
-        if not hasattr(user, 'roles'):
+        if not hasattr(user, "roles"):
             return False
 
         for role in user.roles:
-            if role.name == 'Admin':
+            if role.name == "Admin":
                 return True
 
         return False
