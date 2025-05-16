@@ -1,14 +1,14 @@
 from typing import Any, Literal, Optional, Tuple
 
 import stripe
-from flask import current_app, Flask, request
+from flask import current_app, Flask
 
 # Assuming User and SubscriptionPlan are defined elsewhere and can be imported
 # from superset.models import User  # Example, adjust path as necessary
 # from superset.models.subscription import SubscriptionPlan # Example
 
 # Forward declaration for type hinting if direct import is complex
-User = Any 
+User = Any
 SubscriptionPlan = Any
 
 
@@ -120,7 +120,7 @@ class PaymentProcessor:
         """
         try:
             # Determine the billing interval based on the plan's billing_cycle
-            interval: Literal["day", "month", "week", "year"] = "month"  # Default to monthly
+            interval: Literal["day", "month", "week", "year"] = "month"  # Default to monthly  # noqa: E501
             interval_count: int = 1
 
             if plan.billing_cycle == "quarterly":
@@ -160,7 +160,7 @@ class PaymentProcessor:
             else:
                 price_id = plan.stripe_price_id
 
-            # Create a checkout session - note no success_url or cancel_url for custom checkout
+            # Create a checkout session - note no success_url or cancel_url for custom checkout  # noqa: E501
             session = stripe.checkout.Session.create(
                 line_items=[{
                     "price": price_id,

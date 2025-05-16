@@ -14,10 +14,9 @@ from flask import (
 )
 from flask_appbuilder import BaseView, expose, has_access
 from flask_appbuilder.security.sqla.models import Role, User
-from flask_appbuilder.views import ModelView
 from flask_babel import lazy_gettext as _
 from sqlalchemy import or_, text
-from stripe import PaymentIntent, StripeError
+from stripe import StripeError
 from werkzeug.wrappers import Response
 
 from superset.models.subscription import Payment, SubscriptionPlan, UserSubscription
@@ -145,7 +144,7 @@ class SubscriptionView(BaseView):
             amount_in_cents = int(float(order_amount) * 100)
 
             if self.calculate_tax:
-                tax_calculation = self.payment_processor.calculate_tax(order_amount, "usd")
+                tax_calculation = self.payment_processor.calculate_tax(order_amount, "usd")  # noqa: E501
                 intent = stripe.PaymentIntent.create(
                     amount=tax_calculation["amount_total"],
                     currency="usd",
@@ -162,11 +161,14 @@ class SubscriptionView(BaseView):
                     currency="usd",
                     automatic_payment_methods={
                         "enabled": True,
-                                              }
+                    },
                 )
 
             # send payment intent to client
-            current_app.logger.info(f"Created payment intent for {intent.amount} {intent.currency} with id: {intent.id} and client_secret: {intent.client_secret}")
+            current_app.logger.info(
+                f"Created payment intent for {intent.amount} {intent.currency} "
+                f"with id: {intent.id} and client_secret: {intent.client_secret}"
+            )
             return jsonify({"clientSecret": intent.client_secret})
         except StripeError as e:
             return make_response(jsonify({"error": {"message": str(e)}}), 400)
@@ -194,9 +196,11 @@ class SubscriptionView(BaseView):
             return make_response(jsonify({"error": "Invalid subscription plan"}), 400)
 
         # Create Stripe Checkout Session
-        success, session_id, client_secret = self.payment_processor.create_checkout_session(
-            plan=plan,
-            user=user
+        success, session_id, client_secret = (
+            self.payment_processor.create_checkout_session(
+                plan=plan,
+                user=user
+            )
         )
 
         if not success:
@@ -233,11 +237,11 @@ class SubscriptionView(BaseView):
         # Retrieve the checkout session from Stripe to verify
         intent = self.payment_processor.retrieve_intent(intent_id)
         if not intent:
-            return make_response(jsonify({"error": "Error retrieving payment information"}), 500)
+            return make_response(jsonify({"error": "Error retrieving payment information"}), 500)  # noqa: E501
 
         # Verify the payment was successful
         if intent.status != "succeeded":
-            return make_response(jsonify({"error": "Payment not completed successfully"}), 400)
+            return make_response(jsonify({"error": "Payment not completed successfully"}), 400)  # noqa: E501
 
         # Create subscription in our database
         end_date = datetime.datetime.now() + self.calc_subscription_period(plan)
@@ -253,7 +257,7 @@ class SubscriptionView(BaseView):
 
         # Save the subscription first to get an ID
         self.appbuilder.session.add(subscription)
-        self.appbuilder.session.flush()  # Flush to get subscription.id without committing
+        self.appbuilder.session.flush()  # Flush to get subscription.id without committing  # noqa: E501
 
         # Create payment record with subscription association
         payment = Payment(
@@ -272,7 +276,7 @@ class SubscriptionView(BaseView):
         current_app.logger.info(
             f"Created subscription {subscription.id} with payment from Stripe")
         current_app.logger.info(
-            f"Payment details: {payment.amount}, {payment.payment_method}, {payment.status}")
+            f"Payment details: {payment.amount}, {payment.payment_method}, {payment.status}")  # noqa: E501
 
         # Commit subscription and payment
         self.appbuilder.session.commit()
@@ -381,7 +385,7 @@ class SubscriptionView(BaseView):
             self.update_user_paid_status(user.id, False)
 
             flash(_("Your subscription has been cancelled"), "success")
-        return redirect(url_for('.manage'))
+        return redirect(url_for(".manage"))
 
     # Helper methods
     def calc_subscription_period(self, plan: SubscriptionPlan) -> datetime.timedelta:
@@ -397,7 +401,7 @@ class SubscriptionView(BaseView):
     def check_subscription_payments(self, subscription_id: int) -> list[Payment]:
         """Helper function to check if a subscription has payments"""
         try:
-            # Find both directly linked payments and possibly orphaned ones for this subscription
+            # Find both directly linked payments and possibly orphaned ones for this subscription  # noqa: E501
             payments = self.appbuilder.session.query(Payment).filter(
                 or_(
                     Payment.subscription_id == subscription_id,
