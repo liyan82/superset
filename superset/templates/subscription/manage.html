@@ -102,9 +102,6 @@
                         <!-- Admin actions -->
                         {% if is_admin %}
                             <div class="well well-sm" style="margin-top: 15px;">
-                                <h5>Admin Actions:</h5>
-                                <a href="{{ url_for('.fix_missing_payment_links') }}" class="btn btn-sm btn-info">Fix All Orphaned Payments</a>
-                                
                                 <h5 style="margin-top: 15px;">Debug Info:</h5>
                                 <ul>
                                     <li>Subscription ID: {{ subscription.id }}</li>

@@ -228,3 +228,83 @@ class PaymentProcessor:
         except stripe.StripeError as e:
             current_app.logger.error(f"Stripe error canceling subscription: {str(e)}")
             return False
+
+    def get_stripe_plans(self) -> list[dict[str, Any]]:
+        """
+        Fetch and format all active subscription plans from Stripe.
+
+        Returns:
+            list[dict]: List of plans with their details including prices
+        """
+        try:
+            # Fetch all active products with their prices
+            products = stripe.Product.list(active=True)
+            plans = []
+
+            for product in products.data:
+                # Get the default price for this product
+                prices = stripe.Price.list(
+                    product=product.id,
+                    active=True,
+                    limit=1
+                )
+
+                if prices.data:
+                    price = prices.data[0]
+                    current_app.logger.info(f"Price: {price}")
+                    plans.append({
+                        "id": product.id,
+                        "product": product.name,
+                        "description": product.description or "",
+                        "price": price.unit_amount / 100 if price.unit_amount is not None else 0,  # Convert from cents  # noqa: E501
+                        "billing_cycle": "month" if price.recurring and price.recurring.interval == "month" else "year",  # noqa: E501
+                        "features": product.metadata.get("features", ""),
+                        "stripe_price_id": price.id,
+                        "stripe_product_id": product.id
+                    })
+
+            return plans
+        except stripe.StripeError as e:
+            current_app.logger.error(f"Stripe error fetching plans: {str(e)}")
+            return []
+
+    def get_stripe_plan(self, product_id: str) -> Optional[dict[str, Any]]:
+        """
+        Fetch a single subscription plan from Stripe by its product ID.
+
+        Args:
+            product_id: The Stripe Product ID
+
+        Returns:
+            Optional[dict]: Plan details if found, None otherwise
+        """
+        try:
+            # Fetch the product
+            product = stripe.Product.retrieve(product_id)
+            if not product.active:
+                return None
+
+            # Get the default price for this product
+            prices = stripe.Price.list(
+                product=product.id,
+                active=True,
+                limit=1
+            )
+
+            if not prices.data:
+                return None
+
+            price = prices.data[0]
+            return {
+                "id": product.id,
+                "product": product.name,
+                "description": product.description or "",
+                "price": price.unit_amount / 100 if price.unit_amount is not None else 0,  # Convert from cents  # noqa: E501
+                "billing_cycle": "month" if price.recurring and getattr(price.recurring, "interval", "") == "month" else "year",  # noqa: E501
+                "features": product.metadata.get("features", ""),
+                "stripe_price_id": price.id,
+                "stripe_product_id": product.id
+            }
+        except stripe.StripeError as e:
+            current_app.logger.error(f"Stripe error fetching plan {product_id}: {str(e)}")  # noqa: E501
+            return None

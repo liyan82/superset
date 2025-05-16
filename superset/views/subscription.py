@@ -58,13 +58,18 @@ class SubscriptionView(BaseView):
         """Smart entry point that either shows plans or redirects to manage page"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
+        current_app.logger.info(f"User: {user}")
 
         if user.has_active_subscription:
             # Redirect to manage page if they're already subscribed
             return redirect(url_for(".manage"))
         else:
             # Show plans page if they don't have an active subscription
-            return self.plans()
+            plans = self.payment_processor.get_stripe_plans()
+            current_app.logger.info(f"Plans: {plans}")
+            return self.render_template("subscription/plans.html",
+                                        plans=plans,
+                                        user=user)
 
     @expose("/plans")
     def plans(self) -> Response:
@@ -77,15 +82,18 @@ class SubscriptionView(BaseView):
                   "info")
             return redirect(url_for(".manage"))
 
-        plans = self.appbuilder.session.query(SubscriptionPlan).filter_by(
-            is_active=True).all()
-        return self.render_template("subscription/plans.html",
-                                    plans=plans,
-                                    user=user)
+        plans = self.payment_processor.get_stripe_plans()
+        if not plans:
+            flash(_("Error loading subscription plans. Please try again later."), "error")  # noqa: E501
+            return redirect(url_for(".index"))
 
-    @expose("/subscribe/<int:plan_id>", methods=["GET", "POST"])
+        return self.render_template("subscription/plans.html",
+                                  plans=plans,
+                                  user=user)
+
+    @expose("/subscribe/<plan_id>", methods=["GET", "POST"])
     @has_access
-    def subscribe(self, plan_id: int) -> Response:
+    def subscribe(self, plan_id: str) -> Response:
         """Process new subscription - redirects to payment page"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
@@ -97,7 +105,8 @@ class SubscriptionView(BaseView):
                 "warning")
             return redirect(url_for(".manage"))
 
-        plan = self.appbuilder.session.query(SubscriptionPlan).get(plan_id)
+        # Find plan by Stripe product ID
+        plan = self.payment_processor.get_stripe_plan(plan_id)
         if not plan:
             flash(_("Invalid subscription plan"), "danger")
             return redirect(url_for(".plans"))
@@ -105,9 +114,9 @@ class SubscriptionView(BaseView):
         # Redirect to payment page with plan_id
         return redirect(url_for(".payment", plan_id=plan_id))
 
-    @expose("/payment/<int:plan_id>", methods=["GET", "POST"])
+    @expose("/payment/<plan_id>", methods=["GET", "POST"])
     @has_access
-    def payment(self, plan_id: int) -> Response:
+    def payment(self, plan_id: str) -> Response:
         """Show payment form using Stripe Checkout"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
@@ -119,7 +128,8 @@ class SubscriptionView(BaseView):
                 "warning")
             return redirect(url_for(".manage"))
 
-        plan = self.appbuilder.session.query(SubscriptionPlan).get(plan_id)
+        # Find plan by Stripe product ID
+        plan = self.payment_processor.get_stripe_plan(plan_id)
         if not plan:
             flash(_("Invalid subscription plan"), "danger")
             return redirect(url_for(".plans"))
