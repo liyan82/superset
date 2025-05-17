@@ -1,5 +1,6 @@
 import datetime
 import json
+from typing import Any
 
 import stripe
 from flask import (
@@ -36,11 +37,16 @@ class SubscriptionView(BaseView):
     def _get_user(self) -> User:
         """Get a fresh User instance with all extensions applied"""
         from sqlalchemy.orm import joinedload
+
         # Make sure to eagerly load the subscriptions relationship and payments
-        user = self.appbuilder.session.query(User).options(
-            joinedload(User.subscriptions).joinedload(UserSubscription.plan),
-            joinedload(User.subscriptions).joinedload(UserSubscription.payments)
-        ).get(g.user.id)
+        user = (
+            self.appbuilder.session.query(User)
+            .options(
+                joinedload(User.subscriptions).joinedload(UserSubscription.plan),
+                joinedload(User.subscriptions).joinedload(UserSubscription.payments),
+            )
+            .get(g.user.id)
+        )
 
         # Force SQLAlchemy to load the subscriptions
         if hasattr(user, "subscriptions"):
@@ -54,7 +60,7 @@ class SubscriptionView(BaseView):
 
     @expose("/")
     @expose("/index")
-    def index(self) -> Response:
+    def index(self) -> Response:  # noqa: C901
         """Smart entry point that either shows plans or redirects to manage page"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
@@ -65,11 +71,144 @@ class SubscriptionView(BaseView):
             return redirect(url_for(".manage"))
         else:
             # Show plans page if they don't have an active subscription
-            plans = self.payment_processor.get_stripe_plans()
-            current_app.logger.info(f"Plans: {plans}")
-            return self.render_template("subscription/plans.html",
-                                        plans=plans,
-                                        user=user)
+            stripe_plans_list = self.payment_processor.get_stripe_plans()
+            current_app.logger.info(f"Plans from Stripe: {stripe_plans_list}")
+
+            if (
+                stripe_plans_list
+            ):  # Ensure the list is not None and not empty before iterating
+                for stripe_plan_item in stripe_plans_list:
+                    current_app.logger.info(
+                        f"Processing Stripe plan item: {stripe_plan_item}"
+                    )
+                    if not stripe_plan_item or not stripe_plan_item.get("id"):
+                        current_app.logger.warning(
+                            f"Skipping invalid stripe plan item: {stripe_plan_item}"
+                        )
+                        continue
+
+                    db_plan = (
+                        self.appbuilder.session.query(SubscriptionPlan)
+                        .filter_by(product_id=stripe_plan_item["id"])
+                        .first()
+                    )
+                    if not db_plan:
+                        try:
+                            new_plan_instance = SubscriptionPlan(
+                                product_id=stripe_plan_item["id"],
+                                name=stripe_plan_item["product"],
+                                description=stripe_plan_item.get("description"),
+                                price=float(stripe_plan_item["price"]),
+                                billing_cycle=stripe_plan_item["billing_cycle"],
+                                features=json.dumps(
+                                    stripe_plan_item.get("features", [])
+                                ),
+                                is_active=stripe_plan_item.get("active", True),
+                            )
+                            self.appbuilder.session.add(new_plan_instance)
+                            self.appbuilder.session.commit()  # Commit after adding new plan  # noqa: E501
+                            current_app.logger.info(
+                                f"Created and committed new DB plan: {new_plan_instance.name}"  # noqa: E501
+                            )
+                        except KeyError as e:
+                            current_app.logger.error(
+                                f"Missing key when creating SubscriptionPlan from Stripe item: {stripe_plan_item}. Error: {e}"  # noqa: E501
+                            )
+                            self.appbuilder.session.rollback()
+                        except Exception as e:
+                            current_app.logger.error(
+                                f"Error creating SubscriptionPlan from Stripe item: {stripe_plan_item}. Error: {e}"  # noqa: E501
+                            )
+                            self.appbuilder.session.rollback()
+                    else:  # db_plan exists, check for updates
+                        try:
+                            updated_fields = False
+                            # Name
+                            if db_plan.name != stripe_plan_item["product"]:
+                                db_plan.name = stripe_plan_item["product"]
+                                updated_fields = True
+                            # Description
+                            stripe_desc = stripe_plan_item.get("description")
+                            if db_plan.description != stripe_desc:
+                                db_plan.description = stripe_desc
+                                updated_fields = True
+                            # Price
+                            stripe_price = float(stripe_plan_item["price"])
+                            if db_plan.price != stripe_price:
+                                db_plan.price = stripe_price
+                                updated_fields = True
+                            # Billing Cycle
+                            if (
+                                db_plan.billing_cycle
+                                != stripe_plan_item["billing_cycle"]
+                            ):
+                                db_plan.billing_cycle = stripe_plan_item[
+                                    "billing_cycle"
+                                ]
+                                updated_fields = True
+                            # Features
+                            stripe_features_list = stripe_plan_item.get("features", [])
+                            db_features_list = []
+                            if db_plan.features:
+                                try:
+                                    db_features_list = json.loads(db_plan.features)
+                                    if not isinstance(
+                                        db_features_list, list
+                                    ):  # Ensure it's a list for comparison
+                                        db_features_list = []
+                                except json.JSONDecodeError:
+                                    current_app.logger.warning(
+                                        f"Could not decode features JSON for plan {db_plan.name} during update: {db_plan.features}"  # noqa: E501
+                                    )
+
+                            # Compare content of features (e.g., as sorted lists or sets if order doesn't matter)  # noqa: E501
+                            # Assuming features are lists of simple, sortable items (like strings or numbers)  # noqa: E501
+                            if sorted(db_features_list) != sorted(stripe_features_list):
+                                db_plan.features = json.dumps(stripe_features_list)
+                                updated_fields = True
+
+                            # Is Active
+                            stripe_is_active = stripe_plan_item.get("active", True)
+                            if db_plan.is_active != stripe_is_active:
+                                db_plan.is_active = stripe_is_active
+                                updated_fields = True
+
+                            if updated_fields:
+                                current_app.logger.info(
+                                    f"Updating DB plan: {db_plan.name} with data from Stripe."  # noqa: E501
+                                )
+                                self.appbuilder.session.add(db_plan)  # Mark for update
+                                self.appbuilder.session.commit()
+                                current_app.logger.info(
+                                    f"Successfully updated and committed DB plan: {db_plan.name}"  # noqa: E501
+                                )
+                            else:
+                                current_app.logger.info(
+                                    f"No updates needed for DB plan: {db_plan.name}. Data from Stripe is identical."  # noqa: E501
+                                )
+                        except KeyError as e:
+                            current_app.logger.error(
+                                f"Missing key when updating SubscriptionPlan {db_plan.name} from Stripe item: {stripe_plan_item}. Error: {e}"  # noqa: E501
+                            )
+                            self.appbuilder.session.rollback()
+                        except Exception as e:
+                            current_app.logger.error(
+                                f"Error updating SubscriptionPlan {db_plan.name} from Stripe item: {stripe_plan_item}. Error: {e}"  # noqa: E501
+                            )
+                            self.appbuilder.session.rollback()
+
+            # Query plans from the database to display on the page.
+            # Display only active plans.
+            plans_for_template = (
+                self.appbuilder.session.query(SubscriptionPlan)
+                .filter_by(is_active=True)
+                .all()
+            )
+            current_app.logger.info(f"Plans to render from DB: {plans_for_template}")
+
+            return self.render_template(
+                "subscription/plans.html", plans=plans_for_template, user=user
+            )
 
     @expose("/plans")
     def plans(self) -> Response:
@@ -78,18 +217,19 @@ class SubscriptionView(BaseView):
         user = self._get_user()
 
         if user.has_active_subscription:
-            flash(_("You already have an active subscription. Manage it below."),
-                  "info")
+            flash(
+                _("You already have an active subscription. Manage it below."), "info"
+            )
             return redirect(url_for(".manage"))
 
         plans = self.payment_processor.get_stripe_plans()
         if not plans:
-            flash(_("Error loading subscription plans. Please try again later."), "error")  # noqa: E501
+            flash(
+                _("Error loading subscription plans. Please try again later."), "error"
+            )  # noqa: E501
             return redirect(url_for(".index"))
 
-        return self.render_template("subscription/plans.html",
-                                  plans=plans,
-                                  user=user)
+        return self.render_template("subscription/plans.html", plans=plans, user=user)
 
     @expose("/subscribe/<plan_id>", methods=["GET", "POST"])
     @has_access
@@ -100,9 +240,12 @@ class SubscriptionView(BaseView):
 
         if user.has_active_subscription:
             flash(
-                _("You already have an active subscription. "
-                  "Please cancel it before subscribing to a new plan."),
-                "warning")
+                _(
+                    "You already have an active subscription. "
+                    "Please cancel it before subscribing to a new plan."
+                ),
+                "warning",
+            )
             return redirect(url_for(".manage"))
 
         # Find plan by Stripe product ID
@@ -123,9 +266,12 @@ class SubscriptionView(BaseView):
 
         if user.has_active_subscription:
             flash(
-                _("You already have an active subscription. "
-                  "Please cancel it before subscribing to a new plan."),
-                "warning")
+                _(
+                    "You already have an active subscription. "
+                    "Please cancel it before subscribing to a new plan."
+                ),
+                "warning",
+            )
             return redirect(url_for(".manage"))
 
         # Find plan by Stripe product ID
@@ -136,12 +282,13 @@ class SubscriptionView(BaseView):
 
         # Pass the plan and stripe publishable key to the template
         # The client_secret will be fetched via AJAX
-        return self.render_template("subscription/payment.html",
-                                    plan=plan,
-                                    user=user,
-                                    plan_id=plan_id,
-                                    stripe_publishable_key=current_app.config.get(
-                                        "STRIPE_PUBLIC_KEY"))
+        return self.render_template(
+            "subscription/payment.html",
+            plan=plan,
+            user=user,
+            plan_id=plan_id,
+            stripe_publishable_key=current_app.config.get("STRIPE_PUBLIC_KEY"),
+        )
 
     @expose("/create-payment-intent", methods=["POST"])
     @has_access
@@ -154,16 +301,16 @@ class SubscriptionView(BaseView):
             amount_in_cents = int(float(order_amount) * 100)
 
             if self.calculate_tax:
-                tax_calculation = self.payment_processor.calculate_tax(order_amount, "usd")  # noqa: E501
+                tax_calculation = self.payment_processor.calculate_tax(
+                    order_amount, "usd"
+                )  # noqa: E501
                 intent = stripe.PaymentIntent.create(
                     amount=tax_calculation["amount_total"],
                     currency="usd",
                     automatic_payment_methods={
                         "enabled": True,
                     },
-                    metadata={
-                      "tax_calculation": tax_calculation["id"]
-                    }
+                    metadata={"tax_calculation": tax_calculation["id"]},
                 )
             else:
                 intent = stripe.PaymentIntent.create(
@@ -185,8 +332,6 @@ class SubscriptionView(BaseView):
         except Exception as e:
             return make_response(jsonify({"error": {"message": str(e)}}), 400)
 
-
-
     @expose("/create-checkout-session", methods=["POST"])
     @has_access
     def create_checkout_session(self) -> Response:
@@ -206,11 +351,8 @@ class SubscriptionView(BaseView):
             return make_response(jsonify({"error": "Invalid subscription plan"}), 400)
 
         # Create Stripe Checkout Session
-        success, session_id, client_secret = (
-            self.payment_processor.create_checkout_session(
-                plan=plan,
-                user=user
-            )
+        success, client_secret = self.payment_processor.create_checkout_session(
+            plan=plan, user=user
         )
 
         if not success:
@@ -219,9 +361,7 @@ class SubscriptionView(BaseView):
         # Log the client secret for debugging (redact in production)
         current_app.logger.info(f"Client secret: {client_secret}")
 
-        return jsonify({
-            "checkoutSessionClientSecret": client_secret
-        })
+        return jsonify({"checkoutSessionClientSecret": client_secret})
 
     @expose("/payment-complete", methods=["POST"])
     @has_access
@@ -233,36 +373,41 @@ class SubscriptionView(BaseView):
         # Get session_id and subscription_id from the request
         data = json.loads(request.data)
         intent_id = data.get("payment_intent_id")
-        plan_id = data.get("plan_id")
-
-        plan = self.appbuilder.session.query(SubscriptionPlan).get(plan_id)
+        product_id = data.get("plan_id")
+        current_app.logger.info(f"Payment complete data: {data}")
+        plan = (
+            self.appbuilder.session.query(SubscriptionPlan)
+            .filter_by(product_id=product_id)
+            .first()
+        )  # noqa: E501
+        # plan = self.payment_processor.get_stripe_plan(product_id)
         if not plan:
             return make_response(jsonify({"error": "Invalid subscription plan"}), 400)
 
-        if not intent_id:
-            return make_response(jsonify({
-                "error": "Payment was not successful because Stripe did not respond."
-            }), 400)
-
         # Retrieve the checkout session from Stripe to verify
         intent = self.payment_processor.retrieve_intent(intent_id)
+        current_app.logger.info(f"Intent: {intent}")
         if not intent:
-            return make_response(jsonify({"error": "Error retrieving payment information"}), 500)  # noqa: E501
+            return make_response(
+                jsonify({"error": "Error retrieving payment information"}), 500
+            )  # noqa: E501
 
         # Verify the payment was successful
         if intent.status != "succeeded":
-            return make_response(jsonify({"error": "Payment not completed successfully"}), 400)  # noqa: E501
+            return make_response(
+                jsonify({"error": "Payment not completed successfully"}), 400
+            )  # noqa: E501
 
         # Create subscription in our database
         end_date = datetime.datetime.now() + self.calc_subscription_period(plan)
         subscription = UserSubscription(
             user_id=user.id,
-            plan_id=plan.id,
+            product_id=product_id,
             status="active",
             start_date=datetime.datetime.now(),
             end_date=end_date,
             is_auto_renew=True,
-            external_subscription_id=intent_id
+            external_subscription_id=intent_id,
         )
 
         # Save the subscription first to get an ID
@@ -273,10 +418,10 @@ class SubscriptionView(BaseView):
         payment = Payment(
             user_id=user.id,
             subscription_id=subscription.id,  # Link payment to subscription
-            amount=plan.price,
+            amount=plan["price"],
             payment_method="stripe",
             transaction_id=intent_id,
-            status="success"
+            status="success",
         )
 
         # Add payment to session and commit both subscription and payment
@@ -284,9 +429,11 @@ class SubscriptionView(BaseView):
 
         # Debug logging
         current_app.logger.info(
-            f"Created subscription {subscription.id} with payment from Stripe")
+            f"Created subscription {subscription.id} with payment from Stripe"
+        )
         current_app.logger.info(
-            f"Payment details: {payment.amount}, {payment.payment_method}, {payment.status}")  # noqa: E501
+            f"Payment details: {payment.amount}, {payment.payment_method}, {payment.status}"  # noqa: E501
+        )  # noqa: E501
 
         # Commit subscription and payment
         self.appbuilder.session.commit()
@@ -294,10 +441,7 @@ class SubscriptionView(BaseView):
         # Update user paid status using direct SQL (this includes its own commit)
         self.update_user_paid_status(user.id, True)
 
-        return jsonify({
-            "success": True,
-            "subscription_id": subscription.id
-        })
+        return jsonify({"success": True, "subscription_id": subscription.id})
 
     @expose("/subscription-success")
     @has_access
@@ -313,9 +457,9 @@ class SubscriptionView(BaseView):
             flash(_("No active subscription found"), "danger")
             return redirect(url_for(".plans"))
 
-        return self.render_template("subscription/success.html",
-                                    subscription=subscription,
-                                    user=user)
+        return self.render_template(
+            "subscription/success.html", subscription=subscription, user=user
+        )
 
     @expose("/manage")
     @has_access
@@ -330,42 +474,54 @@ class SubscriptionView(BaseView):
         # If no subscription, redirect to plans page
         if not subscription:
             flash(
-                _("You don't have an active subscription. "
-                  "Choose a plan below to subscribe."),
-                "info")
+                _(
+                    "You don't have an active subscription. "
+                    "Choose a plan below to subscribe."
+                ),
+                "info",
+            )
             return redirect(url_for(".plans"))
 
         # Explicitly load payments
         from sqlalchemy.orm import joinedload
+
         if subscription:
             # Check for payments directly
             payments = self.check_subscription_payments(subscription.id)
 
             # Reload the subscription with joined payments
-            subscription = self.appbuilder.session.query(UserSubscription).options(
-                joinedload(UserSubscription.payments)
-            ).filter_by(id=subscription.id).first()
+            subscription = (
+                self.appbuilder.session.query(UserSubscription)
+                .options(joinedload(UserSubscription.payments))
+                .filter_by(id=subscription.id)
+                .first()
+            )
 
             # Debug logging
             current_app.logger.info(f"Subscription ID: {subscription.id}")
             current_app.logger.info(f"Number of payments from helper: {len(payments)}")
             current_app.logger.info(
-                f"Number of payments from subscription: {len(subscription.payments) if subscription.payments else 0}")  # noqa: E501
+                f"Number of payments from subscription: {len(subscription.payments) if subscription.payments else 0}"  # noqa: E501
+            )  # noqa: E501
 
             # If we have payments but they're not showing up in subscription.payments, manually add them  # noqa: E501
             if payments and (
-                not subscription.payments or len(subscription.payments) == 0):
+                not subscription.payments or len(subscription.payments) == 0
+            ):
                 current_app.logger.info(
-                    "Manually setting payments on subscription object")
+                    "Manually setting payments on subscription object"
+                )
                 subscription.payments = payments
 
         # Check if user is admin
         is_admin = self.is_admin_user(user)
 
-        return self.render_template("subscription/manage.html",
-                                    subscription=subscription,
-                                    user=user,
-                                    is_admin=is_admin)
+        return self.render_template(
+            "subscription/manage.html",
+            subscription=subscription,
+            user=user,
+            is_admin=is_admin,
+        )
 
     @expose("/cancel", methods=["POST"])
     @has_access
@@ -379,12 +535,18 @@ class SubscriptionView(BaseView):
 
         if subscription:
             # If we have a Stripe subscription ID, cancel in Stripe
-            if hasattr(subscription, "stripe_subscription_id") and subscription.stripe_subscription_id:  # noqa: E501
+            if (
+                hasattr(subscription, "stripe_subscription_id")
+                and subscription.stripe_subscription_id
+            ):  # noqa: E501
                 success = self.payment_processor.cancel_subscription(
-                    subscription.stripe_subscription_id)
+                    subscription.stripe_subscription_id
+                )
                 if not success:
-                    flash(_("Error cancelling subscription with payment provider"),
-                          "danger")
+                    flash(
+                        _("Error cancelling subscription with payment provider"),
+                        "danger",
+                    )
                     return redirect(url_for(".manage"))
 
             subscription.status = "cancelled"
@@ -398,13 +560,17 @@ class SubscriptionView(BaseView):
         return redirect(url_for(".manage"))
 
     # Helper methods
-    def calc_subscription_period(self, plan: SubscriptionPlan) -> datetime.timedelta:
+    def calc_subscription_period(
+        self, plan: dict[str, Any] | None
+    ) -> datetime.timedelta:  # noqa: E501
         """Calculate subscription end date based on billing cycle"""
-        if plan.billing_cycle == "monthly":
+        if not plan:
+            return datetime.timedelta(days=30)  # Default to monthly if no plan
+        if plan.get("billing_cycle") == "month":
             return datetime.timedelta(days=30)
-        elif plan.billing_cycle == "quarterly":
+        elif plan.get("billing_cycle") == "quarter":
             return datetime.timedelta(days=90)
-        elif plan.billing_cycle == "yearly":
+        elif plan.get("billing_cycle") == "year":
             return datetime.timedelta(days=365)
         return datetime.timedelta(days=30)  # Default to monthly
 
@@ -412,18 +578,23 @@ class SubscriptionView(BaseView):
         """Helper function to check if a subscription has payments"""
         try:
             # Find both directly linked payments and possibly orphaned ones for this subscription  # noqa: E501
-            payments = self.appbuilder.session.query(Payment).filter(
-                or_(
-                    Payment.subscription_id == subscription_id,
-                    Payment.user_id == self.appbuilder.session.query(
-                        UserSubscription.user_id).filter(
-                        UserSubscription.id == subscription_id
-                    ).scalar_subquery()
+            payments = (
+                self.appbuilder.session.query(Payment)
+                .filter(
+                    or_(
+                        Payment.subscription_id == subscription_id,
+                        Payment.user_id
+                        == self.appbuilder.session.query(UserSubscription.user_id)
+                        .filter(UserSubscription.id == subscription_id)
+                        .scalar_subquery(),
+                    )
                 )
-            ).all()
+                .all()
+            )
 
             current_app.logger.info(
-                f"Found {len(payments)} payments for subscription {subscription_id}")
+                f"Found {len(payments)} payments for subscription {subscription_id}"
+            )
             return payments
         except Exception as e:
             current_app.logger.error(f"Error checking payments: {str(e)}")
@@ -435,13 +606,23 @@ class SubscriptionView(BaseView):
             # self.appbuilder.session.begin()
             user = self.appbuilder.session.query(User).get(user_id)
             paid_role = self.appbuilder.session.query(Role).filter_by(id=4).first()
-            stmt = text("UPDATE ab_user SET is_paid_user = :is_paid, changed_on = :changed_on WHERE id = :user_id")  # noqa: E501
-            self.appbuilder.session.execute(stmt, {"is_paid": is_paid, "user_id": user_id, "changed_on": datetime.datetime.now()})  # noqa: E501
+            stmt = text(
+                "UPDATE ab_user SET is_paid_user = :is_paid, changed_on = :changed_on WHERE id = :user_id"  # noqa: E501
+            )  # noqa: E501
+            self.appbuilder.session.execute(
+                stmt,
+                {
+                    "is_paid": is_paid,
+                    "user_id": user_id,
+                    "changed_on": datetime.datetime.now(),
+                },
+            )  # noqa: E501
             user.roles.append(paid_role)
             self.appbuilder.session.commit()
 
             current_app.logger.info(
-                f"Updated is_paid_user status for user {user_id} to {is_paid}")
+                f"Updated is_paid_user status for user {user_id} to {is_paid}"
+            )
         except Exception as e:
             current_app.logger.error(f"Error updating user paid status: {str(e)}")
             self.appbuilder.session.rollback()
