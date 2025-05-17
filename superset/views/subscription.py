@@ -402,7 +402,7 @@ class SubscriptionView(BaseView):
         end_date = datetime.datetime.now() + self.calc_subscription_period(plan)
         subscription = UserSubscription(
             user_id=user.id,
-            product_id=product_id,
+            plan_id=plan.id,
             status="active",
             start_date=datetime.datetime.now(),
             end_date=end_date,
@@ -418,7 +418,7 @@ class SubscriptionView(BaseView):
         payment = Payment(
             user_id=user.id,
             subscription_id=subscription.id,  # Link payment to subscription
-            amount=plan["price"],
+            amount=plan.price,
             payment_method="stripe",
             transaction_id=intent_id,
             status="success",
@@ -561,16 +561,16 @@ class SubscriptionView(BaseView):
 
     # Helper methods
     def calc_subscription_period(
-        self, plan: dict[str, Any] | None
+        self, plan: SubscriptionPlan | None
     ) -> datetime.timedelta:  # noqa: E501
         """Calculate subscription end date based on billing cycle"""
         if not plan:
             return datetime.timedelta(days=30)  # Default to monthly if no plan
-        if plan.get("billing_cycle") == "month":
+        if plan.billing_cycle == "month":
             return datetime.timedelta(days=30)
-        elif plan.get("billing_cycle") == "quarter":
+        elif plan.billing_cycle == "quarter":
             return datetime.timedelta(days=90)
-        elif plan.get("billing_cycle") == "year":
+        elif plan.billing_cycle == "year":
             return datetime.timedelta(days=365)
         return datetime.timedelta(days=30)  # Default to monthly
 
