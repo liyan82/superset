@@ -351,8 +351,8 @@ class SubscriptionView(BaseView):
             return make_response(jsonify({"error": "Invalid subscription plan"}), 400)
 
         # Create Stripe Checkout Session
-        success, client_secret = self.payment_processor.create_checkout_session(
-            plan=plan, user=user
+        success, session_id, client_secret = (
+            self.payment_processor.create_checkout_session(plan=plan, user=user)
         )
 
         if not success:
