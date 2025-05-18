@@ -58,9 +58,166 @@ class SubscriptionView(BaseView):
 
         return user
 
+    def _get_db_features_list(self, db_plan: SubscriptionPlan) -> list:
+        """Safely load and parse the features JSON from a SubscriptionPlan."""
+        if not db_plan.features:
+            return []
+        try:
+            loaded_features = json.loads(db_plan.features)
+            if isinstance(loaded_features, list):
+                return loaded_features
+            return []  # Return empty list if not a list
+        except json.JSONDecodeError:
+            current_app.logger.warning(
+                f"Could not decode features JSON for plan {db_plan.name} "
+                f"during update: {db_plan.features}"
+            )
+            return []
+
+    def _apply_plan_field_updates(
+        self, db_plan: SubscriptionPlan, stripe_plan_item: dict[str, Any]
+    ) -> bool:
+        """Apply updates from a Stripe plan item to a DB plan record.
+
+        Returns True if any fields were updated, False otherwise.
+        """
+        updated_fields = False
+        # Name
+        if db_plan.name != stripe_plan_item["product"]:
+            db_plan.name = stripe_plan_item["product"]
+            updated_fields = True
+        # Description
+        stripe_desc = stripe_plan_item.get("description")
+        if db_plan.description != stripe_desc:
+            db_plan.description = stripe_desc
+            updated_fields = True
+        # Price
+        stripe_price = float(stripe_plan_item["price"])
+        if db_plan.price != stripe_price:
+            db_plan.price = stripe_price
+            updated_fields = True
+        # Billing Cycle
+        if db_plan.billing_cycle != stripe_plan_item["billing_cycle"]:
+            db_plan.billing_cycle = stripe_plan_item["billing_cycle"]
+            updated_fields = True
+        # Features
+        stripe_features_list = stripe_plan_item.get("features", [])
+        db_features_list = self._get_db_features_list(db_plan)
+        if sorted(db_features_list) != sorted(stripe_features_list):
+            db_plan.features = json.dumps(stripe_features_list)
+            updated_fields = True
+        # Is Active
+        stripe_is_active = stripe_plan_item.get("active", True)
+        if db_plan.is_active != stripe_is_active:
+            db_plan.is_active = stripe_is_active
+            updated_fields = True
+        return updated_fields
+
+    def _create_new_db_plan(self, stripe_plan_item: dict[str, Any]) -> None:
+        """Create a new SubscriptionPlan in the database from a Stripe plan item."""
+        try:
+            new_plan_instance = SubscriptionPlan(
+                product_id=stripe_plan_item["id"],
+                name=stripe_plan_item["product"],
+                description=stripe_plan_item.get("description"),
+                price=float(stripe_plan_item["price"]),
+                billing_cycle=stripe_plan_item["billing_cycle"],
+                features=json.dumps(stripe_plan_item.get("features", [])),
+                is_active=stripe_plan_item.get("active", True),
+            )
+            self.appbuilder.session.add(new_plan_instance)
+            self.appbuilder.session.commit()
+            current_app.logger.info(
+                f"Created and committed new DB plan: {new_plan_instance.name}"
+            )
+        except KeyError as e:
+            current_app.logger.error(
+                f"Missing key when creating SubscriptionPlan from Stripe item: "
+                f"{stripe_plan_item}. Error: {e}"
+            )
+            self.appbuilder.session.rollback()
+        except Exception as e:  # pylint: disable=broad-except
+            current_app.logger.error(
+                f"Error creating SubscriptionPlan from Stripe item: "
+                f"{stripe_plan_item}. Error: {e}"
+            )
+            self.appbuilder.session.rollback()
+
+    def _update_existing_db_plan(
+        self, db_plan: SubscriptionPlan, stripe_plan_item: dict[str, Any]
+    ) -> None:
+        """Update an existing SubscriptionPlan in the database from a Stripe plan item."""
+        try:
+            updated_fields = self._apply_plan_field_updates(db_plan, stripe_plan_item)
+            if updated_fields:
+                current_app.logger.info(
+                    f"Updating DB plan: {db_plan.name} with data from Stripe."
+                )
+                self.appbuilder.session.add(db_plan)  # Mark for update
+                self.appbuilder.session.commit()
+                current_app.logger.info(
+                    f"Successfully updated and committed DB plan: {db_plan.name}"
+                )
+            else:
+                current_app.logger.info(
+                    f"No updates needed for DB plan: {db_plan.name}. "
+                    f"Data from Stripe is identical."
+                )
+        except KeyError as e:
+            current_app.logger.error(
+                f"Missing key when updating SubscriptionPlan {db_plan.name} "
+                f"from Stripe item: {stripe_plan_item}. Error: {e}"
+            )
+            self.appbuilder.session.rollback()
+        except Exception as e:  # pylint: disable=broad-except
+            current_app.logger.error(
+                f"Error updating SubscriptionPlan {db_plan.name} "
+                f"from Stripe item: {stripe_plan_item}. Error: {e}"
+            )
+            self.appbuilder.session.rollback()
+
+    def _synchronize_plans_from_stripe(self) -> None:
+        """Fetch plans from Stripe and synchronize them with the local database."""
+        stripe_plans_list = self.payment_processor.get_stripe_plans()
+        current_app.logger.info(f"Plans from Stripe: {stripe_plans_list}")
+
+        if not stripe_plans_list:
+            return
+
+        for stripe_plan_item in stripe_plans_list:
+            current_app.logger.info(
+                f"Processing Stripe plan item: {stripe_plan_item}"
+            )
+            if not stripe_plan_item or not stripe_plan_item.get("id"):
+                current_app.logger.warning(
+                    f"Skipping invalid stripe plan item: {stripe_plan_item}"
+                )
+                continue
+
+            db_plan = (
+                self.appbuilder.session.query(SubscriptionPlan)
+                .filter_by(product_id=stripe_plan_item["id"])
+                .first()
+            )
+            if not db_plan:
+                self._create_new_db_plan(stripe_plan_item)
+            else:
+                self._update_existing_db_plan(db_plan, stripe_plan_item)
+
+    def _sync_and_get_active_plans(self) -> list[SubscriptionPlan]:
+        """Synchronize plans from Stripe and return active plans from the database."""
+        self._synchronize_plans_from_stripe()
+        # Query plans from the database to display on the page.
+        # Display only active plans.
+        return (
+            self.appbuilder.session.query(SubscriptionPlan)
+            .filter_by(is_active=True)
+            .all()
+        )
+
     @expose("/")
     @expose("/index")
-    def index(self) -> Response:  # noqa: C901
+    def index(self) -> Response:
         """Smart entry point that either shows plans or redirects to manage page"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
@@ -69,146 +226,13 @@ class SubscriptionView(BaseView):
         if user.has_active_subscription:
             # Redirect to manage page if they're already subscribed
             return redirect(url_for(".manage"))
-        else:
-            # Show plans page if they don't have an active subscription
-            stripe_plans_list = self.payment_processor.get_stripe_plans()
-            current_app.logger.info(f"Plans from Stripe: {stripe_plans_list}")
+        # Show plans page if they don't have an active subscription
+        active_db_plans = self._sync_and_get_active_plans()
+        current_app.logger.info(f"Plans to render from DB: {active_db_plans}")
 
-            if (
-                stripe_plans_list
-            ):  # Ensure the list is not None and not empty before iterating
-                for stripe_plan_item in stripe_plans_list:
-                    current_app.logger.info(
-                        f"Processing Stripe plan item: {stripe_plan_item}"
-                    )
-                    if not stripe_plan_item or not stripe_plan_item.get("id"):
-                        current_app.logger.warning(
-                            f"Skipping invalid stripe plan item: {stripe_plan_item}"
-                        )
-                        continue
-
-                    db_plan = (
-                        self.appbuilder.session.query(SubscriptionPlan)
-                        .filter_by(product_id=stripe_plan_item["id"])
-                        .first()
-                    )
-                    if not db_plan:
-                        try:
-                            new_plan_instance = SubscriptionPlan(
-                                product_id=stripe_plan_item["id"],
-                                name=stripe_plan_item["product"],
-                                description=stripe_plan_item.get("description"),
-                                price=float(stripe_plan_item["price"]),
-                                billing_cycle=stripe_plan_item["billing_cycle"],
-                                features=json.dumps(
-                                    stripe_plan_item.get("features", [])
-                                ),
-                                is_active=stripe_plan_item.get("active", True),
-                            )
-                            self.appbuilder.session.add(new_plan_instance)
-                            self.appbuilder.session.commit()  # Commit after adding new plan  # noqa: E501
-                            current_app.logger.info(
-                                f"Created and committed new DB plan: {new_plan_instance.name}"  # noqa: E501
-                            )
-                        except KeyError as e:
-                            current_app.logger.error(
-                                f"Missing key when creating SubscriptionPlan from Stripe item: {stripe_plan_item}. Error: {e}"  # noqa: E501
-                            )
-                            self.appbuilder.session.rollback()
-                        except Exception as e:
-                            current_app.logger.error(
-                                f"Error creating SubscriptionPlan from Stripe item: {stripe_plan_item}. Error: {e}"  # noqa: E501
-                            )
-                            self.appbuilder.session.rollback()
-                    else:  # db_plan exists, check for updates
-                        try:
-                            updated_fields = False
-                            # Name
-                            if db_plan.name != stripe_plan_item["product"]:
-                                db_plan.name = stripe_plan_item["product"]
-                                updated_fields = True
-                            # Description
-                            stripe_desc = stripe_plan_item.get("description")
-                            if db_plan.description != stripe_desc:
-                                db_plan.description = stripe_desc
-                                updated_fields = True
-                            # Price
-                            stripe_price = float(stripe_plan_item["price"])
-                            if db_plan.price != stripe_price:
-                                db_plan.price = stripe_price
-                                updated_fields = True
-                            # Billing Cycle
-                            if (
-                                db_plan.billing_cycle
-                                != stripe_plan_item["billing_cycle"]
-                            ):
-                                db_plan.billing_cycle = stripe_plan_item[
-                                    "billing_cycle"
-                                ]
-                                updated_fields = True
-                            # Features
-                            stripe_features_list = stripe_plan_item.get("features", [])
-                            db_features_list = []
-                            if db_plan.features:
-                                try:
-                                    db_features_list = json.loads(db_plan.features)
-                                    if not isinstance(
-                                        db_features_list, list
-                                    ):  # Ensure it's a list for comparison
-                                        db_features_list = []
-                                except json.JSONDecodeError:
-                                    current_app.logger.warning(
-                                        f"Could not decode features JSON for plan {db_plan.name} during update: {db_plan.features}"  # noqa: E501
-                                    )
-
-                            # Compare content of features (e.g., as sorted lists or sets if order doesn't matter)  # noqa: E501
-                            # Assuming features are lists of simple, sortable items (like strings or numbers)  # noqa: E501
-                            if sorted(db_features_list) != sorted(stripe_features_list):
-                                db_plan.features = json.dumps(stripe_features_list)
-                                updated_fields = True
-
-                            # Is Active
-                            stripe_is_active = stripe_plan_item.get("active", True)
-                            if db_plan.is_active != stripe_is_active:
-                                db_plan.is_active = stripe_is_active
-                                updated_fields = True
-
-                            if updated_fields:
-                                current_app.logger.info(
-                                    f"Updating DB plan: {db_plan.name} with data from Stripe."  # noqa: E501
-                                )
-                                self.appbuilder.session.add(db_plan)  # Mark for update
-                                self.appbuilder.session.commit()
-                                current_app.logger.info(
-                                    f"Successfully updated and committed DB plan: {db_plan.name}"  # noqa: E501
-                                )
-                            else:
-                                current_app.logger.info(
-                                    f"No updates needed for DB plan: {db_plan.name}. Data from Stripe is identical."  # noqa: E501
-                                )
-                        except KeyError as e:
-                            current_app.logger.error(
-                                f"Missing key when updating SubscriptionPlan {db_plan.name} from Stripe item: {stripe_plan_item}. Error: {e}"  # noqa: E501
-                            )
-                            self.appbuilder.session.rollback()
-                        except Exception as e:
-                            current_app.logger.error(
-                                f"Error updating SubscriptionPlan {db_plan.name} from Stripe item: {stripe_plan_item}. Error: {e}"  # noqa: E501
-                            )
-                            self.appbuilder.session.rollback()
-
-            # Query plans from the database to display on the page.
-            # Display only active plans.
-            plans_for_template = (
-                self.appbuilder.session.query(SubscriptionPlan)
-                .filter_by(is_active=True)
-                .all()
-            )
-            current_app.logger.info(f"Plans to render from DB: {plans_for_template}")
-
-            return self.render_template(
-                "subscription/plans.html", plans=plans_for_template, user=user
-            )
+        return self.render_template(
+            "subscription/plans.html", plans=active_db_plans, user=user
+        )
 
     @expose("/plans")
     def plans(self) -> Response:
