@@ -58,7 +58,7 @@ class SubscriptionView(BaseView):
 
         return user
 
-    def _get_db_features_list(self, db_plan: SubscriptionPlan) -> list:
+    def _get_db_features_list(self, db_plan: SubscriptionPlan) -> list[str]:
         """Safely load and parse the features JSON from a SubscriptionPlan."""
         if not db_plan.features:
             return []
@@ -146,7 +146,7 @@ class SubscriptionView(BaseView):
     def _update_existing_db_plan(
         self, db_plan: SubscriptionPlan, stripe_plan_item: dict[str, Any]
     ) -> None:
-        """Update an existing SubscriptionPlan in the database from a Stripe plan item."""
+        """Update an existing SubscriptionPlan in the database from a Stripe plan item."""  # noqa: E501
         try:
             updated_fields = self._apply_plan_field_updates(db_plan, stripe_plan_item)
             if updated_fields:
