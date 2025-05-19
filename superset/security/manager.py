@@ -21,7 +21,7 @@ import logging
 import re
 import time
 from collections import defaultdict
-from typing import Any, Callable, cast, NamedTuple, Optional, TYPE_CHECKING
+from typing import Any, Callable, Type, cast, NamedTuple, Optional, TYPE_CHECKING
 
 from flask import current_app, Flask, g, Request
 from flask import redirect, url_for, flash, request
@@ -81,6 +81,7 @@ from superset.utils.core import (
 )
 from superset.utils.filters import get_dataset_access_filters
 from superset.utils.urls import get_url_host
+from werkzeug.wrappers.response import Response
 
 if TYPE_CHECKING:
     from superset.common.query_context import QueryContext
@@ -2758,37 +2759,35 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
 
 class SubscriptionSecurityManager(SecurityManager):
 
-    def is_subscription_valid_for_route(self, route):
+    def is_subscription_valid_for_route(self, route: str) -> bool:
         """Check if the current user's subscription allows access to a route"""
-        # Implementation depends on your route protection scheme
-        # For example, you could have a mapping of routes to required subscription levels
-
-        # Skip checks for authentication-related routes
-        auth_routes = ['/login', '/register', '/subscription']
+        logger.info(f"route: {route}")
+        auth_routes = ["/login", "/register", "/subscription"]
         if any(route.startswith(auth_path) for auth_path in auth_routes):
             return True
 
-        # Always allow admins full access
-        if hasattr(g, 'user') and g.user and self.has_role(g.user, 'Admin'):
+        if hasattr(g, "user") and g.user and self.has_role(g.user, "Admin"):
             return True
 
         # Check user's subscription for other routes
-        if not hasattr(g, 'user') or not g.user or not g.user.has_active_subscription:
+        if not hasattr(g, "user") or not g.user or not g.user.has_active_subscription:
             return False
 
-        # Here you could implement more granular access control based on subscription level
+        # Here you could implement more granular access control based on subscription level  # noqa: E501
         return True
 
-    def before_request(self):
+    def before_request(self) -> Response | None:
         """
         Extend base method to check subscription status before allowing access
         """
         super().before_request()
+        logger.info(f"request.path: {request.path}")
 
         # If user is authenticated but doesn't have a valid subscription
         # redirect to subscription page for protected routes
-        if hasattr(g, 'user') and g.user and g.user.is_authenticated:
+        if hasattr(g, "user") and g.user and g.user.is_authenticated:
             if not self.is_subscription_valid_for_route(request.path):
-                flash(_("You need an active subscription to access this page"),
-                      "warning")
-                return redirect(url_for('SubscriptionView.subscribe'))
+                flash(_("You need an active subscription to access this page"), "warning")  # noqa: E501
+                return redirect(url_for("SubscriptionView.subscribe"))
+            return None
+        return None

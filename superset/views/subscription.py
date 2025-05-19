@@ -185,9 +185,7 @@ class SubscriptionView(BaseView):
             return
 
         for stripe_plan_item in stripe_plans_list:
-            current_app.logger.info(
-                f"Processing Stripe plan item: {stripe_plan_item}"
-            )
+            current_app.logger.info(f"Processing Stripe plan item: {stripe_plan_item}")
             if not stripe_plan_item or not stripe_plan_item.get("id"):
                 current_app.logger.warning(
                     f"Skipping invalid stripe plan item: {stripe_plan_item}"
@@ -221,18 +219,42 @@ class SubscriptionView(BaseView):
         """Smart entry point that either shows plans or redirects to manage page"""
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
-        current_app.logger.info(f"User: {user}")
 
         if user.has_active_subscription:
             # Redirect to manage page if they're already subscribed
             return redirect(url_for(".manage"))
-        # Show plans page if they don't have an active subscription
-        active_db_plans = self._sync_and_get_active_plans()
-        current_app.logger.info(f"Plans to render from DB: {active_db_plans}")
+        elif (
+            not user.has_active_subscription
+            and user.current_subscription
+            and user.current_subscription.status == "cancelled"
+        ):
+            flash(
+                _(
+                    "Your subscription has been cancelled and will expire on "
+                    f"{user.current_subscription.end_date.strftime('%Y-%m-%d')}.\n"
+                    "Please subscribe to a new plan below."
+                ),
+                "info",
+            )
+            active_db_plans = self._sync_and_get_active_plans()
+            current_app.logger.info(f"Plans to render from DB: {active_db_plans}")
 
-        return self.render_template(
-            "subscription/plans.html", plans=active_db_plans, user=user
-        )
+            return self.render_template(
+                "subscription/plans.html", plans=active_db_plans, user=user
+            )
+        else:
+            flash(
+                _(
+                    "You don't have an active subscription. "
+                    "Choose a plan below to subscribe."
+                ),
+            )
+            active_db_plans = self._sync_and_get_active_plans()
+            current_app.logger.info(f"Plans to render from DB: {active_db_plans}")
+
+            return self.render_template(
+                "subscription/plans.html", plans=active_db_plans, user=user
+            )
 
     @expose("/plans")
     def plans(self) -> Response:
@@ -250,7 +272,7 @@ class SubscriptionView(BaseView):
         if not plans:
             flash(
                 _("Error loading subscription plans. Please try again later."), "error"
-            )  # noqa: E501
+            )
             return redirect(url_for(".index"))
 
         return self.render_template("subscription/plans.html", plans=plans, user=user)
@@ -327,7 +349,7 @@ class SubscriptionView(BaseView):
             if self.calculate_tax:
                 tax_calculation = self.payment_processor.calculate_tax(
                     order_amount, "usd"
-                )  # noqa: E501
+                )
                 intent = stripe.PaymentIntent.create(
                     amount=tax_calculation["amount_total"],
                     currency="usd",
@@ -403,7 +425,7 @@ class SubscriptionView(BaseView):
             self.appbuilder.session.query(SubscriptionPlan)
             .filter_by(product_id=product_id)
             .first()
-        )  # noqa: E501
+        )
         # plan = self.payment_processor.get_stripe_plan(product_id)
         if not plan:
             return make_response(jsonify({"error": "Invalid subscription plan"}), 400)
@@ -414,24 +436,33 @@ class SubscriptionView(BaseView):
         if not intent:
             return make_response(
                 jsonify({"error": "Error retrieving payment information"}), 500
-            )  # noqa: E501
+            )
 
         # Verify the payment was successful
         if intent.status != "succeeded":
             return make_response(
                 jsonify({"error": "Payment not completed successfully"}), 400
-            )  # noqa: E501
+            )
 
         # Create subscription in our database
-        end_date = datetime.datetime.now() + self.calc_subscription_period(plan)
+        sub_start_date = datetime.datetime.now()
+        current_subscription = user.current_subscription
+        if (
+            current_subscription
+            and current_subscription.status == "cancelled"
+            and current_subscription.end_date
+            and current_subscription.end_date > sub_start_date
+        ):
+            sub_start_date = current_subscription.end_date
+
+        end_date = sub_start_date + self.calc_subscription_period(plan)
         subscription = UserSubscription(
             user_id=user.id,
             plan_id=plan.id,
             status="active",
-            start_date=datetime.datetime.now(),
+            start_date=sub_start_date,
             end_date=end_date,
             is_auto_renew=True,
-            external_subscription_id=intent_id,
         )
 
         # Save the subscription first to get an ID
@@ -457,7 +488,7 @@ class SubscriptionView(BaseView):
         )
         current_app.logger.info(
             f"Payment details: {payment.amount}, {payment.payment_method}, {payment.status}"  # noqa: E501
-        )  # noqa: E501
+        )
 
         # Commit subscription and payment
         self.appbuilder.session.commit()
@@ -505,13 +536,29 @@ class SubscriptionView(BaseView):
                 "info",
             )
             return redirect(url_for(".plans"))
+        elif subscription.status == "cancelled":
+            flash(
+                _(
+                    "Your subscription has been cancelled. "
+                    "Choose a plan below to subscribe."
+                ),
+                "info",
+            )
+            return redirect(url_for(".plans"))
+        elif subscription.status == "expired":
+            flash(
+                _("Your subscription has expired. Choose a plan below to subscribe."),
+                "info",
+            )
+            return redirect(url_for(".plans"))
 
         # Explicitly load payments
         from sqlalchemy.orm import joinedload
 
-        if subscription:
+        if subscription.status == "active":
             # Check for payments directly
-            payments = self.check_subscription_payments(subscription.id)
+            payments = self.check_user_payments(user.id)
+            subscription.payments = payments
 
             # Reload the subscription with joined payments
             subscription = (
@@ -526,16 +573,7 @@ class SubscriptionView(BaseView):
             current_app.logger.info(f"Number of payments from helper: {len(payments)}")
             current_app.logger.info(
                 f"Number of payments from subscription: {len(subscription.payments) if subscription.payments else 0}"  # noqa: E501
-            )  # noqa: E501
-
-            # If we have payments but they're not showing up in subscription.payments, manually add them  # noqa: E501
-            if payments and (
-                not subscription.payments or len(subscription.payments) == 0
-            ):
-                current_app.logger.info(
-                    "Manually setting payments on subscription object"
-                )
-                subscription.payments = payments
+            )
 
         # Check if user is admin
         is_admin = self.is_admin_user(user)
@@ -550,21 +588,29 @@ class SubscriptionView(BaseView):
     @expose("/cancel", methods=["POST"])
     @has_access
     def cancel(self) -> Response:
+        current_app.logger.info("Cancelling subscription")
         """Cancel subscription"""
         # Get a fresh User instance with the mixin applied
+        subscription_id = request.form.get("subscription_id")
+        current_app.logger.info(f"Subscription ID: {subscription_id}")
         user = self._get_user()
+        current_app.logger.info(f"User: {user}")
 
         # Get current subscription using the mixin property
         subscription = user.current_subscription
+        current_app.logger.info(f"Subscription: {subscription}")
 
         if subscription:
             # If we have a Stripe subscription ID, cancel in Stripe
             if (
-                hasattr(subscription, "stripe_subscription_id")
-                and subscription.stripe_subscription_id
-            ):  # noqa: E501
+                hasattr(subscription, "external_subscription_id")
+                and subscription.external_subscription_id
+            ):
+                current_app.logger.info(
+                    f"Cancelling subscription {subscription.external_subscription_id} for user {user.id}"  # noqa: E501
+                )
                 success = self.payment_processor.cancel_subscription(
-                    subscription.stripe_subscription_id
+                    subscription.external_subscription_id
                 )
                 if not success:
                     flash(
@@ -578,6 +624,7 @@ class SubscriptionView(BaseView):
             self.appbuilder.session.commit()
 
             # Update user paid status to False since their subscription is cancelled
+            # TODO: Remove paid role from user, but has to be after the subscription is expired  # noqa: E501
             self.update_user_paid_status(user.id, False)
 
             flash(_("Your subscription has been cancelled"), "success")
@@ -586,7 +633,7 @@ class SubscriptionView(BaseView):
     # Helper methods
     def calc_subscription_period(
         self, plan: SubscriptionPlan | None
-    ) -> datetime.timedelta:  # noqa: E501
+    ) -> datetime.timedelta:
         """Calculate subscription end date based on billing cycle"""
         if not plan:
             return datetime.timedelta(days=30)  # Default to monthly if no plan
@@ -624,29 +671,45 @@ class SubscriptionView(BaseView):
             current_app.logger.error(f"Error checking payments: {str(e)}")
             return []
 
+    def check_user_payments(self, user_id: int) -> list[Payment]:
+        """Helper function to check if a user has payments"""
+        try:
+            payments = (
+                self.appbuilder.session.query(Payment)
+                .filter_by(user_id=user_id)
+                .all()
+            )
+            return payments
+        except Exception as e:
+            current_app.logger.error(f"Error checking payments: {str(e)}")
+            return []
+
     def update_user_paid_status(self, user_id: int, is_paid: bool = True) -> None:
         """Update a user's is_paid_user status using direct SQL"""
         try:
-            # self.appbuilder.session.begin()
-            user = self.appbuilder.session.query(User).get(user_id)
-            paid_role = self.appbuilder.session.query(Role).filter_by(id=4).first()
-            stmt = text(
-                "UPDATE ab_user SET is_paid_user = :is_paid, changed_on = :changed_on WHERE id = :user_id"  # noqa: E501
-            )  # noqa: E501
-            self.appbuilder.session.execute(
-                stmt,
-                {
-                    "is_paid": is_paid,
-                    "user_id": user_id,
-                    "changed_on": datetime.datetime.now(),
-                },
-            )  # noqa: E501
-            user.roles.append(paid_role)
-            self.appbuilder.session.commit()
-
-            current_app.logger.info(
-                f"Updated is_paid_user status for user {user_id} to {is_paid}"
-            )
+            if is_paid:
+                user = self.appbuilder.session.query(User).get(user_id)
+                paid_role = (
+                    self.appbuilder.session.query(Role).filter_by(name="Gamma").first()
+                )  # noqa: E501
+                stmt = text(
+                    "UPDATE ab_user SET is_paid_user = :is_paid, changed_on = :changed_on WHERE id = :user_id"  # noqa: E501
+                )
+                self.appbuilder.session.execute(
+                    stmt,
+                    {
+                        "is_paid": is_paid,
+                        "user_id": user_id,
+                        "changed_on": datetime.datetime.now(),
+                    },
+                )
+                user.roles.append(paid_role)
+                self.appbuilder.session.commit()
+                current_app.logger.info(
+                    f"Updated is_paid_user status for user {user_id} to {is_paid}"
+                )  # noqa: E501
+            else:
+                pass  # TODO: Remove paid role from user, but has to be after the subscription is expired  # noqa: E501
         except Exception as e:
             current_app.logger.error(f"Error updating user paid status: {str(e)}")
             self.appbuilder.session.rollback()
