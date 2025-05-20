@@ -16,7 +16,7 @@ from flask import (
 from flask_appbuilder import BaseView, expose, has_access
 from flask_appbuilder.security.sqla.models import Role, User
 from flask_babel import lazy_gettext as _
-from sqlalchemy import or_
+from sqlalchemy import or_, text
 from stripe import StripeError
 from werkzeug.wrappers import Response
 
@@ -294,13 +294,23 @@ class SubscriptionView(BaseView):
 
         current_subscription = user.current_subscription
         if current_subscription:
-            current_app.logger.info(f"Current subscription: {json.dumps(current_subscription.__dict__, indent=2, default=str)}")  # noqa: E501
-            subscription_plan = self.appbuilder.session.query(SubscriptionPlan).filter_by(id=current_subscription.plan_id).first()  # noqa: E501
-            current_app.logger.info(f"Subscription plan: {json.dumps(subscription_plan.__dict__, indent=2, default=str)}")  # noqa: E501
+            current_app.logger.info(
+                f"Current subscription: {json.dumps(current_subscription.__dict__, indent=2, default=str)}"
+            )  # noqa: E501
+            subscription_plan = (
+                self.appbuilder.session.query(SubscriptionPlan)
+                .filter_by(id=current_subscription.plan_id)
+                .first()
+            )  # noqa: E501
+            current_app.logger.info(
+                f"Subscription plan: {json.dumps(subscription_plan.__dict__, indent=2, default=str)}"
+            )  # noqa: E501
 
         if user.has_active_subscription:
             flash(
-                _("You already have an active subscription. Please cancel it before subscribing to a new plan."),  # noqa: E501
+                _(
+                    "You already have an active subscription. Please cancel it before subscribing to a new plan."
+                ),  # noqa: E501
                 "warning",
             )
 
@@ -311,7 +321,9 @@ class SubscriptionView(BaseView):
             and current_subscription.end_date > datetime.datetime.now()
             and subscription_plan.product_id == plan_id
         ):
-            current_app.logger.info(f"Reviving subscription: {current_subscription.external_subscription_id}")  # noqa: E501
+            current_app.logger.info(
+                f"Reviving subscription: {current_subscription.external_subscription_id}"
+            )  # noqa: E501
             revive_success = self.payment_processor.revive_subscription(
                 current_subscription.external_subscription_id
             )
@@ -320,7 +332,9 @@ class SubscriptionView(BaseView):
                 current_subscription.is_auto_renew = True
                 self.appbuilder.session.commit()
                 flash(
-                    _("Your subscription has been revived. Subscription billing will resume on the next billing date."),  # noqa: E501
+                    _(
+                        "Your subscription has been revived. Subscription billing will resume on the next billing date."
+                    ),  # noqa: E501
                     "info",
                 )
 
@@ -451,19 +465,16 @@ class SubscriptionView(BaseView):
         data = json.loads(request.data)
         intent_id = data.get("payment_intent_id")
         product_id = data.get("plan_id")
-        current_app.logger.info(f"Payment complete data: {data}")
         plan = (
             self.appbuilder.session.query(SubscriptionPlan)
             .filter_by(product_id=product_id)
             .first()
         )
-        # plan = self.payment_processor.get_stripe_plan(product_id)
         if not plan:
             return make_response(jsonify({"error": "Invalid subscription plan"}), 400)
 
         # Retrieve the checkout session from Stripe to verify
         intent = self.payment_processor.retrieve_intent(intent_id)
-        current_app.logger.info(f"Intent: {intent}")
         if not intent:
             return make_response(
                 jsonify({"error": "Error retrieving payment information"}), 500
@@ -479,7 +490,7 @@ class SubscriptionView(BaseView):
             # Create subscription in our database
             sub_start_date = datetime.datetime.now()
             current_subscription = user.current_subscription
-            if (
+            if (  # should be useless after adding revive_subscription
                 current_subscription
                 and current_subscription.status == "cancelled"
                 and current_subscription.end_date
@@ -497,11 +508,6 @@ class SubscriptionView(BaseView):
                 is_auto_renew=True,
             )
 
-            # Save the subscription first to get an ID
-            self.appbuilder.session.add(subscription)
-            self.appbuilder.session.flush()  # Flush to get subscription.id without committing  # noqa: E501
-
-            # Create payment record with subscription association
             payment = Payment(
                 user_id=user.id,
                 subscription_id=subscription.id,  # Link payment to subscription
@@ -510,9 +516,6 @@ class SubscriptionView(BaseView):
                 transaction_id=intent_id,
                 status="success",
             )
-
-            # Add payment to session and commit both subscription and payment
-            self.appbuilder.session.add(payment)
 
             # Debug logging
             current_app.logger.info(
@@ -528,18 +531,13 @@ class SubscriptionView(BaseView):
             stripe_subscription = self.payment_processor.create_stripe_subscription(
                 user, plan
             )
-            current_app.logger.info(f"Stripe subscription: {stripe_subscription}")  # noqa: E501
             if stripe_subscription:
+                current_app.logger.info(
+                    f"Stripe subscription successfully created: {stripe_subscription}"
+                )
                 subscription.external_subscription_id = stripe_subscription.id
-                subscription_user = self.appbuilder.session.query(UserSubscription).filter_by(id=user.id).first()  # noqa: E501
-                subscription_user.stripe_customer_id = stripe_subscription.customer
-                current_app.logger.info(f"Stripe customer ID: {subscription_user.stripe_customer_id}")  # noqa: E501
 
-            # Commit subscription and payment
-            self.appbuilder.session.commit()
-
-            # Update user paid status using direct SQL (this includes its own commit)
-            self.update_user_paid_status(user.id, True)
+            self.sync_with_stripe(user, subscription, payment, stripe_subscription)
 
             return jsonify({"success": True, "subscription_id": subscription.id})
         except StripeError as e:  # More specific catch for StripeErrors
@@ -680,12 +678,8 @@ class SubscriptionView(BaseView):
             subscription.status = "cancelled"
             subscription.is_auto_renew = False
             self.appbuilder.session.commit()
-
-            # Update user paid status to False since their subscription is cancelled
-            # TODO: Remove paid role from user, but has to be after the subscription is expired  # noqa: E501
-            self.update_user_paid_status(user.id, False)
-
             flash(_("Your subscription has been cancelled"), "success")
+
         return redirect(url_for(".manage"))
 
     # Helper methods
@@ -740,31 +734,36 @@ class SubscriptionView(BaseView):
             current_app.logger.error(f"Error checking payments: {str(e)}")
             return []
 
-    def update_user_paid_status(self, user_id: int, is_paid: bool = True) -> None:
-        """Update a user's is_paid_user status using direct SQL"""
-        try:
-            if is_paid:
-                user = self.appbuilder.session.query(User).get(user_id)
-                paid_role = (
-                    self.appbuilder.session.query(Role).filter_by(name="Gamma").first()
-                )  # noqa: E501
-                # Use SQLAlchemy ORM instead of raw SQL for better type handling
-                user.is_paid_user = is_paid
-                user.changed_on = datetime.datetime.now()
+    def sync_with_stripe(
+        self,
+        user: User,
+        subscription: UserSubscription,
+        payment: Payment,
+        stripe_subscription: stripe.Subscription | None = None,
+    ) -> None:
+        """Sync the subscription and payment with Stripe"""
+        self.appbuilder.session.add(subscription)
+        subscription.payments.append(payment)
+        self.appbuilder.session.add(payment)
+        self.appbuilder.session.flush()
+        self.appbuilder.session.execute(
+            text(
+                "UPDATE ab_user SET stripe_customer_id = :stripe_customer_id, is_paid_user = :is_paid_user WHERE id = :user_id"  # noqa: E501
+            ),
+            {
+                "stripe_customer_id": stripe_subscription.customer,
+                "is_paid_user": True,
+                "user_id": user.id,
+            },
+        )
+        db_user = self.appbuilder.session.query(User).get(user.id)
+        paid_role = self.appbuilder.session.query(Role).filter_by(name="Gamma").first()
+        db_user.changed_on = datetime.datetime.now()
 
-                # Only add role if not already present
-                if paid_role and paid_role not in user.roles:
-                    user.roles.append(paid_role)
-
-                self.appbuilder.session.commit()
-                current_app.logger.info(
-                    f"Updated is_paid_user status for user {user_id} to {is_paid}"
-                )  # noqa: E501
-            else:
-                pass  # TODO: Remove paid role from user, but has to be after the subscription is expired  # noqa: E501
-        except Exception as e:
-            current_app.logger.error(f"Error updating user paid status: {str(e)}")
-            self.appbuilder.session.rollback()
+        # Only add role if not already present
+        if paid_role and paid_role not in db_user.roles:
+            db_user.roles.append(paid_role)
+        self.appbuilder.session.commit()
 
     def is_admin_user(self, user: User | None = None) -> bool:
         """Helper function to check if a user has the Admin role"""
