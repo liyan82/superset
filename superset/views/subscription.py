@@ -293,9 +293,11 @@ class SubscriptionView(BaseView):
         user = self._get_user()
 
         current_subscription = user.current_subscription
-        current_app.logger.info(f"Current subscription: {json.dumps(current_subscription.__dict__, indent=2, default=str)}")  # noqa: E501
-        subscription_plan = self.appbuilder.session.query(SubscriptionPlan).filter_by(id=current_subscription.plan_id).first()  # noqa: E501
-        current_app.logger.info(f"Subscription plan: {json.dumps(subscription_plan.__dict__, indent=2, default=str)}")  # noqa: E501
+        if current_subscription:
+            current_app.logger.info(f"Current subscription: {json.dumps(current_subscription.__dict__, indent=2, default=str)}")  # noqa: E501
+            subscription_plan = self.appbuilder.session.query(SubscriptionPlan).filter_by(id=current_subscription.plan_id).first()  # noqa: E501
+            current_app.logger.info(f"Subscription plan: {json.dumps(subscription_plan.__dict__, indent=2, default=str)}")  # noqa: E501
+
         if user.has_active_subscription:
             flash(
                 _("You already have an active subscription. Please cancel it before subscribing to a new plan."),  # noqa: E501
@@ -304,7 +306,8 @@ class SubscriptionView(BaseView):
 
             return redirect(url_for(".manage"))
         elif (
-            current_subscription.status == "cancelled"
+            current_subscription
+            and current_subscription.status == "cancelled"
             and current_subscription.end_date > datetime.datetime.now()
             and subscription_plan.product_id == plan_id
         ):
@@ -528,11 +531,9 @@ class SubscriptionView(BaseView):
             current_app.logger.info(f"Stripe subscription: {stripe_subscription}")  # noqa: E501
             if stripe_subscription:
                 subscription.external_subscription_id = stripe_subscription.id
-                user.stripe_customer_id = stripe_subscription.customer
-                current_app.logger.info(
-                    f"Stripe customer ID: {user.stripe_customer_id}"
-                )  # noqa: E501
-                self.appbuilder.session.commit()
+                subscription_user = self.appbuilder.session.query(UserSubscription).filter_by(id=user.id).first()  # noqa: E501
+                subscription_user.stripe_customer_id = stripe_subscription.customer
+                current_app.logger.info(f"Stripe customer ID: {subscription_user.stripe_customer_id}")  # noqa: E501
 
             # Commit subscription and payment
             self.appbuilder.session.commit()
