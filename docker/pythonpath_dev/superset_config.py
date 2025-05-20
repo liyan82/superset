@@ -25,7 +25,8 @@ import os
 import sys
 from datetime import timedelta
 from celery.schedules import crontab
-from flask_caching.backends.filesystemcache import FileSystemCache
+from cachelib.file import FileSystemCache
+from flask_caching.backends.base import BaseCache
 
 logger = logging.getLogger()
 
@@ -81,6 +82,7 @@ class CeleryConfig:
         "superset.tasks.thumbnails",
         "superset.tasks.cache",
         "superset.tasks.expired_subscriptions",
+        # "superset.tasks.sync_stripe",
     )
     result_backend = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_RESULTS_DB}"
     worker_prefetch_multiplier = 1
@@ -96,8 +98,12 @@ class CeleryConfig:
         },
         "expired_subscriptions.scan_and_label": {
             "task": "expired_subscriptions.scan_and_label",
-            "schedule": timedelta(seconds=10),
+            "schedule": timedelta(seconds=20),
         },
+        # "sync_stripe.sync_stripe_data": {
+        #     "task": "sync_stripe.sync_stripe_data",
+        #     "schedule": timedelta(seconds=20),
+        # },
     }
 
 

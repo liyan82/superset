@@ -16,7 +16,7 @@ from flask import (
 from flask_appbuilder import BaseView, expose, has_access
 from flask_appbuilder.security.sqla.models import Role, User
 from flask_babel import lazy_gettext as _
-from sqlalchemy import or_, text
+from sqlalchemy import or_
 from stripe import StripeError
 from werkzeug.wrappers import Response
 
@@ -96,6 +96,11 @@ class SubscriptionView(BaseView):
         if db_plan.price != stripe_price:
             db_plan.price = stripe_price
             updated_fields = True
+        # Stripe Price ID
+        stripe_price_id = stripe_plan_item["stripe_price_id"]
+        if db_plan.stripe_price_id != stripe_price_id:
+            db_plan.stripe_price_id = stripe_price_id
+            updated_fields = True
         # Billing Cycle
         if db_plan.billing_cycle != stripe_plan_item["billing_cycle"]:
             db_plan.billing_cycle = stripe_plan_item["billing_cycle"]
@@ -118,6 +123,7 @@ class SubscriptionView(BaseView):
         try:
             new_plan_instance = SubscriptionPlan(
                 product_id=stripe_plan_item["id"],
+                stripe_price_id=stripe_plan_item["stripe_price_id"],
                 name=stripe_plan_item["product"],
                 description=stripe_plan_item.get("description"),
                 price=float(stripe_plan_item["price"]),
@@ -269,6 +275,7 @@ class SubscriptionView(BaseView):
             return redirect(url_for(".manage"))
 
         plans = self.payment_processor.get_stripe_plans()
+        current_app.logger.info(f"Plans from Stripe: {plans}")
         if not plans:
             flash(
                 _("Error loading subscription plans. Please try again later."), "error"
@@ -281,27 +288,48 @@ class SubscriptionView(BaseView):
     @has_access
     def subscribe(self, plan_id: str) -> Response:
         """Process new subscription - redirects to payment page"""
+        current_app.logger.info(f"Subscribing to plan: {plan_id}")
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
 
+        current_subscription = user.current_subscription
+        current_app.logger.info(f"Current subscription: {json.dumps(current_subscription.__dict__, indent=2, default=str)}")  # noqa: E501
+        subscription_plan = self.appbuilder.session.query(SubscriptionPlan).filter_by(id=current_subscription.plan_id).first()  # noqa: E501
+        current_app.logger.info(f"Subscription plan: {json.dumps(subscription_plan.__dict__, indent=2, default=str)}")  # noqa: E501
         if user.has_active_subscription:
             flash(
-                _(
-                    "You already have an active subscription. "
-                    "Please cancel it before subscribing to a new plan."
-                ),
+                _("You already have an active subscription. Please cancel it before subscribing to a new plan."),  # noqa: E501
                 "warning",
             )
+
             return redirect(url_for(".manage"))
+        elif (
+            current_subscription.status == "cancelled"
+            and current_subscription.end_date > datetime.datetime.now()
+            and subscription_plan.product_id == plan_id
+        ):
+            current_app.logger.info(f"Reviving subscription: {current_subscription.external_subscription_id}")  # noqa: E501
+            revive_success = self.payment_processor.revive_subscription(
+                current_subscription.external_subscription_id
+            )
+            if revive_success:
+                current_subscription.status = "active"
+                current_subscription.is_auto_renew = True
+                self.appbuilder.session.commit()
+                flash(
+                    _("Your subscription has been revived. Subscription billing will resume on the next billing date."),  # noqa: E501
+                    "info",
+                )
 
-        # Find plan by Stripe product ID
-        plan = self.payment_processor.get_stripe_plan(plan_id)
-        if not plan:
-            flash(_("Invalid subscription plan"), "danger")
-            return redirect(url_for(".plans"))
+            return redirect(url_for(".manage"))
+        else:
+            # Find plan by Stripe product ID
+            plan = self.payment_processor.get_stripe_plan(plan_id)
+            if not plan:
+                flash(_("Invalid subscription plan"), "danger")
+                return redirect(url_for(".plans"))
 
-        # Redirect to payment page with plan_id
-        return redirect(url_for(".payment", plan_id=plan_id))
+            return redirect(url_for(".payment", plan_id=plan_id))
 
     @expose("/payment/<plan_id>", methods=["GET", "POST"])
     @has_access
@@ -444,59 +472,88 @@ class SubscriptionView(BaseView):
                 jsonify({"error": "Payment not completed successfully"}), 400
             )
 
-        # Create subscription in our database
-        sub_start_date = datetime.datetime.now()
-        current_subscription = user.current_subscription
-        if (
-            current_subscription
-            and current_subscription.status == "cancelled"
-            and current_subscription.end_date
-            and current_subscription.end_date > sub_start_date
-        ):
-            sub_start_date = current_subscription.end_date
+        try:
+            # Create subscription in our database
+            sub_start_date = datetime.datetime.now()
+            current_subscription = user.current_subscription
+            if (
+                current_subscription
+                and current_subscription.status == "cancelled"
+                and current_subscription.end_date
+                and current_subscription.end_date > sub_start_date
+            ):
+                sub_start_date = current_subscription.end_date
 
-        end_date = sub_start_date + self.calc_subscription_period(plan)
-        subscription = UserSubscription(
-            user_id=user.id,
-            plan_id=plan.id,
-            status="active",
-            start_date=sub_start_date,
-            end_date=end_date,
-            is_auto_renew=True,
-        )
+            end_date = sub_start_date + self.calc_subscription_period(plan)
+            subscription = UserSubscription(
+                user_id=user.id,
+                plan_id=plan.id,
+                status="active",
+                start_date=sub_start_date,
+                end_date=end_date,
+                is_auto_renew=True,
+            )
 
-        # Save the subscription first to get an ID
-        self.appbuilder.session.add(subscription)
-        self.appbuilder.session.flush()  # Flush to get subscription.id without committing  # noqa: E501
+            # Save the subscription first to get an ID
+            self.appbuilder.session.add(subscription)
+            self.appbuilder.session.flush()  # Flush to get subscription.id without committing  # noqa: E501
 
-        # Create payment record with subscription association
-        payment = Payment(
-            user_id=user.id,
-            subscription_id=subscription.id,  # Link payment to subscription
-            amount=plan.price,
-            payment_method="stripe",
-            transaction_id=intent_id,
-            status="success",
-        )
+            # Create payment record with subscription association
+            payment = Payment(
+                user_id=user.id,
+                subscription_id=subscription.id,  # Link payment to subscription
+                amount=plan.price,
+                payment_method="stripe",
+                transaction_id=intent_id,
+                status="success",
+            )
 
-        # Add payment to session and commit both subscription and payment
-        self.appbuilder.session.add(payment)
+            # Add payment to session and commit both subscription and payment
+            self.appbuilder.session.add(payment)
 
-        # Debug logging
-        current_app.logger.info(
-            f"Created subscription {subscription.id} with payment from Stripe"
-        )
-        current_app.logger.info(
-            f"Payment details: {payment.amount}, {payment.payment_method}, {payment.status}"  # noqa: E501
-        )
+            # Debug logging
+            current_app.logger.info(
+                f"Created subscription {subscription.id} with payment from Stripe"
+            )
+            current_app.logger.info(
+                f"Payment details: {payment.amount}, {payment.payment_method}, {payment.status}"  # noqa: E501
+            )
 
-        # Commit subscription and payment
-        self.appbuilder.session.commit()
+            current_app.logger.info(
+                "Subscription created successfully in DB. Now create Stripe subscription."  # noqa: E501
+            )
+            stripe_subscription = self.payment_processor.create_stripe_subscription(
+                user, plan
+            )
+            current_app.logger.info(f"Stripe subscription: {stripe_subscription}")  # noqa: E501
+            if stripe_subscription:
+                subscription.external_subscription_id = stripe_subscription.id
+                user.stripe_customer_id = stripe_subscription.customer
+                current_app.logger.info(
+                    f"Stripe customer ID: {user.stripe_customer_id}"
+                )  # noqa: E501
+                self.appbuilder.session.commit()
 
-        # Update user paid status using direct SQL (this includes its own commit)
-        self.update_user_paid_status(user.id, True)
+            # Commit subscription and payment
+            self.appbuilder.session.commit()
 
-        return jsonify({"success": True, "subscription_id": subscription.id})
+            # Update user paid status using direct SQL (this includes its own commit)
+            self.update_user_paid_status(user.id, True)
+
+            return jsonify({"success": True, "subscription_id": subscription.id})
+        except StripeError as e:  # More specific catch for StripeErrors
+            current_app.logger.error(
+                f"StripeError during subscription creation or commit: {str(e)}"
+            )
+            self.appbuilder.session.rollback()
+            return make_response(jsonify({"error": str(e)}), 500)
+        except Exception as e:
+            current_app.logger.error(
+                f"Generic error during subscription creation or commit in payment_complete: {str(e)}",  # noqa: E501
+                exc_info=True,
+            )
+            self.appbuilder.session.rollback()
+            return make_response(jsonify({"error": str(e)}), 500)
 
     @expose("/subscription-success")
     @has_access
@@ -675,9 +732,7 @@ class SubscriptionView(BaseView):
         """Helper function to check if a user has payments"""
         try:
             payments = (
-                self.appbuilder.session.query(Payment)
-                .filter_by(user_id=user_id)
-                .all()
+                self.appbuilder.session.query(Payment).filter_by(user_id=user_id).all()
             )
             return payments
         except Exception as e:
@@ -692,18 +747,14 @@ class SubscriptionView(BaseView):
                 paid_role = (
                     self.appbuilder.session.query(Role).filter_by(name="Gamma").first()
                 )  # noqa: E501
-                stmt = text(
-                    "UPDATE ab_user SET is_paid_user = :is_paid, changed_on = :changed_on WHERE id = :user_id"  # noqa: E501
-                )
-                self.appbuilder.session.execute(
-                    stmt,
-                    {
-                        "is_paid": is_paid,
-                        "user_id": user_id,
-                        "changed_on": datetime.datetime.now(),
-                    },
-                )
-                user.roles.append(paid_role)
+                # Use SQLAlchemy ORM instead of raw SQL for better type handling
+                user.is_paid_user = is_paid
+                user.changed_on = datetime.datetime.now()
+
+                # Only add role if not already present
+                if paid_role and paid_role not in user.roles:
+                    user.roles.append(paid_role)
+
                 self.appbuilder.session.commit()
                 current_app.logger.info(
                     f"Updated is_paid_user status for user {user_id} to {is_paid}"

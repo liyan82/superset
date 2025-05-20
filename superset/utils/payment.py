@@ -1,4 +1,4 @@
-from typing import Any, Literal, Optional, Tuple
+from typing import Any, Literal, Optional, Tuple, cast
 
 import stripe
 from flask import current_app, Flask
@@ -207,6 +207,27 @@ class PaymentProcessor:
                 f"Stripe error retrieving payment intent: {str(e)}")
             return None
 
+    def revive_subscription(self, subscription_id: str) -> bool:
+        """
+        Revive a Stripe subscription
+
+        Args:
+            subscription_id: The Stripe Subscription ID
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Revive a Stripe subscription
+            stripe.Subscription.modify(
+                subscription_id,
+                cancel_at_period_end=False
+            )
+            return True
+        except stripe.StripeError as e:
+            current_app.logger.error(f"Stripe error reviving subscription: {str(e)}")
+            return False
+
     def cancel_subscription(self, subscription_id: str) -> bool:
         """
         Cancel a Stripe subscription
@@ -308,3 +329,77 @@ class PaymentProcessor:
         except stripe.StripeError as e:
             current_app.logger.error(f"Stripe error fetching plan {product_id}: {str(e)}")  # noqa: E501
             return None
+
+    def create_stripe_customer(self, email: str, name: str) -> Optional[str]:
+        """Create a Stripe customer."""
+        try:
+            # Query Stripe for existing customer
+            search_result = stripe.Customer.search(
+                query=f"email:'{email}'"
+            )
+            if search_result.data:
+                current_app.logger.info(f"Found existing customer {search_result}")  # noqa: E501
+                # Explicitly cast to stripe.Customer to help the linter
+                customer_object = cast(stripe.Customer, search_result.data[0])
+                return customer_object.id
+            else:
+                current_app.logger.info(f"No existing customer found for {email}")  # noqa: E501
+                new_customer = stripe.Customer.create(email=email, name=name)
+                return new_customer.id
+        except stripe.StripeError as e:
+            current_app.logger.error(f"Stripe error creating customer: {str(e)}")
+            raise
+        except Exception as e:
+            current_app.logger.error(f"General error creating customer: {str(e)}")
+            raise
+
+    def create_stripe_subscription(self, user: User, plan: SubscriptionPlan) -> Optional[stripe.Subscription]:  # noqa: E501
+        """Create a Stripe subscription for a user"""
+        try:
+            if user.stripe_customer_id is None or user.stripe_customer_id == "":
+                current_app.logger.error(f"User {user.id} has no Stripe customer ID")
+                return None
+
+            if plan.stripe_price_id is None or plan.stripe_price_id == "":
+                current_app.logger.error(f"Plan {plan.id} has no Stripe price ID")
+                return None
+
+            if user.email is None or user.email == "":
+                current_app.logger.error(f"User {user.id} has no email")
+                return None
+
+            if user.first_name is None or user.first_name == "":
+                current_app.logger.error(f"User {user.id} has no first name")
+                return None
+
+            if user.last_name is None or user.last_name == "":
+                current_app.logger.error(f"User {user.id} has no last name")
+                return None
+
+            current_app.logger.info(f"User {user.id} has email, first name, and last name")  # noqa: E501
+            customer_name = f"{user.first_name} {user.last_name}"
+            customer_email = user.email
+            customer_id = self.create_stripe_customer(customer_email, customer_name)
+            if customer_id is None or customer_id == "":
+                current_app.logger.error(f"Failed to create Stripe customer for user {user.id}")  # noqa: E501
+                return None
+
+            subscription = stripe.Subscription.create(
+                customer=customer_id,
+                items=[{"price": plan.stripe_price_id}],
+                payment_behavior="allow_incomplete",
+                collection_method="send_invoice",
+                days_until_due=30,
+                payment_settings={
+                    "save_default_payment_method": "on_subscription"
+                }
+            )
+
+            return subscription
+
+        except stripe.StripeError as e:
+            current_app.logger.error(f"Stripe error creating subscription: {str(e)}")
+            raise
+        except Exception as e:
+            current_app.logger.error(f"General error creating subscription: {str(e)}")
+            raise

@@ -21,6 +21,7 @@ class SubscriptionPlan(Model):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False, unique=True)
     product_id = Column(String(255), nullable=False, unique=True)
+    stripe_price_id = Column(String(255), nullable=False, unique=True)
     description = Column(Text)
     price = Column(Float, nullable=False)
     billing_cycle = Column(String(20), nullable=False)  # 'monthly', 'quarterly', 'yearly'  # noqa: E501

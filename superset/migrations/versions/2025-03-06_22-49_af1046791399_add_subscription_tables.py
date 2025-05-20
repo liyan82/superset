@@ -38,6 +38,7 @@ def upgrade():
         "subscription_plans",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("product_id", sa.String(255), nullable=False, unique=True),
+        sa.Column("stripe_price_id", sa.String(255), nullable=False, unique=True),
         sa.Column("name", sa.String(100), nullable=False, unique=True),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("price", sa.Float(), nullable=False),
