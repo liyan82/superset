@@ -81,6 +81,7 @@ from superset.utils.core import (
 )
 from superset.utils.filters import get_dataset_access_filters
 from superset.utils.urls import get_url_host
+from superset.security.custom_register import SupersetRegisterUserDBView  # Added import
 from werkzeug.wrappers.response import Response
 
 if TYPE_CHECKING:
@@ -219,6 +220,9 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
 ):
     userstatschartview = None
     READ_ONLY_MODEL_VIEWS = {"Database", "DynamicPlugin"}
+
+    # Assign the custom register user view
+    registeruserdbview = SupersetRegisterUserDBView
 
     USER_MODEL_VIEWS = {
         "RegisterUserModelView",

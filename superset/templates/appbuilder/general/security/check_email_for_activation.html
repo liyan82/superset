@@ -1,0 +1,51 @@
+{% extends "appbuilder/base.html" %}
+{% import 'appbuilder/general/lib.html' as lib %}
+
+{% block content %}
+<div class="container">
+    {{ lib.panel_begin(title, "info") }}
+    <div class="text-center">
+        <h2>{{ _("Check Your Email") }}</h2>
+        <p>
+            {{ _("We've sent an activation link to your email address: ") }}<strong>{{ email }}</strong>.
+        </p>
+        <p>
+            {{ _("Please click the link in that email to activate your account.") }}
+        </p>
+        <p>
+            {{ _("If you don't see the email in your inbox, please check your spam folder.") }}
+        </p>
+        <hr>
+        <p>
+            {{ _("Didn't receive the email after a minute?") }}
+        </p>
+        <a href="#" id="resend-link" class="btn btn-primary disabled" role="button" aria-disabled="true">
+            {{ _("Resend Activation Email") }}
+        </a>
+        <p id="resend-timer" style="margin-top: 10px;"></p>
+    </div>
+    {{ lib.panel_end() }}
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+document.addEventListener('DOMContentLoaded', function() {
+    var resendLink = document.getElementById('resend-link');
+    var resendTimer = document.getElementById('resend-timer');
+    var timeLeft = 60; // 60 seconds
+
+    function updateTimer() {
+        if (timeLeft > 0) {
+            resendTimer.textContent = "{{ _('You can resend the email in ') }}" + timeLeft + "{{ _(' seconds.') }}";
+            timeLeft--;
+            setTimeout(updateTimer, 1000);
+        } else {
+            resendTimer.textContent = "";
+            resendLink.classList.remove('disabled');
+            resendLink.removeAttribute('aria-disabled');
+            resendLink.href = "{{ url_for('SupersetRegisterUserDBView.resend_activation', register_user_id=register_user_id) }}";
+        }
+    }
+    setTimeout(updateTimer, 1000); // Start timer after 1 second
+});
+</script>
+{% endblock %} 

@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 from . import (
-    base,
     alerts,
     api,
+    base,
     core,
     css_templates,
     dynamic_plugins,
