@@ -24,7 +24,7 @@ from typing import Any, Callable, TYPE_CHECKING
 
 import wtforms_json
 from deprecation import deprecated
-from flask import Flask, redirect
+from flask import Flask, redirect, g
 from flask_appbuilder import expose, IndexView
 from flask_babel import gettext as __
 from flask_compress import Compress
@@ -304,7 +304,8 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         appbuilder.add_view(
             SubscriptionView,
             "Subscription",
-            category="Account"
+            category="",
+            menu_cond=lambda: g.user is not None and g.user.is_authenticated
         )
         appbuilder.add_view(
             SubscriptionPlanAdmin,
