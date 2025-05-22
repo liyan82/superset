@@ -14,6 +14,7 @@ def scan_and_label_expired_subscriptions() -> None:
     logger.info("Starting scan for expired subscriptions...")
     try:
         now = datetime.datetime.now()
+        # TODO: check users instead of subscriptions. MAYBE.
         expired_subscriptions = (
             db.session.query(UserSubscription)
             .filter(

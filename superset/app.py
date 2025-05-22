@@ -21,6 +21,7 @@ from typing import Optional
 
 from flask import Flask
 
+from superset.color_logger import setup_colored_logging
 from superset.initialization import SupersetAppInitializer
 
 logger = logging.getLogger(__name__)
@@ -38,6 +39,8 @@ def create_app(superset_config_module: Optional[str] = None) -> Flask:
 
         app_initializer = app.config.get("APP_INITIALIZER", SupersetAppInitializer)(app)
         app_initializer.init_app()
+
+        setup_colored_logging(app)
 
         return app
 
