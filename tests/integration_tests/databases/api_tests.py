@@ -35,6 +35,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.sql import func
 
 from superset import db, security_manager
+from superset.commands.database.exceptions import MissingOAuth2TokenError
 from superset.connectors.sqla.models import SqlaTable
 from superset.databases.ssh_tunnel.models import SSHTunnel
 from superset.databases.utils import make_url_safe  # noqa: F401
@@ -1103,6 +1104,11 @@ class TestDatabaseApi(SupersetTestCase):
         assert rv.status_code == 201
         assert "sqlalchemy_form" in response["result"]["configuration_method"]
 
+        # Cleanup
+        model = db.session.query(Database).get(response.get("id"))
+        db.session.delete(model)
+        db.session.commit()
+
     def test_create_database_server_cert_validate(self):
         """
         Database API: Test create server cert validation
@@ -1383,6 +1389,32 @@ class TestDatabaseApi(SupersetTestCase):
         }
         assert rv.status_code == 422
         assert response == expected_response
+        # Cleanup
+        model = db.session.query(Database).get(test_database.id)
+        db.session.delete(model)
+        db.session.commit()
+
+    @mock.patch(
+        "superset.commands.database.sync_permissions.SyncPermissionsCommand.run",
+    )
+    def test_update_database_missing_oauth2_token(self, mock_sync_perms):
+        """
+        Database API: Test update DB connection that does not have
+        an OAuth2 token yet does not raise.
+        """
+        example_db = get_example_database()
+        test_database = self.insert_database(
+            "test-oauth-database", example_db.sqlalchemy_uri_decrypted
+        )
+        mock_sync_perms.side_effect = MissingOAuth2TokenError()
+        self.login(ADMIN_USERNAME)
+        database_data = {
+            "database_name": "test-database-updated",
+            "configuration_method": ConfigurationMethod.SQLALCHEMY_FORM,
+        }
+        uri = f"api/v1/database/{test_database.id}"
+        rv = self.client.put(uri, json=database_data)
+        assert rv.status_code == 200
         # Cleanup
         model = db.session.query(Database).get(test_database.id)
         db.session.delete(model)
@@ -2082,6 +2114,93 @@ class TestDatabaseApi(SupersetTestCase):
             f"api/v1/database/{database.id}/schemas/?q={prison.dumps({'force': 'nop'})}"
         )
         assert rv.status_code == 400
+
+    def test_database_schemas_upload_allowed_filter(self):
+        """
+        Database API: Test database schemas when filtering for upload allowed
+        and there is not schema restriction
+        """
+        with self.create_app().app_context():
+            example_db = get_example_database()
+
+            extra = {
+                "metadata_params": {},
+                "engine_params": {},
+                "metadata_cache_timeout": {},
+                "schemas_allowed_for_file_upload": [],
+            }
+            self.login(ADMIN_USERNAME)
+            database = self.insert_database(
+                "database_with_upload",
+                example_db.sqlalchemy_uri_decrypted,
+                extra=json.dumps(extra),
+                allow_file_upload=True,
+            )
+            db.session.commit()
+            yield database
+
+            mock_schemas = ["schema_1", "schema_2", "schema_3"]
+            mock.patch.object(
+                database, "get_all_schema_names", return_value=mock_schemas
+            )
+            arguments = {"upload_allowed": True}
+            uri = f"api/v1/database/{database.id}/schemas/?q={prison.dumps(arguments)}"
+            rv = self.client.get(uri)
+            data = json.loads(rv.data.decode("utf-8"))
+            assert data["result"] == mock_schemas
+            db.session.delete(database)
+            db.session.commit()
+
+    def test_database_schemas_upload_allowed_filter_specific_schemas(self):
+        """
+        Database API: Test database schemas when filtering for upload allowed
+        with an schema restriction set
+        """
+        with self.create_app().app_context():
+            example_db = get_example_database()
+
+            extra = {
+                "metadata_params": {},
+                "engine_params": {},
+                "metadata_cache_timeout": {},
+                "schemas_allowed_for_file_upload": ["schema_2"],
+            }
+            self.login(ADMIN_USERNAME)
+            database = self.insert_database(
+                "database_with_upload",
+                example_db.sqlalchemy_uri_decrypted,
+                extra=json.dumps(extra),
+                allow_file_upload=True,
+            )
+            db.session.commit()
+            yield database
+
+            mock.patch.object(
+                database,
+                "get_all_schema_names",
+                return_value=["schema_1", "schema_2", "schema_3"],
+            )
+            arguments = {"upload_allowed": True}
+            uri = f"api/v1/database/{database.id}/schemas/?q={prison.dumps(arguments)}"
+            rv = self.client.get(uri)
+            data = json.loads(rv.data.decode("utf-8"))
+            assert data["result"] == ["schema_2"]
+            db.session.delete(database)
+            db.session.commit()
+
+    def test_database_schemas_upload_allowed_filter_disabled(self):
+        """
+        Database API: Test database schemas when filtering for upload allowed
+        for a DB connection that has file uploads disabled
+        """
+        database = db.session.query(Database).filter_by(database_name="examples").one()
+        self.login(ADMIN_USERNAME)
+        arguments = {"upload_allowed": True}
+        uri = f"api/v1/database/{database.id}/schemas/?q={prison.dumps(arguments)}"
+        rv = self.client.get(uri)
+        assert rv.status_code == 200
+        data = json.loads(rv.data.decode("utf-8"))
+        assert data["result"] == []
 
     def test_database_tables(self):
         """
@@ -3152,6 +3271,59 @@ class TestDatabaseApi(SupersetTestCase):
                 }
             ]
         }
+
+    @mock.patch("superset.commands.database.importers.v1.utils.add_permissions")
+    def test_import_database_row_expansion_enabled(self, mock_add_permissions):
+        """
+        Database API: Test import database with row expansion enabled.
+        """
+        self.login(ADMIN_USERNAME)
+        uri = "api/v1/database/import/"
+
+        db_config = {
+            "database_name": "DB with expand rows enabled",
+            "allow_csv_upload": True,
+            "allow_ctas": True,
+            "allow_cvas": True,
+            "allow_dml": True,
+            "allow_run_async": False,
+            "cache_timeout": None,
+            "expose_in_sqllab": True,
+            "extra": {
+                "schema_options": {"expand_rows": True},
+            },
+            "sqlalchemy_uri": "postgresql://user:pass@host1",
+            "uuid": "b8a1ccd3-779d-4ab7-8ad8-9ab119d7ff90",
+            "version": "1.0.0",
+        }
+
+        buf = BytesIO()
+        with ZipFile(buf, "w") as bundle:
+            with bundle.open("database_export/metadata.yaml", "w") as fp:
+                fp.write(yaml.safe_dump(database_metadata_config).encode())
+            with bundle.open(
+                "database_export/databases/DB_with_expand_rows_enabled.yaml", "w"
+            ) as fp:
+                fp.write(yaml.safe_dump(db_config).encode())
+        buf.seek(0)
+
+        form_data = {
+            "formData": (buf, "database_export.zip"),
+            "passwords": json.dumps(
+                {"databases/DB_with_expand_rows_enabled.yaml": "SECRET"}
+            ),
+        }
+        rv = self.client.post(uri, data=form_data, content_type="multipart/form-data")
+        response = json.loads(rv.data.decode("utf-8"))
+
+        assert rv.status_code == 200
+        assert response == {"message": "OK"}
+
+        database = db.session.query(Database).filter_by(uuid=db_config["uuid"]).one()
+        assert database.extra == json.dumps({"schema_options": {"expand_rows": True}})
+
+        db.session.delete(database)
+        db.session.commit()
 
     @mock.patch(
         "superset.db_engine_specs.base.BaseEngineSpec.get_function_names",

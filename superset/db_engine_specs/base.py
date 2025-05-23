@@ -22,6 +22,7 @@ import logging
 import re
 import warnings
 from datetime import datetime
+from inspect import signature
 from re import Match, Pattern
 from typing import (
     Any,
@@ -64,7 +65,6 @@ from superset.databases.utils import get_table_metadata, make_url_safe
 from superset.errors import ErrorLevel, SupersetError, SupersetErrorType
 from superset.exceptions import DisallowedSQLFunction, OAuth2Error, OAuth2RedirectError
 from superset.sql.parse import BaseSQLStatement, SQLScript, Table
-from superset.sql_parse import ParsedQuery
 from superset.superset_typing import (
     OAuth2ClientConfig,
     OAuth2State,
@@ -426,6 +426,9 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
 
     # Can the catalog be changed on a per-query basis?
     supports_dynamic_catalog = False
+
+    # Does the DB engine spec support cross-catalog queries?
+    supports_cross_catalog_queries = False
 
     # Does the engine supports OAuth 2.0? This requires logic to be added to one of the
     # the user impersonation methods to handle personal tokens.
@@ -1217,8 +1220,8 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         :param sql: SQL query
         :return: Value of limit clause in query
         """
-        parsed_query = sql_parse.ParsedQuery(sql, engine=cls.engine)
-        return parsed_query.limit
+        script = SQLScript(sql, engine=cls.engine)
+        return script.statements[-1].get_limit_value()
 
     @classmethod
     def set_or_update_query_limit(cls, sql: str, limit: int) -> str:
@@ -1411,11 +1414,6 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         should also have the attribute ``supports_dynamic_schema`` set to true, so that
         Superset knows in which schema a given query is running in order to enforce
         permissions (see #23385 and #23401).
-
-        Currently, changing the catalog is not supported. The method accepts a catalog so
-        that when catalog support is added to Superset the interface remains the same.
-        This is important because DB engine specs can be installed from 3rd party
-        packages, so we want to keep these methods as stable as possible.
         """  # noqa: E501
         return uri, {
             **connect_args,
@@ -1634,6 +1632,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         :return: SqlAlchemy query with additional where clause referencing the latest
         partition
         """
+        # TODO: Fix circular import caused by importing Database, TableColumn
         return None
 
     @classmethod
@@ -1788,6 +1787,38 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
             ]
 
     @classmethod
+    def impersonate_user(
+        cls,
+        database: Database,
+        username: str | None,
+        user_token: str | None,
+        url: URL,
+        engine_kwargs: dict[str, Any],
+    ) -> tuple[URL, dict[str, Any]]:
+        """
+        Modify URL and/or engine kwargs to impersonate a different user.
+        """
+        # Update URL using old methods until 6.0.0.
+        url = cls.get_url_for_impersonation(url, True, username, user_token)
+
+        # Update engine kwargs using old methods. Note that #30674 modified the method
+        # signature, so we need to check if the method has the old signature.
+        connect_args = engine_kwargs.setdefault("connect_args", {})
+        args = [
+            connect_args,
+            url,
+            username,
+            user_token,
+        ]
+        if "database" in signature(cls.update_impersonation_config).parameters:
+            args.insert(0, database)
+
+        cls.update_impersonation_config(*args)
+
+        return url, engine_kwargs
+
+    @classmethod
+    @deprecated(deprecated_in="6.0.0")
     def get_url_for_impersonation(
         cls,
         url: URL,
@@ -1809,6 +1840,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         return url
 
     @classmethod
+    @deprecated(deprecated_in="6.0.0")
     def update_impersonation_config(  # pylint: disable=too-many-arguments
         cls,
         database: Database,
@@ -2054,14 +2086,6 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         except json.JSONDecodeError as ex:
             logger.error(ex, exc_info=True)
             raise
-
-    @classmethod
-    def is_select_query(cls, parsed_query: ParsedQuery) -> bool:
-        """
-        Determine if the statement should be considered as SELECT statement.
-        Some query dialects do not contain "SELECT" word in queries (eg. Kusto)
-        """
-        return parsed_query.is_select()
 
     @classmethod
     def get_column_spec(  # pylint: disable=unused-argument
