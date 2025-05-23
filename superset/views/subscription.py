@@ -237,6 +237,12 @@ class SubscriptionView(BaseView):
             self.log_subscription(f"Plans to render from DB: {active_db_plans}", level="info")
 
             return self.render_template("subscription/plans.html", plans=active_db_plans, user=user)
+        elif user.current_subscription and user.current_subscription.status == "incomplete":
+            self.log_subscription(
+                f"User {user.id} has incomplete subscription, redirecting to manage page to pay the first invoice",
+                level="info",
+            )
+            return redirect(url_for(".manage"))
         else:
             self.log_subscription(f"User {user.id} has no active subscription, showing plans page", level="info")
             flash(
@@ -279,9 +285,11 @@ class SubscriptionView(BaseView):
     @has_access
     def subscribe(self, plan_id: str) -> Response:
         """Process new subscription - redirects to payment page"""
+        self.log_subscription(f"Subscribe method called with plan_id: {plan_id}", level="info")
         self.log_subscription(f"Subscribing to plan: {plan_id}", level="info")
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
+        self.log_subscription(f"User obtained: {user.username if user else 'None'}", level="info")
 
         current_subscription = user.current_subscription
         if current_subscription:
@@ -301,7 +309,9 @@ class SubscriptionView(BaseView):
                 _("You already have an active subscription. Please cancel it before subscribing to a new plan."),
                 "warning",
             )
-
+            self.log_subscription(
+                f"User {user.username} already has an active subscription. Redirecting to manage page.", level="info"
+            )
             return redirect(url_for(".manage"))
         elif (
             current_subscription
@@ -310,7 +320,9 @@ class SubscriptionView(BaseView):
             and subscription_plan.product_id == plan_id
         ):
             self.log_subscription(
-                f"Reviving subscription: {current_subscription.external_subscription_id}", level="info"
+                f"Attempting to revive subscription for user {user.username}, "
+                f"external_subscription_id: {current_subscription.external_subscription_id}",
+                level="info",
             )
             revive_success = self.payment_processor.revive_subscription(current_subscription.external_subscription_id)
             if revive_success:
@@ -321,15 +333,36 @@ class SubscriptionView(BaseView):
                     _("Your subscription has been revived. Subscription billing will resume on the next billing date."),
                     "info",
                 )
-
+                self.log_subscription(
+                    f"Subscription revived successfully for user {user.username}. Redirecting to manage page.",
+                    level="info",
+                )
+            else:
+                self.log_subscription(
+                    f"Failed to revive subscription for user {user.username}. Redirecting to manage page.",
+                    level="warning",
+                )
             return redirect(url_for(".manage"))
         else:
             # Find plan by Stripe product ID
+            self.log_subscription(
+                f"No active or revivable subscription found for user {user.username}. "
+                f"Proceeding to fetch plan details for plan_id: {plan_id}",
+                level="info",
+            )
             plan = self.payment_processor.get_stripe_plan(plan_id)
             if not plan:
                 flash(_("Invalid subscription plan"), "danger")
+                self.log_subscription(
+                    f"Invalid subscription plan_id: {plan_id}. Redirecting to plans page.", level="warning"
+                )
                 return redirect(url_for(".plans"))
 
+            self.log_subscription(
+                f"Plan found: {plan.get('product') if plan else 'None'}. "
+                f"Redirecting user {user.username} to payment page for plan_id: {plan_id}",
+                level="info",
+            )
             return redirect(url_for(".payment", plan_id=plan_id))
 
     @expose("/payment/<plan_id>", methods=["GET", "POST"])
@@ -425,24 +458,48 @@ class SubscriptionView(BaseView):
 
             end_date = sub_start_date + self.calc_subscription_period(plan)
             self.log_subscription(f"Calculated subscription end date: {end_date}", level="info")
-            subscription = UserSubscription(
-                user_id=user.id,
-                plan_id=plan.id,
-                status="incomplete",
-                start_date=sub_start_date,
-                end_date=end_date,
-                is_auto_renew=True,
+            subscription = (
+                self.appbuilder.session.query(UserSubscription)
+                .filter_by(
+                    user_id=user.id,
+                    status="incomplete",
+                )
+                .first()
             )
-            self.log_subscription(f"Created subscription object with plan_id: {plan.id}", level="info")
+            if not subscription:
+                self.log_subscription(f"No incomplete subscription found for user {user.id}", level="info")
+                subscription = UserSubscription(
+                    user_id=user.id,
+                    plan_id=plan.id,
+                    status="incomplete",
+                    start_date=sub_start_date,
+                    end_date=end_date,
+                    is_auto_renew=True,
+                )
+                self.log_subscription(f"Created subscription object with plan_id: {plan.id}", level="info")
+            else:
+                self.log_subscription(
+                    f"Incomplete subscription found for user {user.id}: {subscription.id}",
+                    level="info",
+                )
 
-            payment = Payment(
-                user_id=user.id,
-                subscription_id=subscription.id,  # Link payment to subscription
-                amount=plan.price,
-                payment_method="stripe",
-                status="incomplete",
+            payment = (
+                self.appbuilder.session.query(Payment)
+                .filter_by(
+                    user_id=user.id,
+                    status="incomplete",
+                )
+                .first()
             )
-            self.log_subscription(f"Created payment object with amount: {plan.price}", level="info")
+            if not payment:
+                payment = Payment(
+                    user_id=user.id,
+                    subscription_id=subscription.id,  # Link payment to subscription
+                    amount=plan.price,
+                    payment_method="stripe",
+                    status="incomplete",
+                )
+                self.log_subscription(f"Created payment object with amount: {plan.price}", level="info")
 
             self.log_subscription(f"Creating Stripe customer for user: {user.id}", level="info")
             stripe_customer = self.payment_processor.create_customer(user)
@@ -471,7 +528,10 @@ class SubscriptionView(BaseView):
                 f"Latest invoice: {getattr(first_invoice, 'id', first_invoice) if first_invoice else 'None'}",
                 level="info",
             )
-
+            self.log_subscription(
+                f"Latest invoice details: {first_invoice if first_invoice else 'None'}",
+                level="info",
+            )
             redirect_to_payment_complete = False
             if first_invoice:
                 intent = getattr(first_invoice, "payment_intent", None)
@@ -487,13 +547,32 @@ class SubscriptionView(BaseView):
                         level="info",
                     )
                     redirect_to_payment_complete = True
+                else:
+                    intent = self.payment_processor.retrieve_intent_from_invoice(
+                        first_invoice if isinstance(first_invoice, str) else ""
+                    )
+                    if intent:
+                        payment.transaction_id = getattr(intent, "id", None)
+                        self.log_subscription(
+                            f"Payment intent retrieved: {getattr(intent, 'id', intent) if intent else 'None'}",
+                            level="info",
+                        )
+                        redirect_to_payment_complete = True
+                    else:
+                        self.log_subscription(
+                            f"Failed to retrieve payment intent from invoice "
+                            f"{getattr(first_invoice, 'id', first_invoice)}",
+                            level="error",
+                        )
+
                 self.log_subscription(
                     f"Payment intent retrieved: {getattr(intent, 'id', intent) if intent else 'None'}", level="info"
                 )
             else:
-                subscription.status = "active"
+                # subscription.status = "active"
                 self.log_subscription(
-                    "No invoice found for subscription because it's a new type of subscription based on a previous subscription",  # noqa: E501
+                    "No invoice found for subscription because it's a new type of "
+                    "subscription based on a previous subscription",
                     level="warning",
                 )
                 self.log_subscription(
@@ -645,30 +724,22 @@ class SubscriptionView(BaseView):
             )
             return redirect(url_for(".plans"))
 
-        # Explicitly load payments
-        from sqlalchemy.orm import joinedload
-
         if subscription.status == "active":
             self.log_subscription(f"Processing active subscription {subscription.id}", level="info")
             # Check for payments directly
             payments = self.check_user_payments(user.id)
             self.log_subscription(f"Found {len(payments)} payments for user {user.id}", level="info")
-            subscription.payments = payments
-
-            # Reload the subscription with joined payments
-            subscription = (
-                self.appbuilder.session.query(UserSubscription)
-                .options(joinedload(UserSubscription.payments))
-                .filter_by(id=subscription.id)
-                .first()
-            )
-            self.log_subscription("Reloaded subscription with joined payments", level="info")
 
             # Debug logging
             self.log_subscription(f"Subscription ID: {subscription.id}", level="info")
             self.log_subscription(f"Number of payments from helper: {len(payments)}", level="info")
             self.log_subscription(
                 f"Number of payments from subscription: {len(subscription.payments) if subscription.payments else 0}",
+                level="info",
+            )
+        elif subscription.status == "incomplete":
+            self.log_subscription(
+                f"Subscription {subscription.id} is incomplete, redirecting to manage page to pay the first invoice",
                 level="info",
             )
 
@@ -683,6 +754,40 @@ class SubscriptionView(BaseView):
             user=user,
             is_admin=is_admin,
         )
+
+    @expose("/resume-payment", methods=["POST"])
+    @has_access
+    def resume_payment(self) -> Response:
+        """Resume payment process for an incomplete subscription."""
+        self.log_subscription("=== Starting resume_payment method ===", level="info")
+        subscription_id = request.form.get("subscription_id")
+
+        if not subscription_id:
+            flash(_("Subscription ID is missing."), "danger")
+            self.log_subscription("Subscription ID missing in form data.", level="warning")
+            return redirect(url_for(".manage"))
+
+        user = self._get_user()
+        subscription = self.appbuilder.session.query(UserSubscription).filter_by(id=subscription_id).first()
+
+        if not subscription:
+            flash(_("Subscription not found."), "danger")
+            self.log_subscription(f"Subscription not found for ID: {subscription_id}, user: {user.id}", level="warning")
+            return redirect(url_for(".manage"))
+
+        self.log_subscription(f"Attempting to resume payment for subscription ID: {subscription.id}", level="info")
+        plan_id = subscription.plan.product_id
+
+        if not plan_id:
+            flash(_("Could not determine the plan for this subscription."), "danger")
+            self.log_subscription(f"Could not determine plan_id for subscription {subscription.id}", level="error")
+            return redirect(url_for(".manage"))
+
+        flash(_("Just one small payment away from data visualization nirvana!"), "info")
+        self.log_subscription(
+            f"Redirecting user to payment page for subscription {subscription.id}, plan {plan_id}", level="info"
+        )
+        return redirect(url_for(".payment", plan_id=plan_id))
 
     @expose("/cancel", methods=["POST"])
     @has_access
@@ -774,9 +879,11 @@ class SubscriptionView(BaseView):
         customer_id: str | None = None,
     ) -> tuple[UserSubscription, Payment]:
         """Sync the subscription and payment with Stripe"""
-        self.appbuilder.session.add(subscription)
+        if not subscription.id:
+            self.appbuilder.session.add(subscription)
+        if not payment.id:
+            self.appbuilder.session.add(payment)
         subscription.payments.append(payment)
-        self.appbuilder.session.add(payment)
         self.appbuilder.session.flush()
         self.appbuilder.session.execute(
             text(

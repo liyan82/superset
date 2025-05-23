@@ -24,6 +24,8 @@
                                         <span class="label label-warning">Cancelled</span>
                                     {% elif subscription.status == 'expired' %}
                                         <span class="label label-danger">Expired</span>
+                                    {% elif subscription.status == 'incomplete' %}
+                                        <span class="label label-warning">Incomplete</span>
                                     {% else %}
                                         <span class="label label-default">{{ subscription.status }}</span>
                                     {% endif %}
@@ -52,6 +54,13 @@
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="subscription_id" value="{{ subscription.id }}">
                                 <button type="submit" class="btn btn-danger">Cancel Subscription</button>
+                            </form>
+                        {% elif subscription.status == 'incomplete' %}
+                            <hr>
+                            <form method="post" action="{{ url_for('.resume_payment') }}" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="subscription_id" value="{{ subscription.id }}">
+                                <button type="submit" class="btn btn-warning">Resume Payment</button>
                             </form>
                         {% elif subscription.status == 'cancelled' or subscription.status == 'expired' %}
                             <hr>

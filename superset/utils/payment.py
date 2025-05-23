@@ -451,6 +451,21 @@ class PaymentProcessor:
             self.log_payment(f"General error creating subscription: {str(e)}", level="error")
             raise
 
+    def retrieve_intent_from_invoice(self, invoice_id: str) -> Optional[stripe.PaymentIntent]:
+        """Retrieve a Stripe Payment Intent from an invoice"""
+        try:
+            invoice = stripe.Invoice.retrieve(invoice_id)
+            payment_intent = invoice.payment_intent
+            if isinstance(payment_intent, str):
+                return stripe.PaymentIntent.retrieve(payment_intent)
+            return payment_intent
+        except stripe.StripeError as e:
+            self.log_payment(f"Stripe error retrieving payment intent from invoice: {str(e)}", level="error")
+            return None
+        except Exception as e:
+            self.log_payment(f"General error retrieving payment intent from invoice: {str(e)}", level="error")
+            return None
+
     def log_payment(self, message: str, level: str = "info") -> None:
         """Log payment-related messages with special formatting"""
         logger_method = getattr(current_app.logger, level)
