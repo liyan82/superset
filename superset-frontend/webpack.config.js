@@ -121,10 +121,27 @@ const plugins = [
 
   new CopyPlugin({
     patterns: [
-      'package.json',
-      { from: 'src/assets/images', to: 'images' },
-      { from: 'src/assets/stylesheets', to: 'stylesheets' },
+      // Test pattern to copy package.json to a subdirectory
+      {
+        from: 'package.json', // Relative to APP_DIR (webpack context)
+        to: 'test_copy/package_copy.json', // Relative to BUILD_DIR (webpack output.path)
+        toType: 'file',
+        noErrorOnMissing: false // Fail build if source is missing
+      },
+      {
+        from: 'src/assets/javascripts/stripe-checkout.js', // Relative to APP_DIR (webpack context)
+        to: 'js/stripe-checkout.js', // Relative to BUILD_DIR (webpack output.path)
+        toType: 'file',
+        noErrorOnMissing: false // Fail build if source is missing
+      }
+      // Temporarily removing other patterns to focus debugging
+      // 'package.json', 
+      // { from: 'src/assets/images', to: 'images' }, 
+      // { from: 'src/assets/stylesheets', to: 'stylesheets' }, 
     ],
+    options: {
+      logLevel: 'debug', // Enable verbose logging for CopyPlugin
+    },
   }),
 
   // static pages
@@ -548,7 +565,11 @@ if (isDevMode) {
       logging: 'error',
     },
     static: {
-      directory: path.join(process.cwd(), '../static/assets'),
+      directory: BUILD_DIR,
+      publicPath: output.publicPath,
+    },
+    devMiddleware: {
+      writeToDisk: true,
     },
   };
 }
