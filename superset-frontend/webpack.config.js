@@ -121,27 +121,16 @@ const plugins = [
 
   new CopyPlugin({
     patterns: [
-      // Test pattern to copy package.json to a subdirectory
+      'package.json', // Copies APP_DIR/package.json to BUILD_DIR/package.json
+      { from: 'src/assets/images', to: 'images' }, // Copies APP_DIR/src/assets/images to BUILD_DIR/images
+      { from: 'src/assets/stylesheets', to: 'stylesheets' }, // Copies APP_DIR/src/assets/stylesheets to BUILD_DIR/stylesheets
       {
-        from: 'package.json', // Relative to APP_DIR (webpack context)
-        to: 'test_copy/package_copy.json', // Relative to BUILD_DIR (webpack output.path)
-        toType: 'file',
-        noErrorOnMissing: false // Fail build if source is missing
-      },
-      {
-        from: 'src/assets/javascripts/stripe-checkout.js', // Relative to APP_DIR (webpack context)
-        to: 'js/stripe-checkout.js', // Relative to BUILD_DIR (webpack output.path)
-        toType: 'file',
-        noErrorOnMissing: false // Fail build if source is missing
+        from: 'src/assets/javascripts/**/*.js',
+        to: 'js/[name][ext]',
+        noErrorOnMissing: false // Ensures build fails if glob doesn't find JS files or path is wrong
       }
-      // Temporarily removing other patterns to focus debugging
-      // 'package.json', 
-      // { from: 'src/assets/images', to: 'images' }, 
-      // { from: 'src/assets/stylesheets', to: 'stylesheets' }, 
     ],
-    options: {
-      logLevel: 'debug', // Enable verbose logging for CopyPlugin
-    },
+    // options: { logLevel: 'debug' } // Removing debug logging option
   }),
 
   // static pages
