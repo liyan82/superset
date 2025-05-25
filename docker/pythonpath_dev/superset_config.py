@@ -30,6 +30,12 @@ from flask_caching.backends.base import BaseCache
 
 logger = logging.getLogger()
 
+# Enable user registration
+AUTH_USER_REGISTRATION = True
+AUTH_USER_REGISTRATION_ROLE = "Public"
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+
 DATABASE_DIALECT = os.getenv("DATABASE_DIALECT")
 DATABASE_USER = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
