@@ -18,6 +18,8 @@ apsw==3.49.2.0
     # via
     #   -c requirements/base.txt
     #   shillelagh
+astroid==3.3.10
+    # via pylint
 attrs==25.3.0
     # via
     #   -c requirements/base.txt
@@ -157,6 +159,8 @@ deprecation==2.1.0
     # via
     #   -c requirements/base.txt
     #   apache-superset
+dill==0.4.0
+    # via pylint
 distlib==0.3.8
     # via virtualenv
 dnspython==2.7.0
@@ -193,7 +197,7 @@ flask==2.3.3
     #   flask-sqlalchemy
     #   flask-testing
     #   flask-wtf
-flask-appbuilder==4.6.4
+flask-appbuilder==4.7.0
     # via
     #   -c requirements/base.txt
     #   apache-superset
@@ -362,6 +366,8 @@ isodate==0.7.2
     # via
     #   -c requirements/base.txt
     #   apache-superset
+isort==6.0.1
+    # via pylint
 itsdangerous==2.2.0
     # via
     #   -c requirements/base.txt
@@ -425,7 +431,7 @@ markupsafe==3.0.2
     #   mako
     #   werkzeug
     #   wtforms
-marshmallow==3.20.1
+marshmallow==3.26.1
     # via
     #   -c requirements/base.txt
     #   flask-appbuilder
@@ -436,6 +442,8 @@ marshmallow-sqlalchemy==1.4.0
     #   flask-appbuilder
 matplotlib==3.9.0
     # via prophet
+mccabe==0.7.0
+    # via pylint
 mdurl==0.1.2
     # via
     #   -c requirements/base.txt
@@ -475,7 +483,9 @@ odfpy==1.4.1
     #   -c requirements/base.txt
     #   pandas
 openapi-schema-validator==0.6.3
-    # via openapi-spec-validator
+    # via
+    #   -c requirements/base.txt
+    #   openapi-spec-validator
 openapi-spec-validator==0.7.1
     # via apache-superset
 openpyxl==3.1.5
@@ -541,6 +551,7 @@ pillow==10.3.0
 platformdirs==4.3.8
     # via
     #   -c requirements/base.txt
+    #   pylint
     #   requests-cache
     #   virtualenv
 pluggy==1.5.0
@@ -623,6 +634,8 @@ pyjwt==2.10.1
     #   apache-superset
     #   flask-appbuilder
     #   flask-jwt-extended
+pylint==3.3.7
+    # via apache-superset
 pynacl==1.5.0
     # via
     #   -c requirements/base.txt
@@ -723,7 +736,9 @@ requests-cache==1.2.1
 requests-oauthlib==2.0.0
     # via google-auth-oauthlib
 rfc3339-validator==0.1.4
-    # via openapi-schema-validator
+    # via
+    #   -c requirements/base.txt
+    #   openapi-schema-validator
 rich==13.9.4
     # via
     #   -c requirements/base.txt
@@ -815,7 +830,7 @@ stripe==12.1.0
     # via
     #   -c requirements/base.txt
     #   apache-superset
-tabulate==0.8.10
+tabulate==0.9.0
     # via
     #   -c requirements/base.txt
     #   apache-superset

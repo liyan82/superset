@@ -766,7 +766,7 @@ SCREENSHOT_WAIT_FOR_ERROR_MODAL_INVISIBLE = 5
 SCREENSHOT_PLAYWRIGHT_WAIT_EVENT = "load"
 # Default timeout for Playwright browser context for all operations
 SCREENSHOT_PLAYWRIGHT_DEFAULT_TIMEOUT = int(
-    timedelta(seconds=30).total_seconds() * 1000
+    timedelta(seconds=60).total_seconds() * 1000
 )
 
 # ---------------------------------------------------
@@ -1807,7 +1807,10 @@ GUEST_TOKEN_JWT_SECRET = "dvmBi5HRwnYCh72R+hHpCDfLWDWNAMBKwZnvBHNqWm4="  # noqa:
 GUEST_TOKEN_JWT_ALGO = "HS256"  # noqa: S105
 GUEST_TOKEN_HEADER_NAME = "X-GuestToken"  # noqa: S105
 GUEST_TOKEN_JWT_EXP_SECONDS = 300  # 5 minutes
-# Guest token audience for the embedded superset, either string or callable
+# Audience for the Superset guest token used in embedded mode.
+# Can be a string or a callable. Defaults to WEBDRIVER_BASEURL.
+# When generating the guest token, ensure the
+# payload's `aud` matches GUEST_TOKEN_JWT_AUDIENCE.
 GUEST_TOKEN_JWT_AUDIENCE: Callable[[], str] | str | None = None
 
 # A callable that can be supplied to do extra validation of guest token configuration

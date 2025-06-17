@@ -34,5 +34,8 @@ apispec>=6.0.0,<6.7.0
 # Opened this issue https://github.com/marshmallow-code/marshmallow-sqlalchemy/issues/665
 marshmallow-sqlalchemy>=1.3.0,<1.4.1
 
+# needed for python 3.12 support
+openapi-schema-validator>=0.6.3
+
 # Pin marshmallow to a version known to work with Superset for this issue
 marshmallow==3.20.1

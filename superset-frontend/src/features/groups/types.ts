@@ -16,23 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { REPORT_LIST } from 'cypress/utils/urls';
+export interface BaseGroupListModalProps {
+  show: boolean;
+  onHide: () => void;
+  onSave: () => void;
+}
 
-describe('Report list view', () => {
-  before(() => {
-    cy.visit(REPORT_LIST);
-  });
-
-  it('should load report lists', () => {
-    cy.getBySel('listview-table').should('be.visible');
-    cy.getBySel('sort-header').eq(1).contains('Last run');
-    cy.getBySel('sort-header').eq(2).contains('Name');
-    cy.getBySel('sort-header').eq(3).contains('Schedule');
-    cy.getBySel('sort-header').eq(4).contains('Notification method');
-    cy.getBySel('sort-header').eq(5).contains('Owners');
-    cy.getBySel('sort-header').eq(6).contains('Last modified');
-    cy.getBySel('sort-header').eq(7).contains('Active');
-    // TODO Cypress won't recognize the Actions column
-    // cy.getBySel('sort-header').eq(9).contains('Actions');
-  });
-});
+export interface FormValues {
+  name: string;
+  label?: string;
+  description?: string;
+  roles: number[];
+  users: { value: number; label: string }[];
+}
