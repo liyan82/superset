@@ -81,6 +81,7 @@ from superset.utils.core import (
 from superset.utils.filters import get_dataset_access_filters
 from superset.utils.urls import get_url_host
 from superset.security.custom_register import SupersetRegisterUserDBView  # Added import
+from superset.security.custom_auth import CustomAuthDBView
 from werkzeug.wrappers.response import Response
 
 if TYPE_CHECKING:
@@ -249,6 +250,7 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
 
     # Assign the custom register user view
     registeruserdbview = SupersetRegisterUserDBView
+    authdbview = CustomAuthDBView
 
     role_api = SupersetRoleApi
     user_api = SupersetUserApi

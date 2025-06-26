@@ -30,6 +30,13 @@ from flask_caching.backends.base import BaseCache
 
 logger = logging.getLogger()
 
+APP_NAME = "Patent 1024"
+
+# Specify the App icon
+APP_ICON = "/static/assets/images/patent-1024.png"
+
+FAVICONS = [{"href": "/static/assets/images/p4-favicon.png"}]
+
 # Enable user registration
 AUTH_USER_REGISTRATION = True
 AUTH_USER_REGISTRATION_ROLE = "Public"
