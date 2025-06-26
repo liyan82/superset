@@ -16,8 +16,10 @@
 # under the License.
 import logging
 from typing import cast, Optional
+import re
 
 from flask import (
+    current_app,
     flash,
     redirect,
     request,
@@ -69,6 +71,36 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
     # from superset.security.forms import CustomRegisterUserDBForm
     # form = CustomRegisterUserDBForm
 
+    # Override the methods that handle GET and POST requests to
+    # ensure they always render our custom template with the 'form' object.
+    @expose("/form", methods=["GET"])
+    def this_form_get(self) -> Response:
+        self._init_vars()
+        form = self.form()
+        return self.render_template(
+            self.form_template,
+            title=self.form_title,
+            form=form,
+            appbuilder=self.appbuilder,
+        )
+
+    @expose("/form", methods=["POST"])
+    def this_form_post(self) -> Response:
+        self._init_vars()
+        form = self.form()
+        self.add_form_unique_validations(form)
+        if form.validate_on_submit():
+            response = self.form_post(form)
+            if response is not None:
+                return response
+        
+        return self.render_template(
+            self.form_template,
+            title=self.form_title,
+            form=form,
+            appbuilder=self.appbuilder,
+        )
+
     def form_get(self, form: RegisterUserDBForm) -> None:
         """
         Called when the registration form is displayed (GET request).
@@ -82,12 +114,32 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
         Handles the registration process and redirects upon successful submission
         (prior to email activation).
         """
-        # Ensure unique validations are applied, similar to the parent's form_post.
-        # This method is on BaseRegisterUser (superclass of RegisterUserDBView)
-        # and is safe to call to ensure form validation uniqueness rules are set.
-        self.add_form_unique_validations(form)
+        # Password policy validation
+        password = form.password.data or ""
+        errors = []
+        if len(password) < 8:
+            errors.append(lazy_gettext("Password must be at least 8 characters long."))
+        if not re.search("[a-z]", password):
+            errors.append(lazy_gettext("Password must contain a lowercase letter."))
+        if not re.search("[A-Z]", password):
+            errors.append(lazy_gettext("Password must contain an uppercase letter."))
+        if not re.search("[0-9]", password):
+            errors.append(lazy_gettext("Password must contain a number."))
 
-        # Attempt to add the registration.
+        if errors:
+            # Add errors to the form field and return to the form
+            form.password.errors.extend(errors)
+            return None
+
+        if current_app.config.get("ENABLE_REGISTRATION_EMAIL_DOMAIN_VALIDATION"):
+            email_domain = form.email.data.split('@')[1]
+            blacklist = current_app.config.get("REGISTRATION_EMAIL_DOMAIN_BLACKLIST", set())
+            if email_domain.lower() in blacklist:
+                form.email.errors.append(lazy_gettext(
+                    "Our registration policy requires a business email. Public domains are not accepted."
+                ))
+                return None
+                
         # This method is on BaseRegisterUser. It handles:
         # 1. Creating the RegisterUser entry in the database.
         # 2. Sending the activation email.

@@ -41,6 +41,23 @@ FAVICONS = [{"href": "/static/assets/images/p4-favicon.png"}]
 AUTH_USER_REGISTRATION = True
 AUTH_USER_REGISTRATION_ROLE = "Public"
 
+# Feature flag for restricting registration to non-public email domains
+ENABLE_REGISTRATION_EMAIL_DOMAIN_VALIDATION = True
+
+# List of public email domains to blacklist for registration
+REGISTRATION_EMAIL_DOMAIN_BLACKLIST = {
+    "gmail.com",
+    "yahoo.com",
+    "hotmail.com",
+    "aol.com",
+    "outlook.com",
+    "icloud.com",
+    "live.com",
+    "msn.com",
+    "duck.com",
+    "protonmail.com",
+}
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 DATABASE_DIALECT = os.getenv("DATABASE_DIALECT")
