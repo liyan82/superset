@@ -31,6 +31,7 @@ from flask_appbuilder.security.forms import RegisterUserDBForm
 from flask_appbuilder.security.registerviews import RegisterUserDBView
 from flask_appbuilder.security.sqla.models import RegisterUser
 from flask_babel import lazy_gettext
+from flask_login import logout_user
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +76,7 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
     # ensure they always render our custom template with the 'form' object.
     @expose("/form", methods=["GET"])
     def this_form_get(self) -> Response:
+        logout_user()
         self._init_vars()
         form = self.form()
         return self.render_template(
@@ -188,10 +190,25 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
         """
         Displays a page instructing the user to check their email for activation.
         """
+        logout_user()
         register_user_id = request.args.get("register_user_id")
         email = request.args.get("email")
         if not register_user_id or not email:
             flash(self.false_error_message, "danger")
+            return cast(Response, redirect(self.appbuilder.get_url_for_login))
+
+        register_user = (
+            self.appbuilder.sm.get_session.query(RegisterUser)
+            .filter_by(id=register_user_id)
+            .first()
+        )
+        if not register_user:
+            flash(
+                lazy_gettext(
+                    "Your account has already been activated. Please log in."
+                ),
+                "info",
+            )
             return cast(Response, redirect(self.appbuilder.get_url_for_login))
 
         return cast(
@@ -200,12 +217,12 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
                 "appbuilder/general/security/check_email_for_activation.html",
                 title=lazy_gettext("Check Your Email"),
                 appbuilder=self.appbuilder,
-                register_user_id=register_user_id,
+                register_user_id=register_user.id,
                 email=email,
             ),
         )
 
-    @expose("/resend-activation/<int:register_user_id>")
+    @expose("/resend-activation/<int:register_user_id>", methods=["POST"])
     def resend_activation(self, register_user_id: int) -> Response:
         """
         Resends the activation email to the user.

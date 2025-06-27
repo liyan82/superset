@@ -1,35 +1,123 @@
 {% extends "appbuilder/base.html" %}
-{% import 'appbuilder/general/lib.html' as lib %}
 
-{% block content %}
-<div class="container">
-    {{ lib.panel_begin(title, "info") }}
-    <div class="text-center">
-        <h2>{{ _("Check Your Email") }}</h2>
-        <p>
-            {{ _("We've sent an activation link to your email address: ") }}<strong>{{ email }}</strong>.
-        </p>
-        <p>
-            {{ _("Please click the link in that email to activate your account.") }}
-        </p>
-        <p>
-            {{ _("If you don't see the email in your inbox, please check your spam folder.") }}
-        </p>
-        <hr>
-        <p>
-            {{ _("Didn't receive the email after a minute?") }}
-        </p>
-        <a href="#" id="resend-link" class="btn btn-primary disabled" role="button" aria-disabled="true">
-            {{ _("Resend Activation Email") }}
-        </a>
-        <p id="resend-timer" style="margin-top: 10px;"></p>
+{% block body %}
+<style>
+  body {
+    background-color: #f2f4f7;
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg font-family='monospace' font-size='10' fill='%23283E53' fill-opacity='0.08'%3E%3Ctext x='0' y='15'%3E1010%3C/text%3E%3Ctext x='40' y='15'%3E0101%3C/text%3E%3Ctext x='0' y='35'%3E0101%3C/text%3E%3Ctext x='40' y='35'%3E1010%3C/text%3E%3Ctext x='0' y='55'%3E1010%3C/text%3E%3Ctext x='40' y='55'%3E0101%3C/text%3E%3Ctext x='0' y='75'%3E0101%3C/text%3E%3Ctext x='40' y='75'%3E1010%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+  .login-container {
+    max-width: 420px;
+    width: 100%;
+    padding: 20px;
+  }
+  .login-logo {
+    text-align: center;
+    margin-bottom: 25px;
+  }
+  .login-logo img {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 10px;
+  }
+  .tagline {
+      color: #556270;
+      font-size: 1em;
+      margin: 0;
+      text-shadow: 0 1px 1px rgba(255,255,255,0.5);
+  }
+  .panel-default {
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 0 20px rgba(40, 62, 83, 0.1);
+      overflow: hidden;
+  }
+  .panel-heading {
+      background-color: #ffffff !important;
+      border-bottom: 1px solid #e7e7e7;
+      text-align: center;
+      padding: 20px 15px;
+  }
+  .panel-title {
+      font-weight: 600;
+      font-size: 22px;
+      color: #333;
+  }
+  .panel-body {
+      padding: 30px;
+  }
+  .form-control {
+      height: 44px;
+      border-radius: 6px;
+      border: 1px solid #dce4e8;
+      box-shadow: none !important;
+  }
+  .form-control:focus {
+      border-color: #283E53;
+  }
+  .btn-primary {
+      background-color: #283E53;
+      border-color: #283E53;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background-color 0.2s ease-in-out;
+  }
+  .btn-primary:hover {
+      background-color: #1e2f3f;
+      border-color: #1e2f3f;
+  }
+</style>
+
+<div class="login-container">
+    <div class="login-logo">
+        <a href="/"><img src="/static/assets/images/patent-1024.png" alt="Logo"></a>
+        <p class="tagline">Unlock Insights from US Patent Data</p>
     </div>
-    {{ lib.panel_end() }}
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{ _("Check Your Email") }}</h3>
+        </div>
+        <div class="panel-body">
+            <div class="text-center">
+                <p>
+                    {{ _("We've sent an activation link to your email address: ") }}<strong>{{ email }}</strong>.
+                </p>
+                <p>
+                    {{ _("Please click the link in that email to activate your account.") }}
+                </p>
+                <p>
+                    {{ _("If you don't see the email in your inbox, please check your spam folder.") }}
+                </p>
+                <hr>
+                <p>
+                    {{ _("Didn't receive the email after a minute?") }}
+                </p>
+                <form id="resend-form" method="POST" action="" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}"/>
+                    <button type="submit" id="resend-button" class="btn btn-primary" disabled>
+                        {{ _("Resend Activation Email") }}
+                    </button>
+                </form>
+                <p id="resend-timer" style="margin-top: 10px;"></p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script nonce="{{ csp_nonce() }}">
 document.addEventListener('DOMContentLoaded', function() {
-    var resendLink = document.getElementById('resend-link');
+    var resendForm = document.getElementById('resend-form');
+    var resendButton = document.getElementById('resend-button');
     var resendTimer = document.getElementById('resend-timer');
     var timeLeft = 60; // 60 seconds
 
@@ -40,12 +128,19 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(updateTimer, 1000);
         } else {
             resendTimer.textContent = "";
-            resendLink.classList.remove('disabled');
-            resendLink.removeAttribute('aria-disabled');
-            resendLink.href = "{{ url_for('SupersetRegisterUserDBView.resend_activation', register_user_id=register_user_id) }}";
+            resendButton.removeAttribute('disabled');
+            resendForm.action = "{{ url_for('SupersetRegisterUserDBView.resend_activation', register_user_id=register_user_id) }}";
         }
     }
+
+    resendForm.addEventListener('submit', function() {
+        resendButton.setAttribute('disabled', 'true');
+        resendButton.textContent = "{{ _('Processing...') }}";
+    });
+
     setTimeout(updateTimer, 1000); // Start timer after 1 second
 });
 </script>
-{% endblock %} 
+{% endblock %}
+
+{% block tail_js %}{% endblock %} 
