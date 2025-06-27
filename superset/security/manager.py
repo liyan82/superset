@@ -125,7 +125,7 @@ class SupersetRoleListWidget(ListWidget):  # pylint: disable=too-few-public-meth
     template = "superset/fab_overrides/list_role.html"
 
     def __init__(self, **kwargs: Any) -> None:
-        kwargs["appbuilder"] = current_app.appbuilder
+        kwargs["appbuilder"] = cast(Any, current_app).appbuilder
         super().__init__(**kwargs)
 
 
@@ -2650,7 +2650,9 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
             "aud": audience,
             "type": "guest",
         }
-        return self.pyjwt_for_guest_token.encode(claims, secret, algorithm=algo)
+        return self.pyjwt_for_guest_token.encode(
+            claims, secret, algorithm=algo
+        ).encode("utf-8")
 
     def get_guest_user_from_request(self, req: Request) -> Optional[GuestUser]:
         """
