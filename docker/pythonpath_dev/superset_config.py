@@ -39,7 +39,9 @@ FAVICONS = [{"href": "/static/assets/images/p4-favicon.png"}]
 
 # Enable user registration
 AUTH_USER_REGISTRATION = True
-AUTH_USER_REGISTRATION_ROLE = "Public"
+AUTH_USER_REGISTRATION_ROLE = "Trial"
+TRIAL_PERIOD_DAYS = 7
+TRIAL_EXPIRED_ROLE = "Public"
 
 # Feature flag for restricting registration to non-public email domains
 ENABLE_REGISTRATION_EMAIL_DOMAIN_VALIDATION = True
@@ -54,7 +56,7 @@ REGISTRATION_EMAIL_DOMAIN_BLACKLIST = {
     "icloud.com",
     "live.com",
     "msn.com",
-    "duck.com",
+    # "duck.com",
     "protonmail.com",
 }
 
@@ -127,9 +129,10 @@ class CeleryConfig:
             "task": "reports.prune_log",
             "schedule": crontab(minute=10, hour=0),
         },
-        "expired_subscriptions.scan_and_label": {
-            "task": "expired_subscriptions.scan_and_label",
-            "schedule": timedelta(seconds=20),
+        "expired_subscriptions.process_expirations": {
+            "task": "expired_subscriptions.process_expirations",
+            # "schedule": crontab(minute=0, hour=0),  # daily at midnight
+            "schedule": timedelta(seconds=30),
         },
         # "sync_stripe.sync_stripe_data": {
         #     "task": "sync_stripe.sync_stripe_data",
