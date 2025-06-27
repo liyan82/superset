@@ -211,8 +211,9 @@
     }
     .pricing-card h3 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
     .pricing-card .plan-desc { color: var(--p4-blue); margin-bottom: 1.5rem; font-size: 0.9rem; }
-    .pricing-price { font-size: 3rem; font-weight: 700; margin-bottom: 1rem; color: var(--p4-dark-blue); }
+    .pricing-price { font-size: 3rem; font-weight: 700; margin-bottom: 0.25rem; color: var(--p4-dark-blue); }
     .pricing-price span { font-size: 1rem; font-weight: 400; color: var(--p4-blue); }
+    .yearly-price { font-size: 1rem; color: var(--p4-accent); margin-bottom: 1.5rem; font-weight: 600; }
     .pricing-features { list-style: none; margin-bottom: 2rem; text-align: left; flex-grow: 1; }
     .pricing-features li { padding: 0.6rem 0; border-bottom: 1px solid #dce4e8; font-size: 0.95rem; }
     .pricing-features li::before { content: '✓'; color: var(--p4-dark-blue); margin-right: 10px; font-weight: 600; }
@@ -307,27 +308,30 @@
       <div class="pricing-grid">
         <div class="pricing-card">
           <h3>Starter</h3>
-          <p class="plan-desc">For individuals and small teams</p>
-          <div class="pricing-price">$99<span>/month</span></div>
+          <p class="plan-desc">Essential Patent Analytics</p>
+          <div class="pricing-price">$59<span>/month</span></div>
+          <p class="yearly-price">or $600/year</p>
           <ul class="pricing-features">
-            <li>Basic patent analytics</li>
-            <li>5 user accounts</li>
-            <li>1,000 search queries/mo</li>
-            <li>Standard visualizations</li>
-            <li>Email support</li>
+            <li>Interactive charts & dashboards</li>
+            <li>Access curated patent datasets</li>
+            <li>Export charts & data (PDF/PNG/CSV)</li>
+            <li>Personal workspace with saved queries</li>
+            <li>Guided data exploration</li>
           </ul>
           <a href="/register/form" class="btn btn-outline">Get Started</a>
         </div>
         <div class="pricing-card featured">
           <h3>Professional</h3>
-          <p class="plan-desc">For growing businesses & researchers</p>
-          <div class="pricing-price">$249<span>/month</span></div>
+          <p class="plan-desc">Advanced Patent Intelligence</p>
+          <div class="pricing-price">$99<span>/month</span></div>
+          <p class="yearly-price">or $1000/year</p>
           <ul class="pricing-features">
-            <li>Advanced patent analytics</li>
-            <li>20 user accounts</li>
-            <li>Unlimited search queries</li>
-            <li>Custom visualizations</li>
-            <li>Priority support & API access</li>
+            <li><strong>Everything in Starter, plus:</strong></li>
+            <li>Full SQL Lab access w/ cost estimation</li>
+            <li>Upload & manage custom datasets</li>
+            <li>Advanced sharing & team collaboration</li>
+            <li>Row-level security & API access</li>
+            <li>Automated reports, caching, & CSS templates</li>
           </ul>
           <a href="/register/form" class="btn btn-primary">Get Started</a>
         </div>

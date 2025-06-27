@@ -149,20 +149,26 @@ CELERY_CONFIG = CeleryConfig
 # You can find your Stripe product IDs in your Stripe dashboard under
 # "Products". They typically look like "prod_...".
 SUBSCRIPTION_PLANS_FEATURES = {
-    # Example for a "Basic" plan
+    # Starter Plan - Essential Patent Analytics
     "prod_RxmzzUm05pwwlw": [
-        "Basic Patent Search",
-        "Up to 100 searches per month",
-        "Email alerts for saved searches",
-        "Standard support",
+        "Interactive charts & dashboards",
+        "Access curated patent datasets",
+        "Export charts & data (PDF/PNG/CSV)",
+        "Personal workspace with saved queries",
+        "Guided data exploration",
     ],
-    # Example for a "Professional" plan
+    # Professional Plan - Advanced Patent Intelligence
     "prod_Rxn4SrqwJRkxTd": [
-        "Advanced Patent Search with filters",
-        "Unlimited searches",
-        "Email and SMS alerts for saved searches",
-        "API access for integrations",
-        "Priority support",
+        "Interactive charts & dashboards",
+        "Access curated patent datasets",
+        "Export charts & data (PDF/PNG/CSV)",
+        "Personal workspace with saved queries",
+        "Guided data exploration",
+        "Full SQL Lab access w/ cost estimation",
+        "Upload & manage custom datasets",
+        "Advanced sharing & team collaboration",
+        "Row-level security & API access",
+        "Automated reports, caching, & CSS templates",
     ],
 }
 
