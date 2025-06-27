@@ -65,7 +65,7 @@ services:
     container_name: superset_init
     build:
       <<: *common-build
-    command: ["/app/docker/conditional-init.sh"]
+    command: ["/app/docker/docker-init.sh"]
     env_file:
       - path: docker/.env # default
         required: true
