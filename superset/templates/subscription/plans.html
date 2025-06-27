@@ -1,33 +1,150 @@
 {% extends "appbuilder/base.html" %}
 
+{% block head_css %}
+{{ super() }}
+<style>
+    .subscription-plans {
+        padding-top: 20px;
+        padding-bottom: 40px;
+    }
+    .plan-row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-left: -15px;
+        margin-right: -15px;
+    }
+    .plan-col {
+        display: flex; /* This makes columns of equal height in a flex row */
+        padding-left: 15px;
+        padding-right: 15px;
+        margin-bottom: 30px;
+    }
+    .plan-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        width: 100%; /* Take full width of the column */
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+    }
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .plan-card .panel-heading {
+        background-color: #283E53; /* Dark blue from login page */
+        color: white;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    .plan-card .panel-body {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .plan-card .plan-price {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .plan-card .plan-price-cycle {
+        font-size: 1rem;
+        color: #6c757d;
+    }
+    .plan-card .features-list {
+        margin: 20px 0;
+        flex-grow: 1;
+    }
+    .plan-card .features-list li {
+        margin-bottom: 10px;
+    }
+    .btn-subscribe {
+        background-color: #00af9e; /* Teal from screenshot */
+        border-color: #00af9e;
+        border-radius: 6px;
+        padding: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        color: white;
+    }
+    .btn-subscribe:hover {
+        background-color: #008c7e;
+        border-color: #008c7e;
+        color: white;
+    }
+    .flash-container {
+        padding: 0;
+    }
+    .flash-message {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        color: #212529;
+        font-size: 1.1em;
+        font-weight: 500;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block messages %}
+    <div class="container flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    {% for category, message in messages %}
+                        <div class="flash-message" role="alert">
+                            {{ message|safe }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+    </div>
+{% endblock %}
+
+
 {% block content %}
-<div class="container">
-    <h1>Subscription Plans</h1>
+<div class="container subscription-plans">
+    <div class="text-center">
+        <h1>Subscription Plans</h1>
+        <p class="lead">Choose the plan that's right for you and unlock powerful features.</p>
+    </div>
+    <br/>
     
-    <div class="row">
+    <div class="row plan-row">
         {% if plans %}
             {% for plan in plans %}
-                <div class="col-md-4">
-                    <div class="panel panel-primary">
+                <div class="col-md-4 plan-col">
+                    <div class="panel plan-card">
                         <div class="panel-heading">
-                            <h3 class="panel-title">{{ plan.name }}</h3>
+                            <h3 class="panel-title text-center">{{ plan.name }}</h3>
                         </div>
-                        <div class="panel-body">
+                        <div class="panel-body text-center">
                             <p>{{ plan.description }}</p>
-                            <h4>${{ "%.2f"|format(plan.price) }} / {{ plan.billing_cycle }}</h4>
+                            <div class="plan-price">
+                                ${{ "%.2f"|format(plan.price) }}
+                                <span class="plan-price-cycle">/ {{ plan.billing_cycle }}</span>
+                            </div>
                             
-                            <h5>Features:</h5>
-                            <ul class="list-unstyled">
-                                {% if plan.features %}
-                                    {% for feature in plan.features.split(',') %}
-                                        <li><i class="fa fa-check text-success"></i> {{ feature.strip() }}</li>
+                            <ul class="list-unstyled features-list text-left">
+                                {% if plan.feature_list %}
+                                    {% for feature in plan.feature_list %}
+                                        <li><i class="fa fa-check text-success"></i> {{ feature }}</li>
                                     {% endfor %}
                                 {% else %}
-                                    <li><i class="fa fa-info-circle text-info"></i> No specific features listed</li>
+                                    <li><i class="fa fa-info-circle text-info"></i> No specific features listed.</li>
                                 {% endif %}
                             </ul>
                             
-                            <a href="{{ url_for('.subscribe', plan_id=plan.product_id) }}" class="btn btn-primary btn-block">
+                            <a href="{{ url_for('.subscribe', plan_id=plan.product_id) }}" class="btn btn-block btn-lg btn-subscribe">
                                 Subscribe
                             </a>
                         </div>

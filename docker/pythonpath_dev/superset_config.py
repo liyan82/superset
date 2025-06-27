@@ -143,6 +143,29 @@ class CeleryConfig:
 
 CELERY_CONFIG = CeleryConfig
 
+# A mapping of Stripe product IDs to a list of features for each plan.
+# Replace the placeholder keys with your actual Stripe product IDs.
+#
+# You can find your Stripe product IDs in your Stripe dashboard under
+# "Products". They typically look like "prod_...".
+SUBSCRIPTION_PLANS_FEATURES = {
+    # Example for a "Basic" plan
+    "prod_RxmzzUm05pwwlw": [
+        "Basic Patent Search",
+        "Up to 100 searches per month",
+        "Email alerts for saved searches",
+        "Standard support",
+    ],
+    # Example for a "Professional" plan
+    "prod_Rxn4SrqwJRkxTd": [
+        "Advanced Patent Search with filters",
+        "Unlimited searches",
+        "Email and SMS alerts for saved searches",
+        "API access for integrations",
+        "Priority support",
+    ],
+}
+
 FEATURE_FLAGS = {"ALERT_REPORTS": True}
 ALERT_REPORTS_NOTIFICATION_DRY_RUN = True
 WEBDRIVER_BASEURL = f"http://superset_app{os.environ.get('SUPERSET_APP_ROOT', '/')}/"  # When using docker compose baseurl should be http://superset_nginx{ENV{BASEPATH}}/  # noqa: E501

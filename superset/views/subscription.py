@@ -104,10 +104,12 @@ class SubscriptionView(BaseView):
             db_plan.billing_cycle = stripe_plan_item["billing_cycle"]
             updated_fields = True
         # Features
-        stripe_features_list = stripe_plan_item.get("features", [])
+        features_from_config = current_app.config.get(
+            "SUBSCRIPTION_PLANS_FEATURES", {}
+        ).get(stripe_plan_item["id"], [])
         db_features_list = self._get_db_features_list(db_plan)
-        if sorted(db_features_list) != sorted(stripe_features_list):
-            db_plan.features = json.dumps(stripe_features_list)
+        if sorted(db_features_list) != sorted(features_from_config):
+            db_plan.features = json.dumps(features_from_config)
             updated_fields = True
         # Is Active
         stripe_is_active = stripe_plan_item.get("active", True)
@@ -119,6 +121,9 @@ class SubscriptionView(BaseView):
     def _create_new_db_plan(self, stripe_plan_item: dict[str, Any]) -> None:
         """Create a new SubscriptionPlan in the database from a Stripe plan item."""
         try:
+            features_from_config = current_app.config.get(
+                "SUBSCRIPTION_PLANS_FEATURES", {}
+            ).get(stripe_plan_item["id"], [])
             new_plan_instance = SubscriptionPlan(
                 product_id=stripe_plan_item["id"],
                 stripe_price_id=stripe_plan_item["stripe_price_id"],
@@ -126,7 +131,7 @@ class SubscriptionView(BaseView):
                 description=stripe_plan_item.get("description"),
                 price=float(stripe_plan_item["price"]),
                 billing_cycle=stripe_plan_item["billing_cycle"],
-                features=json.dumps(stripe_plan_item.get("features", [])),
+                features=json.dumps(features_from_config),
                 is_active=stripe_plan_item.get("active", True),
             )
             self.appbuilder.session.add(new_plan_instance)
@@ -198,7 +203,14 @@ class SubscriptionView(BaseView):
         self._synchronize_plans_from_stripe()
         # Query plans from the database to display on the page.
         # Display only active plans.
-        return self.appbuilder.session.query(SubscriptionPlan).filter_by(is_active=True).all()
+        active_plans = (
+            self.appbuilder.session.query(SubscriptionPlan)
+            .filter_by(is_active=True)
+            .all()
+        )
+        for plan in active_plans:
+            plan.feature_list = self._get_db_features_list(plan)
+        return active_plans
 
     @expose("/")
     @expose("/index")
