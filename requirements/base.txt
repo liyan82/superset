@@ -394,6 +394,8 @@ stripe==12.1.0
     # via apache-superset (pyproject.toml)
 tabulate==0.9.0
     # via apache-superset (pyproject.toml)
+thrift==0.22.0
+    # via apache-superset (pyproject.toml)
 trio==0.30.0
     # via
     #   selenium
@@ -405,8 +407,6 @@ typing-extensions==4.13.2
     #   apache-superset (pyproject.toml)
     #   alembic
     #   limits
-    #   pyopenssl
-    #   referencing
     #   selenium
     #   shillelagh
     #   stripe
