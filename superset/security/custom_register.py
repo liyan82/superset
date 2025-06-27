@@ -114,6 +114,13 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
         Handles the registration process and redirects upon successful submission
         (prior to email activation).
         """
+        # Username policy validation
+        if len(form.username.data) < 5:
+            form.username.errors.append(
+                lazy_gettext("Username must be at least 5 characters long.")
+            )
+            return None
+
         # Password policy validation
         password = form.password.data or ""
         errors = []

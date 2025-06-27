@@ -46,7 +46,7 @@
   .is-invalid { border-color: #d9534f !important; }
   .invalid-feedback { color: #d9534f; font-size: 0.875em; margin-top: 0.25rem; }
   .login-link a { color: #283E53; font-weight: 600; }
-  #password-policy {
+  .policy-container {
     font-size: 0.875em;
     color: #556270;
     padding: 10px 15px;
@@ -54,23 +54,23 @@
     border-radius: 4px;
     background-color: #f8f9fa;
   }
-  #password-policy ul {
+  .policy-container ul {
     list-style-type: none;
     padding-left: 0;
     margin-bottom: 0;
   }
-  #password-policy li {
+  .policy-container li {
     transition: all 0.3s ease;
   }
-  #password-policy li.valid {
+  .policy-container li.valid {
     color: #28a745;
     text-decoration: line-through;
   }
-  #password-policy li.valid::before {
+  .policy-container li.valid::before {
     content: '✓ ';
     color: #28a745;
   }
-  #password-policy li.invalid::before {
+  .policy-container li.invalid::before {
     content: '✗ ';
     color: #d9534f;
   }
@@ -95,8 +95,16 @@
                     {{ field.label }}
                     {{ field(class="form-control" + (" is-invalid" if field.errors else "")) }}
                     
+                    {% if field.name == 'username' %}
+                      <div id="username-policy" class="policy-container">
+                        <ul>
+                          <li id="policy-username-length" class="invalid">{{_("At least 5 characters")}}</li>
+                        </ul>
+                      </div>
+                    {% endif %}
+
                     {% if field.name == 'password' %}
-                      <div id="password-policy">
+                      <div id="password-policy" class="policy-container">
                         <ul>
                           <li id="policy-length" class="invalid">{{_("At least 8 characters")}}</li>
                           <li id="policy-uppercase" class="invalid">{{_("An uppercase letter")}}</li>
@@ -133,7 +141,24 @@
 {% block tail_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
+
+    if (usernameInput) {
+        const policyUsernameLength = document.getElementById('policy-username-length');
+        const validateUsername = () => {
+            if (usernameInput.value.length >= 5) {
+                policyUsernameLength.classList.remove('invalid');
+                policyUsernameLength.classList.add('valid');
+            } else {
+                policyUsernameLength.classList.remove('valid');
+                policyUsernameLength.classList.add('invalid');
+            }
+        };
+        usernameInput.addEventListener('keyup', validateUsername);
+        validateUsername();
+    }
+
     if (passwordInput) {
         const policyLength = document.getElementById('policy-length');
         const policyUppercase = document.getElementById('policy-uppercase');
