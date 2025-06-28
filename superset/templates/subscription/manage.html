@@ -107,18 +107,6 @@
                                 <a href="{{ url_for('.link_all_user_payments') }}" class="btn btn-xs btn-primary pull-right">Link My Payments</a>
                             </div>
                         {% endif %}
-                        
-                        <!-- Admin actions -->
-                        {% if is_admin %}
-                            <div class="well well-sm" style="margin-top: 15px;">
-                                <h5 style="margin-top: 15px;">Debug Info:</h5>
-                                <ul>
-                                    <li>Subscription ID: {{ subscription.id }}</li>
-                                    <li>Has payments attribute: {{ subscription.payments is defined }}</li>
-                                    <li>Payments length: {{ subscription.payments|length if subscription.payments is defined else 'N/A' }}</li>
-                                </ul>
-                            </div>
-                        {% endif %}
                     </div>
                 </div>
             {% else %}
@@ -138,8 +126,8 @@
                 <div class="panel-body">
                     <p>If you have any questions about your subscription or need assistance, please contact our support team:</p>
                     <ul class="list-unstyled">
-                        <li><i class="fa fa-envelope"></i> <a href="mailto:support@example.com">support@example.com</a></li>
-                        <li><i class="fa fa-phone"></i> (123) 456-7890</li>
+                        <li><i class="fa fa-envelope"></i> <a href="mailto:david@patent1024.com">david@patent1024.com</a></li>
+                        <li><i class="fa fa-phone"></i> (678) 888-2116</li>
                     </ul>
                 </div>
             </div>
