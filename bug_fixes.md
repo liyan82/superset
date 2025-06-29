@@ -91,4 +91,71 @@ The solution required a structural refactor of the Jinja2 template (`superset/te
 
 ### Key Takeaway
 
-When customizing Flask-AppBuilder templates, simply adding new styled containers for dynamic content like flash messages is often unreliable. To properly style these elements, it's necessary to override the specific Jinja2 blocks (e.g., `{% block messages %}`) that the framework uses to render them. This provides direct control over the output HTML and ensures custom styles are applied as intended. Pre-processing data in the view to simplify template logic is also a valuable practice. 
+When customizing Flask-AppBuilder templates, simply adding new styled containers for dynamic content like flash messages is often unreliable. To properly style these elements, it's necessary to override the specific Jinja2 blocks (e.g., `{% block messages %}`) that the framework uses to render them. This provides direct control over the output HTML and ensures custom styles are applied as intended. Pre-processing data in the view to simplify template logic is also a valuable practice.
+
+## Issue: "Connection Not Private" Error on `www` Subdomain
+
+**Date:** 2024-08-02
+
+### The Problem
+
+The site was configured with an SSL certificate and was accessible at `https://patent1024.com`. However, when users tried to access the site via `https://www.patent1024.com`, they received a "Your connection is not private" browser error, preventing access.
+
+### The Goal
+
+To configure the Nginx server to correctly handle traffic for both the `www` and non-`www` versions of the domain, eliminate the SSL error, and ensure all users are directed to a single, canonical URL.
+
+### The Solution Journey
+
+#### Step 1: Diagnosis - Inspecting the SSL Certificate
+
+The initial hypothesis was a mismatch between the requested domain and the name on the SSL certificate. An `openssl` command confirmed this:
+```bash
+echo | openssl s_client -connect www.patent1024.com:443 -servername www.patent1024.com 2>/dev/null | openssl x509 -noout -subject
+```
+The output `subject=CN=patent1024.com` showed the certificate was only valid for the non-`www` domain.
+
+#### Step 2: The Core Misunderstanding
+
+A key point of confusion was why a certificate for `www.patent1024.com` is necessary if the plan is to simply redirect it. The reason is that the SSL/TLS handshake (where the browser validates the certificate) occurs *before* the server can process any HTTP rules like redirects. An invalid certificate halts the connection before the redirect instruction can ever be sent.
+
+#### Step 3: Expanding the Certificate Coverage
+
+The immediate fix was to generate a new certificate that covers both domains. This was done using Certbot with the `--nginx` plugin:
+```bash
+sudo certbot --nginx -d patent1024.com -d www.patent1024.com
+```
+Certbot automatically modified the Nginx configuration, adding new `server` blocks to handle SSL for `www.patent1024.com`, which resolved the browser error.
+
+### The Final Fix: Refactoring for Best Practices
+
+While the Certbot-generated configuration worked, it was repetitive and allowed the site to be served from two different URLs (`https://www` and `https://non-www`), which is not ideal for SEO. The configuration was refactored into a cleaner, canonical setup.
+
+1.  **One Block for All HTTP Traffic:** A single `server` block was created to listen on port 80 for both `patent1024.com` and `www.patent1024.com`. Its only job is to issue a 301 permanent redirect to the canonical HTTPS URL.
+    ```nginx
+    server {
+        listen 80;
+        server_name patent1024.com www.patent1024.com;
+        return 301 https://patent1024.com$request_uri;
+    }
+    ```
+
+2.  **One Block for All HTTPS Traffic:** A single `server` block listens on port 443 for both domains. It uses the certificate (which contains both names) and includes a rule to redirect the `www` version to the non-`www` version.
+    ```nginx
+    server {
+        listen 443 ssl http2;
+        server_name patent1024.com www.patent1024.com;
+
+        # ... ssl certificate lines ...
+
+        if ($host = www.patent1024.com) {
+            return 301 https://patent1024.com$request_uri;
+        }
+
+        # ... location proxy_pass rules ...
+    }
+    ```
+
+### Key Takeaway
+
+When securing a website with multiple domains (like `example.com` and `www.example.com`), the SSL certificate must be valid for **all** domains you want to serve traffic from, even if some are just being redirected. The certificate validation is the first step in an HTTPS connection. Furthermore, after ensuring certificate validity, it's a best practice to configure the web server to redirect all traffic to a single, canonical domain to avoid duplicate content issues and provide a consistent user experience. 
