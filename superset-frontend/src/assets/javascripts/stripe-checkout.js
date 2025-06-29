@@ -9,6 +9,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonText = document.getElementById('button-text');
     const spinner = document.getElementById('spinner');
   
+    // Add logic for copy-to-clipboard
+    const copyIconContainer = document.getElementById('copy-email-icon');
+    const emailInput = document.getElementById('email');
+    const copySuccessMessage = document.getElementById('copy-success-message');
+  
+    if (copyIconContainer && emailInput && copySuccessMessage) {
+      const originalIconHTML = copyIconContainer.innerHTML;
+      copyIconContainer.addEventListener('click', () => {
+        navigator.clipboard.writeText(emailInput.value).then(() => {
+          copySuccessMessage.style.display = 'block';
+          copyIconContainer.innerHTML = '<i class="fa fa-check" style="color: #28a745;" aria-hidden="true"></i>';
+  
+          setTimeout(() => {
+            copySuccessMessage.style.display = 'none';
+            copyIconContainer.innerHTML = originalIconHTML;
+          }, 2500);
+        }).catch(err => {
+          console.error('Could not copy text: ', err);
+        });
+      });
+    }
+  
     // Only initialize if we're on the payment page
     if (!planIdInput || !paymentElementContainer) return;
   
@@ -110,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
               });
   
               if (stripeError) {
-                addMessage(stripeError.message);
+                showError(stripeError.message);
               } else if (paymentIntent && paymentIntent.status === 'succeeded') {
                 await handleSuccessfulPayment(paymentIntent);
               }

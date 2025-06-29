@@ -2,58 +2,146 @@
 {% extends "appbuilder/base.html" %}
 
 {% block content %}
+<style>
+  body {
+    background-color: #f5f7fa; /* Softer background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  .container {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    max-width: 960px;
+  }
+  .card {
+    border: none; /* Remove default card borders */
+    border-radius: 8px; /* Softer corners for all cards */
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08); /* Unified shadow */
+  }
+  .card-header {
+    background-color: #20a7c9; /* Primary brand color */
+    color: #ffffff; /* White text on brand color */
+    border-bottom: 1px solid #1a85a0; /* Darker shade for border */
+    font-weight: 600; /* Bolder headers */
+    padding: 1.25rem;
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+  }
+  #submit-button {
+    padding: 14px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 6px;
+    background-image: linear-gradient(to right, #20a7c9, #1a85a0); /* Gradient from brand color to darker shade */
+    border: none;
+    transition: all 0.3s ease;
+  }
+  #submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(32, 167, 201, 0.3);
+  }
+  .secure-payment-card {
+    background-color: #f3f8fa; /* Very light brand color shade */
+    border: 1px dashed #d2edf4;
+    padding: 1.5rem;
+    box-shadow: none;
+  }
+  .secure-payment-card .fa-lock {
+    color: #20a7c9;
+    margin-right: 1rem !important;
+  }
+  .secure-payment-card h6 {
+    font-weight: 600;
+    color: #156378;
+  }
+  .form-control:focus {
+    border-color: #79cade; /* Lighter shade for focus */
+    box-shadow: 0 0 0 0.2rem rgba(32,167,201,.25);
+  }
+  .email-input-wrapper {
+    position: relative;
+  }
+  .email-input-wrapper .form-control {
+    padding-right: 40px; /* Make space for icon */
+  }
+  .email-input-wrapper #copy-email-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.2s ease-in-out;
+  }
+  .email-input-wrapper #copy-email-icon:hover {
+    color: #1a85a0; /* Darker brand color */
+  }
+  .payment-card-body {
+    padding: 2.5rem;
+  }
+  /* Styles for Order Summary */
+  .order-summary .card-body {
+    padding: 1.5rem;
+  }
+  .order-total {
+    border-top: 2px solid #e9f6f9;
+    padding-top: 1rem !important;
+    margin-top: 0.5rem;
+  }
+  .order-total strong {
+    font-size: 1.25rem;
+    color: #1a85a0;
+  }
+</style>
+
 <div class="container">
-  <h1>Payment for {{ plan.name }}</h1>
+  <div class="text-center mb-5">
+    <h1>Checkout</h1>
+    <p class="lead">Complete your secure payment for the {{ plan.name }} plan.</p>
+  </div>
 
   <div class="row">
-    <div class="col-md-8">
-      <div class="panel panel-primary">
-        <div class="panel-heading">
-          <h3 class="panel-title">Subscription Details</h3>
+    <div class="col-md-7">
+      <div class="card mb-4">
+        <div class="card-header py-3">
+          <h4 class="mb-0">Payment Details</h4>
         </div>
-        <div class="panel-body">
-          <div class="row">
-            <div class="col-md-6">
-              <h4>{{ plan.name }}</h4>
-              <p>{{ plan.description }}</p>
-            </div>
-            <div class="col-md-6 text-right">
-              <h4>${{ "%.2f"|format(plan.price) }} / {{ plan.billing_cycle }}</h4>
-            </div>
-          </div>
-
-          <hr>
-
+        <div class="card-body payment-card-body">
           <div id="checkout-container">
             <form id="payment-form">
-              <!-- Hidden inputs for JavaScript -->
+              <!-- Hidden inputs -->
               <input type="hidden" id="plan-price" value="{{ plan.price }}">
               <input type="hidden" id="plan-id" value="{{ plan_id }}">
               <input type="hidden" id="stripe-publishable-key" value="{{ stripe_publishable_key }}">
               <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
 
               <!-- Email display -->
-              <div id="email-container">
-                <div class="form-group">
-                  <label for="email">Email</label>
-                  <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
-                </div>
+              <div id="email-container" class="mb-3">
+                  <label for="email" class="form-label">Email Address</label>
+                  <div class="email-input-wrapper">
+                    <input type="email" class="form-control form-control-lg" id="email" value="{{ user.email }}" readonly style="background-color: #e9ecef;">
+                    <span id="copy-email-icon" title="Copy email to clipboard">
+                        <i class="fa fa-clipboard" aria-hidden="true"></i>
+                    </span>
+                  </div>
+                  <div id="copy-success-message" class="form-text" style="display: none; color: #1a85a0; font-weight: 500; padding-top: 5px;">Email copied to clipboard!</div>
               </div>
 
-              <div id="link-authentication-element">
+              <p class="text-muted small">Enter your payment details below. The transaction is handled by Stripe.</p>
+
+              <div id="link-authentication-element" class="mb-3">
                 <!-- Elements will create authentication element here -->
               </div>
-              <div id="payment-element-container" class="mt-3">
+              <div id="payment-element-container">
                 <!-- Stripe Payment Element will be mounted here -->
               </div>
 
               <div id="payment-message" class="alert alert-danger mt-3" style="display:none;"></div>
 
-              <button id="submit-button" class="btn btn-primary btn-block mt-4">
-                <span id="button-text">Pay now</span>
+              <button id="submit-button" class="btn btn-primary btn-lg w-100 mt-4">
+                <span id="button-text">Pay ${{ "%.2f"|format(plan.price) }}</span>
                 <span id="spinner" style="display:none;">
-                                <i class="fa fa-spinner fa-spin"></i>
-                            </span>
+                  <i class="fa fa-spinner fa-spin"></i>
+                </span>
               </button>
             </form>
           </div>
@@ -61,22 +149,37 @@
       </div>
     </div>
 
-    <div class="col-md-4">
-      <div class="panel panel-info">
-        <div class="panel-heading">
-          <h3 class="panel-title">Order Summary</h3>
+    <div class="col-md-5">
+      <div class="card mb-4 order-summary">
+        <div class="card-header py-3">
+          <h4 class="mb-0">Order Summary</h4>
         </div>
-        <div class="panel-body">
-          <table class="table">
-            <tr>
-              <td>{{ plan.name }} ({{ plan.billing_cycle }})</td>
-              <td class="text-right">${{ "%.2f"|format(plan.price) }}</td>
-            </tr>
-            <tr>
-              <th>Total</th>
-              <th class="text-right">${{ "%.2f"|format(plan.price) }}</th>
-            </tr>
-          </table>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+              <div>
+                <h6 class="my-0">{{ plan.name }}</h6>
+                <small class="text-muted">{{ plan.description }}</small>
+              </div>
+              <span class="text-muted">${{ "%.2f"|format(plan.price) }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center px-0 fw-bold order-total">
+              <span>Total (USD)</span>
+              <strong>${{ "%.2f"|format(plan.price) }}</strong>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card card-body text-center secure-payment-card">
+        <div class="d-flex align-items-center justify-content-center">
+          <i class="fa fa-lock fa-2x" aria-hidden="true"></i>
+          <div>
+              <h6 class="mb-1">Secure Payment via Stripe</h6>
+              <p class="text-muted small mb-0">
+                Your payment is processed securely. We do not store your card details.
+              </p>
+          </div>
         </div>
       </div>
     </div>
