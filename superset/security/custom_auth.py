@@ -8,4 +8,4 @@ class CustomAuthDBView(AuthDBView):
     """
 
     login_template = "login.html"
-    title = lazy_gettext("Sign In to Superset") 
+    title = lazy_gettext("Sign In to Patent 1024") 
