@@ -202,7 +202,7 @@ export const DashboardPage: FC<PageProps> = ({ idOrSlug }: PageProps) => {
       document.title = dashboard_title;
     }
     return () => {
-      document.title = 'Superset';
+      document.title = 'Patent 1024';
     };
   }, [dashboard_title]);
 

@@ -274,7 +274,7 @@ function ExploreViewContainer(props) {
       document.title = props.sliceName;
     }
     return () => {
-      document.title = 'Superset';
+      document.title = 'Patent 1024';
     };
   }, [props.sliceName]);
 
