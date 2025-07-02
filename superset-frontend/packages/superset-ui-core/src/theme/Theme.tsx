@@ -64,9 +64,9 @@ export class Theme {
   private static readonly defaultTokens = {
     // Brand
     brandLogoAlt: 'Apache Superset',
-    brandLogoUrl: '/static/assets/images/superset-logo-horiz.png',
+    brandLogoUrl: '/static/assets/images/patent-1024.png',
     brandLogoMargin: '18px',
-    brandLogoHref: 'https://supserset.apache.org',
+    brandLogoHref: '/',
     brandLogoHeight: '24px',
 
     // Default colors

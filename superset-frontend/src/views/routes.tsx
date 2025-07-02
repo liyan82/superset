@@ -146,7 +146,8 @@ const ActionLogList: LazyExoticComponent<any> = lazy(
 );
 
 const Login = lazy(
-  () => import(/* webpackChunkName: "Login" */ 'src/pages/Login'),
+  () =>
+    import(/* webpackChunkName: "CustomLogin" */ 'src/custom-pages/Login'),
 );
 
 const Register = lazy(

@@ -198,7 +198,8 @@ export function Menu({
     }
   }, [location.pathname]);
 
-  const standalone = getUrlParam(URL_PARAMS.standalone);
+  const standalone =
+    getUrlParam(URL_PARAMS.standalone) || location.pathname === '/login/';
   if (standalone || uiConfig.hideNav) return <></>;
 
   const renderSubMenu = ({
