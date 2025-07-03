@@ -152,11 +152,29 @@ export default styled.div`
       padding-top: 0.5em;
     }
 
+    .dt-pagination .pagination {
+      display: flex;
+      justify-content: flex-end;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .dt-pagination .pagination > li {
+      display: inline-block;
+      margin: 0 2px;
+    }
+
     .dt-pagination .pagination > li > a,
     .dt-pagination .pagination > li > span {
       background-color: ${theme.colorBgBase};
       color: ${theme.colorText};
       border-color: ${theme.colorBorderSecondary};
+      padding: 0.375rem 0.75rem;
+      text-decoration: none;
+      border: 1px solid ${theme.colorBorderSecondary};
+      border-radius: 4px;
+      display: block;
     }
 
     .dt-pagination .pagination > li.active > a,

@@ -302,3 +302,73 @@ When working with Superset's database selectors, it's crucial to understand the 
 - **`DatabaseValue.label`**: Use for UI display (React component)
 
 This architecture ensures React performance optimization while maintaining backend API compatibility. When debugging selector issues, always verify which ID field is being used for which purpose, especially after UI framework migrations that may change component key generation strategies. **Most importantly, when one instance of this issue is found, systematically check all database-related API calls as the problem is likely systemic.** 
+
+## Issue: Table Chart Pagination Numbers Not Displaying Horizontally
+
+**Date:** 2025-01-10
+
+### The Problem
+
+After merge commit `dd129fa40370c93da1d0d536be870a5f363364fb` (theme API migration), Table chart pagination numbers were displaying vertically instead of horizontally. Even with just 2 pages, the pagination numbers would stack on top of each other rather than aligning side by side. The HTML structure was correct (`<ul class="pagination"><li><a>1</a></li><li><a>2</a></li></ul>`), but the visual layout was broken.
+
+### The Goal
+
+To restore the horizontal pagination layout where page numbers display in a row next to each other, as expected in standard pagination UI patterns.
+
+### The Solution Journey
+
+#### Attempt 1: Investigating the Merge Changes
+
+Initially suspected the issue was related to the `gridUnit` → `sizeUnit` theme property changes introduced in the merge. The diff showed changes like:
+```typescript
+// Before:
+padding-left: ${theme.gridUnit * 5}px
+margin-right: ${theme.gridUnit}px
+
+// After:  
+padding-left: ${theme.sizeUnit * 5}px
+margin-right: ${theme.sizeUnit}px
+```
+
+However, these spacing changes were not the root cause of the pagination layout issue.
+
+#### Attempt 2: Examining Pagination Logic
+
+Investigated the `maxPageItemCount` logic and width calculations, thinking the issue might be related to how many page items were being rendered or container sizing. This was also not the source of the problem, as the issue occurred even with just 2 pages.
+
+### The Final Fix
+
+The real issue was discovered through browser inspector examination. The pagination HTML was rendering correctly, but the **CSS for horizontal list item display was missing entirely**.
+
+**Root Cause:** The `.dt-pagination .pagination > li` elements had no CSS rules to make them display horizontally. By default, `<li>` elements are `display: list-item` which stacks them vertically.
+
+**Solution:** Added the missing CSS to `superset-frontend/plugins/plugin-chart-table/src/Styles.tsx`:
+
+```css
+.dt-pagination .pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dt-pagination .pagination > li {
+  display: inline-block;
+  margin: 0 2px;
+}
+
+.dt-pagination .pagination > li > a,
+.dt-pagination .pagination > li > span {
+  /* Enhanced existing styles */
+  padding: 0.375rem 0.75rem;
+  text-decoration: none;
+  border: 1px solid ${theme.colorBorderSecondary};
+  border-radius: 4px;
+  display: block;
+}
+```
+
+### Key Takeaway
+
+When pagination or other list-based UI components display vertically instead of horizontally after a merge, the issue is often missing **fundamental CSS layout properties** rather than complex logic changes. The `<li>` elements in pagination require explicit `display: inline-block` or a parent with `display: flex` to achieve horizontal alignment. Browser inspector examination of the actual rendered HTML and applied CSS is crucial for diagnosing layout issues, as the problem may not be apparent from code review alone. 
