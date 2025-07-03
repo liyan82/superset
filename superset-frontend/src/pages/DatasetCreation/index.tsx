@@ -119,7 +119,7 @@ export default function AddDataset() {
   const DatasetPanelComponent = () => (
     <DatasetPanel
       tableName={dataset?.table_name}
-      dbId={dataset?.db?.id}
+      dbId={dataset?.db?.value}
       catalog={dataset?.catalog}
       schema={dataset?.schema}
       setHasColumns={setHasColumns}

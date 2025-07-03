@@ -158,4 +158,147 @@ While the Certbot-generated configuration worked, it was repetitive and allowed 
 
 ### Key Takeaway
 
-When securing a website with multiple domains (like `example.com` and `www.example.com`), the SSL certificate must be valid for **all** domains you want to serve traffic from, even if some are just being redirected. The certificate validation is the first step in an HTTPS connection. Furthermore, after ensuring certificate validity, it's a best practice to configure the web server to redirect all traffic to a single, canonical domain to avoid duplicate content issues and provide a consistent user experience. 
+When securing a website with multiple domains (like `example.com` and `www.example.com`), the SSL certificate must be valid for **all** domains you want to serve traffic from, even if some are just being redirected. The certificate validation is the first step in an HTTPS connection. Furthermore, after ensuring certificate validity, it's a best practice to configure the web server to redirect all traffic to a single, canonical domain to avoid duplicate content issues and provide a consistent user experience.
+
+## Issue: Database Selector API Calls Failing After Ant Design v5 Migration
+
+**Date:** 2025-07-03
+
+### The Problem
+
+After merging commit `dd129fa40370c93da1d0d536be870a5f363364fb` (Ant Design v4 to v5 migration), the database and table selector functionality in the "Add Dataset" page stopped working. When users selected a database and schema, API calls were failing with 500 errors:
+
+```
+GET /api/v1/dataset/?q=(filters:!((col:database,opr:rel_o_m,value:postgresql-USPTO-3),...))
+```
+
+The backend was receiving a concatenated string ID (`postgresql-USPTO-3`) instead of the expected numeric database ID (`3`), causing `ApplyFilterException: DataError`.
+
+### The Goal
+
+To restore the database and table selector functionality while preserving the React key uniqueness improvements introduced by the Ant Design migration.
+
+### The Solution Journey
+
+#### Attempt 1: Investigating Import Issues
+
+Initially suspected the problem was related to import changes:
+```typescript
+// Before (working):
+import { DatabaseObject } from 'src/components/DatabaseSelector';
+
+// After (broken):  
+import { type DatabaseObject } from 'src/components';
+```
+
+However, both imports were functionally equivalent and not the root cause.
+
+#### Attempt 2: Tracing the Data Flow
+
+Discovered that the issue wasn't with the `useDatasetsList` hook itself, but with **what was being passed to it**. The DatabaseSelector component was now creating database objects with concatenated IDs:
+
+```typescript
+// In DatabaseSelector/index.tsx lines 169-178
+const options = result.map((row: DatabaseObject, order: number) => ({
+  label: <SelectLabel.../>,
+  value: row.id,                    // ← NUMERIC (correct for API calls)
+  id: `${row.backend}-${row.database_name}-${row.id}`, // ← STRING (for React keys)
+  database_name: row.database_name,
+  backend: row.backend,
+  // ...
+}));
+```
+
+#### Attempt 3: Understanding DatabaseObject vs DatabaseValue
+
+The key insight was recognizing the distinction between:
+
+- **DatabaseObject**: Raw backend data model with numeric `id`
+- **DatabaseValue**: Frontend UI model with both `value` (numeric, for APIs) and `id` (string, for React keys)
+
+The concatenated ID was intentionally introduced to solve React key uniqueness issues when multiple databases have the same name but different backends.
+
+### The Final Fix
+
+The solution required updating API calls to use the correct ID field:
+
+1. **Fixed `useDatasetsList` hook:**
+   ```typescript
+   // WRONG (using React key):
+   { col: 'database', opr: 'rel_o_m', value: db?.id }
+   
+   // CORRECT (using database ID):
+   { col: 'database', opr: 'rel_o_m', value: db?.value }
+   ```
+
+2. **Fixed `useTables` hook in TableSelector:**
+   ```typescript
+   // WRONG:
+   useTables({ dbId: database?.id, ... })
+   
+   // CORRECT:
+   useTables({ dbId: database?.value, ... })
+   ```
+
+3. **Updated TypeScript types:**
+   ```typescript
+   // Changed interface from DatabaseObject to DatabaseValue
+   interface TableSelectorProps {
+     database?: DatabaseValue | null; // ✅ Has both value and id properties
+   }
+   ```
+
+4. **Fixed table metadata API call:**
+   ```typescript
+   // WRONG:
+   dbId={dataset?.db?.id}
+   
+   // CORRECT:
+   dbId={dataset?.db?.value}
+   ```
+
+5. **Fixed dataset creation API call:**
+   ```typescript
+   // WRONG (Footer component):
+   database: datasetObject.db?.id
+   
+   // CORRECT:
+   database: datasetObject.db?.value
+   ```
+
+6. **Updated all TypeScript interfaces:**
+   ```typescript
+   // Updated DatasetObject interface
+   interface DatasetObject {
+     db: DatabaseValue & { owners: [number] }; // ✅ Now uses DatabaseValue
+   }
+   ```
+
+### Additional Issues Discovered
+
+During the resolution process, the same ID issue was found in **four different API calls**, all stemming from the same root cause:
+
+1. **Dataset filtering API** (`useDatasetsList`) - Fixed first
+2. **Table loading API** (`useTables`) - Fixed second  
+3. **Table metadata API** (`getTableMetadata`) - Discovered when metadata failed to load
+4. **Dataset creation API** (`createResource`) - Discovered when "Create Dataset" returned 400 error
+
+Each fix followed the same pattern: changing from concatenated string ID (`postgresql-USPTO-3`) to numeric database ID (`3`).
+
+### Error Patterns Observed
+
+- **500 Internal Server Error**: When filtering APIs received string IDs
+- **404 Not Found**: When metadata APIs used concatenated IDs in URL paths
+- **400 Bad Request**: When creation APIs received non-integer database values
+
+All errors shared the backend message: `"Not a valid integer"` or `ApplyFilterException: DataError`.
+
+### Key Takeaway
+
+When working with Superset's database selectors, it's crucial to understand the separation of concerns between `DatabaseObject` and `DatabaseValue`:
+
+- **`DatabaseValue.value`**: Use for API calls (numeric database ID)
+- **`DatabaseValue.id`**: Use for React keys (concatenated string for uniqueness)
+- **`DatabaseValue.label`**: Use for UI display (React component)
+
+This architecture ensures React performance optimization while maintaining backend API compatibility. When debugging selector issues, always verify which ID field is being used for which purpose, especially after UI framework migrations that may change component key generation strategies. **Most importantly, when one instance of this issue is found, systematically check all database-related API calls as the problem is likely systemic.** 

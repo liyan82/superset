@@ -38,7 +38,7 @@ import {
 } from '@superset-ui/core/components';
 import { DatabaseSelector } from 'src/components';
 import { Icons } from '@superset-ui/core/components/Icons';
-import type { DatabaseObject } from 'src/components/DatabaseSelector/types';
+import type { DatabaseObject, DatabaseValue } from 'src/components/DatabaseSelector/types';
 import RefreshLabel from '@superset-ui/core/components/RefreshLabel';
 import WarningIconWithTooltip from '@superset-ui/core/components/WarningIconWithTooltip';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
@@ -91,7 +91,7 @@ const TableLabel = styled.span`
 
 interface TableSelectorProps {
   clearable?: boolean;
-  database?: DatabaseObject | null;
+  database?: DatabaseValue | null;
   emptyState?: ReactNode;
   formMode?: boolean;
   getDbList?: (arg0: any) => void;
@@ -193,7 +193,7 @@ const TableSelector: FunctionComponent<TableSelectorProps> = ({
     isFetching: loadingTables,
     refetch,
   } = useTables({
-    dbId: database?.id,
+    dbId: database?.value,
     catalog: currentCatalog,
     schema: currentSchema,
     onSuccess: (data, isFetched) => {

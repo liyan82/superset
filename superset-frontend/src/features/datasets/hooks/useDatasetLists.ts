@@ -21,14 +21,14 @@ import { SupersetClient, logging, t } from '@superset-ui/core';
 import rison from 'rison';
 import { addDangerToast } from 'src/components/MessageToasts/actions';
 import { DatasetObject } from 'src/features/datasets/AddDataset/types';
-import type { DatabaseObject } from 'src/components';
+import type { DatabaseValue } from 'src/components/DatabaseSelector/types';
 
 /**
  * Retrieves all pages of dataset results
  */
 const useDatasetsList = (
   db:
-    | (DatabaseObject & {
+    | (DatabaseValue & {
         owners: [number];
       })
     | undefined,
@@ -73,7 +73,7 @@ const useDatasetsList = (
 
   useEffect(() => {
     const filters = [
-      { col: 'database', opr: 'rel_o_m', value: db?.id },
+      { col: 'database', opr: 'rel_o_m', value: db?.value},
       { col: 'schema', opr: 'eq', value: encodedSchema },
       { col: 'sql', opr: 'dataset_is_null_or_empty', value: true },
     ];
@@ -81,7 +81,7 @@ const useDatasetsList = (
     if (schema) {
       getDatasetsList(filters);
     }
-  }, [db?.id, schema, encodedSchema, getDatasetsList]);
+  }, [db?.value, schema, encodedSchema, getDatasetsList]);
 
   const datasetNames = useMemo(
     () => datasets?.map(dataset => dataset.table_name),

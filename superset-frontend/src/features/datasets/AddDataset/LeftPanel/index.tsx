@@ -20,7 +20,7 @@ import { useEffect, SetStateAction, Dispatch, useCallback } from 'react';
 import { styled, t } from '@superset-ui/core';
 import TableSelector, { TableOption } from 'src/components/TableSelector';
 import { EmptyState } from '@superset-ui/core/components';
-import { type DatabaseObject } from 'src/components';
+import { type DatabaseValue } from 'src/components/DatabaseSelector/types';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { LocalStorageKeys, getItem } from 'src/utils/localStorageHelpers';
 import {
@@ -125,7 +125,7 @@ export default function LeftPanel({
   const { addDangerToast } = useToasts();
 
   const setDatabase = useCallback(
-    (db: Partial<DatabaseObject>) => {
+    (db: Partial<DatabaseValue>) => {
       setDataset({ type: DatasetActionType.SelectDatabase, payload: { db } });
     },
     [setDataset],
@@ -156,7 +156,7 @@ export default function LeftPanel({
     const currentUserSelectedDb = getItem(
       LocalStorageKeys.Database,
       null,
-    ) as DatabaseObject;
+    ) as DatabaseValue;
     if (currentUserSelectedDb) {
       setDatabase(currentUserSelectedDb);
     }
