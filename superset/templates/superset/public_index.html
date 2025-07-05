@@ -115,6 +115,8 @@
     .footer-links a { color: var(--p4-blue); transition: color 0.3s ease; }
     .footer-links a:hover { color: var(--p4-dark-blue); text-decoration: underline; }
     .copyright { text-align: center; padding-top: 3rem; border-top: 1px solid #dce4e8; color: var(--p4-blue); font-size: 0.9rem; }
+    .copyright a { color: var(--p4-dark-blue); text-decoration: underline; cursor: pointer; }
+    .copyright a:hover { color: var(--p4-accent); }
     @media (max-width: 992px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 768px) {
       .hero h1 { font-size: 2.8rem; }
@@ -530,6 +532,172 @@
     .pricing-features li::before { content: '✓'; color: var(--p4-dark-blue); margin-right: 10px; font-weight: 600; }
     .pricing-card.featured { border: 2px solid var(--p4-dark-blue); transform: scale(1.05); }
     @media (max-width: 992px) { .pricing-grid { grid-template-columns: 1fr; } .pricing-card.featured { transform: scale(1); } }
+    
+    /* Privacy Policy Modal Styles */
+    .privacy-modal-content {
+      max-width: 800px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2rem 3rem 3rem;
+    }
+    .privacy-content {
+      text-align: left;
+    }
+    .privacy-content section {
+      margin-bottom: 2rem;
+    }
+    .privacy-content h3 {
+      color: var(--p4-dark-blue);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--p4-light-gray);
+      padding-bottom: 0.5rem;
+    }
+    .privacy-content p {
+      color: var(--p4-blue);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .privacy-content ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .privacy-content li {
+      color: var(--p4-blue);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+    .privacy-content a {
+      color: var(--p4-dark-blue);
+      text-decoration: underline;
+    }
+    .privacy-content a:hover {
+      color: var(--p4-accent);
+    }
+    @media (max-width: 768px) {
+      .privacy-modal-content {
+        padding: 1.5rem 1.5rem 2rem;
+        max-height: 90vh;
+      }
+      .privacy-content h3 {
+        font-size: 1.2rem;
+      }
+    }
+    
+    /* Terms of Service Modal Styles */
+    .terms-modal-content {
+      max-width: 800px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2rem 3rem 3rem;
+    }
+    .terms-content {
+      text-align: left;
+    }
+    .terms-content section {
+      margin-bottom: 2rem;
+    }
+    .terms-content h3 {
+      color: var(--p4-dark-blue);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--p4-light-gray);
+      padding-bottom: 0.5rem;
+    }
+    .terms-content p {
+      color: var(--p4-blue);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .terms-content ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .terms-content li {
+      color: var(--p4-blue);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+    .terms-content a {
+      color: var(--p4-dark-blue);
+      text-decoration: underline;
+    }
+    .terms-content a:hover {
+      color: var(--p4-accent);
+    }
+    @media (max-width: 768px) {
+      .terms-modal-content {
+        padding: 1.5rem 1.5rem 2rem;
+        max-height: 90vh;
+      }
+      .terms-content h3 {
+        font-size: 1.2rem;
+      }
+    }
+    
+    /* Disclaimer Floating Text */
+    .disclaimer-popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--white);
+      border: 1px solid var(--p4-dark-blue);
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(40, 62, 83, 0.2);
+      z-index: 1500;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, visibility 0s 0.3s, transform 0.3s ease;
+    }
+    .disclaimer-popup.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .disclaimer-popup h4 {
+      color: var(--p4-dark-blue);
+      margin-bottom: 0.8rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .disclaimer-popup p {
+      color: var(--p4-blue);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    .disclaimer-popup .close-disclaimer {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--p4-blue);
+      cursor: pointer;
+      line-height: 1;
+    }
+    .disclaimer-popup .close-disclaimer:hover {
+      color: var(--p4-dark-blue);
+    }
+    @media (max-width: 768px) {
+      .disclaimer-popup {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -848,6 +1016,261 @@
     </div>
   </div>
 
+  <!-- Privacy Policy Modal -->
+  <div id="privacy-modal" class="modal-overlay">
+    <div class="modal-content privacy-modal-content">
+      <button id="close-privacy-btn" class="close-modal">&times;</button>
+      <div class="section-header">
+        <h2>Privacy Policy</h2>
+        <p>Last updated: May 2025</p>
+      </div>
+      <div class="privacy-content">
+        <section>
+          <h3>1. Information We Collect</h3>
+          <p>We collect information you provide directly to us, such as when you create an account, use our services, or contact us for support. This includes:</p>
+          <ul>
+            <li>Account information (name, email address, securely hashed passwords - we never store plain text passwords)</li>
+            <li>Usage data and analytics queries</li>
+            <li>Communication preferences and support requests</li>
+            <li>Payment information (processed securely through Stripe, our third-party payment provider)</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>2. How We Use Your Information</h3>
+          <p>We use the information we collect to:</p>
+          <ul>
+            <li>Provide, maintain, and improve our analytics services</li>
+            <li>Process transactions and send related information</li>
+            <li>Send technical notices, updates, and support messages</li>
+            <li>Respond to your comments and questions</li>
+            <li>Analyze usage patterns to enhance user experience</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>3. Information Sharing</h3>
+          <p>We do not sell, trade, or rent your personal information to third parties. We may share information in the following circumstances:</p>
+          <ul>
+            <li>With service providers who assist in our operations</li>
+            <li>To comply with legal obligations or respond to lawful requests</li>
+            <li>To protect our rights, privacy, safety, or property</li>
+            <li>In connection with a merger, acquisition, or sale of assets</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>4. Data Security</h3>
+          <p>We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. This includes:</p>
+          <ul>
+            <li>Encryption of data in transit and at rest</li>
+            <li>Regular security assessments and updates</li>
+            <li>Access controls and authentication mechanisms</li>
+            <li>Secure data storage and backup procedures</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>5. Cookies and Tracking</h3>
+          <p>We use cookies and similar tracking technologies to collect information about your browsing activities. This helps us:</p>
+          <ul>
+            <li>Remember your preferences and settings</li>
+            <li>Analyze site traffic and usage patterns</li>
+            <li>Improve our services and user experience</li>
+            <li>Provide personalized content and features</li>
+          </ul>
+          <p>You can control cookie settings through your browser preferences.</p>
+        </section>
+
+        <section>
+          <h3>6. Data Retention</h3>
+          <p>We retain personal information for as long as necessary to provide our services and fulfill the purposes outlined in this policy. We may retain certain information for longer periods as required by law or for legitimate business purposes.</p>
+        </section>
+
+        <section>
+          <h3>7. Your Rights</h3>
+          <p>Depending on your location, you may have the following rights regarding your personal information:</p>
+          <ul>
+            <li>Access, update, or delete your personal information</li>
+            <li>Object to or restrict certain processing activities</li>
+            <li>Data portability and withdrawal of consent</li>
+            <li>Lodge a complaint with supervisory authorities</li>
+          </ul>
+          <p>To exercise these rights, please contact us at <a href="mailto:support@patent1024.com">support@patent1024.com</a>.</p>
+        </section>
+
+        <section>
+          <h3>8. Third-Party Services</h3>
+          <p>Our service may contain links to third-party websites or integrate with third-party services. We are not responsible for the privacy practices of these third parties. We encourage you to review their privacy policies.</p>
+        </section>
+
+        <section>
+          <h3>9. Changes to This Policy</h3>
+          <p>We may update this privacy policy from time to time. We will notify you of any material changes by posting the new policy on our website and updating the "Last updated" date. Your continued use of our services constitutes acceptance of the updated policy.</p>
+        </section>
+
+        <section>
+          <h3>10. Contact Us</h3>
+          <p>If you have any questions about this privacy policy or our privacy practices, please contact us at:</p>
+          <p>
+            <strong>Email:</strong> <a href="mailto:support@patent1024.com">support@patent1024.com</a><br>
+            <strong>Address:</strong> Patent 1024, LLC<br>
+            <strong>Subject:</strong> Privacy Policy Inquiry
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terms of Service Modal -->
+  <div id="terms-modal" class="modal-overlay">
+    <div class="modal-content terms-modal-content">
+      <button id="close-terms-btn" class="close-modal">&times;</button>
+      <div class="section-header">
+        <h2>Terms of Service</h2>
+        <p>Last updated: May 2025</p>
+      </div>
+      <div class="terms-content">
+        <section>
+          <h3>1. Acceptance of Terms</h3>
+          <p>By accessing and using Patent 1024's services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+        </section>
+
+        <section>
+          <h3>2. Service Description</h3>
+          <p>Patent 1024 provides data analytics services focused on patent information from the United States Patent and Trademark Office (USPTO). Our platform includes:</p>
+          <ul>
+            <li>Interactive patent data visualization and analysis tools</li>
+            <li>Database access for patent research and intelligence</li>
+            <li>Export capabilities for charts, reports, and data</li>
+            <li>Collaboration features for team-based analysis</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>3. User Accounts</h3>
+          <p>To access certain features of our service, you must register for an account. You agree to:</p>
+          <ul>
+            <li>Provide accurate, current, and complete information during registration</li>
+            <li>Maintain the security of your password and account</li>
+            <li>Immediately notify us of any unauthorized use of your account</li>
+            <li>Accept responsibility for all activities that occur under your account</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>4. Subscription and Payment Terms</h3>
+          <p>Our service operates on a subscription basis with the following terms:</p>
+          <ul>
+            <li>All subscriptions include a 7-day free trial period</li>
+            <li>Payment is processed through Stripe, our secure payment provider</li>
+            <li>Subscriptions automatically renew unless cancelled before the renewal date</li>
+            <li>Refunds are provided within 30 days of initial subscription purchase</li>
+            <li>Enterprise pricing is available upon request and subject to custom agreements</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>5. Acceptable Use</h3>
+          <p>You agree not to use the service to:</p>
+          <ul>
+            <li>Violate any applicable laws or regulations</li>
+            <li>Infringe upon intellectual property rights of others</li>
+            <li>Transmit any harmful, offensive, or illegal content</li>
+            <li>Attempt to gain unauthorized access to our systems or other users' accounts</li>
+            <li>Use automated systems to access the service without permission</li>
+            <li>Resell or redistribute our services without authorization</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>6. Data and Intellectual Property</h3>
+          <p>Regarding data and intellectual property rights:</p>
+          <ul>
+            <li>USPTO data remains in the public domain and is not owned by Patent 1024</li>
+            <li>Our platform, software, and proprietary analytics tools are owned by Patent 1024</li>
+            <li>You retain ownership of any original analysis or reports you create</li>
+            <li>You grant us a limited license to process your data to provide our services</li>
+            <li>We may use aggregated, anonymized usage data to improve our services</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>7. Service Availability</h3>
+          <p>We strive to provide reliable service but cannot guarantee 100% uptime. We reserve the right to:</p>
+          <ul>
+            <li>Modify or discontinue services with reasonable notice</li>
+            <li>Perform maintenance that may temporarily affect service availability</li>
+            <li>Limit usage to prevent abuse or ensure fair access for all users</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>8. Limitation of Liability</h3>
+          <p>To the fullest extent permitted by law:</p>
+          <ul>
+            <li>Patent 1024 shall not be liable for any indirect, incidental, or consequential damages</li>
+            <li>Our total liability shall not exceed the amount paid by you in the past 12 months</li>
+            <li>We provide the service "as is" without warranties of any kind</li>
+            <li>You use the service at your own risk</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>9. Termination</h3>
+          <p>Either party may terminate this agreement:</p>
+          <ul>
+            <li>You may cancel your subscription at any time through your account settings</li>
+            <li>We may terminate your account for violation of these terms</li>
+            <li>Upon termination, you will lose access to the service and any stored data</li>
+            <li>Certain provisions of this agreement will survive termination</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>10. Dispute Resolution</h3>
+          <p>Any disputes arising from this agreement shall be resolved through:</p>
+          <ul>
+            <li>Initial good faith negotiation between the parties</li>
+            <li>Binding arbitration if negotiation fails</li>
+            <li>Governing law shall be the laws of the jurisdiction where Patent 1024 is incorporated</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>11. Changes to Terms</h3>
+          <p>We reserve the right to modify these terms at any time. We will notify users of material changes via email or through our service. Continued use of the service after changes constitutes acceptance of the modified terms.</p>
+        </section>
+
+        <section>
+          <h3>12. Data Disclaimer</h3>
+          <p>All data presented on this platform are collected from the United States Patent and Trademark Office (USPTO). We do not add any new data in addition to the USPTO's original data.</p>
+          <p>Please note that some recent data collection may fall behind the USPTO's recent updates. For purposes of accuracy and specific detailed information, always refer to the USPTO's original data sources.</p>
+          <p><strong>Data Analysis and AI-Generated Labels:</strong> We analyze existing data and identify connections within the dataset. Additionally, we enhance certain records with descriptive labels such as gender or ethnicity classifications. These labels are generated using artificial intelligence and are not 100% accurate. Please use these AI-generated labels with caution and consider them most reliable for statistical analysis rather than for determining specific individual characteristics.</p>
+        </section>
+
+        <section>
+          <h3>13. Contact Information</h3>
+          <p>If you have any questions about these terms of service, please contact us at:</p>
+          <p>
+            <strong>Email:</strong> <a href="mailto:support@patent1024.com">support@patent1024.com</a><br>
+            <strong>Address:</strong> Patent 1024, LLC<br>
+            <strong>Subject:</strong> Terms of Service Inquiry
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer Popup -->
+  <div id="disclaimer-popup" class="disclaimer-popup">
+    <button id="close-disclaimer-btn" class="close-disclaimer">&times;</button>
+    <h4>Data Disclaimer</h4>
+    <p>All data presented on this platform are collected from the United States Patent and Trademark Office (USPTO). We do not add any new data in addition to the USPTO's original data.</p>
+    <p>Please note that some recent data collection may fall behind the USPTO's recent updates. For purposes of accuracy and specific detailed information, always refer to the USPTO's original data sources.</p>
+    <p><strong>Data Analysis and AI-Generated Labels:</strong> We analyze existing data and identify connections within the dataset. Additionally, we enhance certain records with descriptive labels such as gender or ethnicity classifications. These labels are generated using artificial intelligence and are not 100% accurate. Please use these AI-generated labels with caution and consider them most reliable for statistical analysis rather than for determining specific individual characteristics.</p>
+  </div>
+
   <!-- Footer -->
   <footer>
     <div class="container">
@@ -869,51 +1292,113 @@
           <ul class="footer-links">
             <li><a href="#">Documentation</a></li>
             <li><a href="#">Blog</a></li>
-            <li><a href="#">Support</a></li>
+            <li><a href="mailto:support@patent1024.com">Support</a></li>
           </ul>
         </div>
         <div class="footer-section">
           <h4>Company</h4>
           <ul class="footer-links">
             <li><a href="#about">About Us</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#privacy">Privacy Policy</a></li>
+            <li><a href="#terms">Terms of Service</a></li>
           </ul>
         </div>
       </div>
       <div class="copyright">
-        &copy; 2025 Patent 1024. All rights reserved.
+        &copy; 2025 Patent 1024, LLC. All rights reserved. | <a href="#" id="disclaimer-link">Data Disclaimer</a>
       </div>
     </div>
   </footer>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const pricingLink = document.querySelector('a[href="#pricing"]');
+    // Pricing modal functionality
+    const pricingLinks = document.querySelectorAll('a[href="#pricing"]');
     const pricingModal = document.getElementById('pricing-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
 
-
-    const openModal = (e) => {
+    const openPricingModal = (e) => {
       e.preventDefault();
       pricingModal.classList.add('active');
     };
 
-    const closeModal = () => {
+    const closePricingModal = () => {
       pricingModal.classList.remove('active');
     };
 
-    if (pricingLink && pricingModal) {
-      pricingLink.addEventListener('click', openModal);
+    if (pricingLinks.length > 0 && pricingModal) {
+      pricingLinks.forEach(link => {
+        link.addEventListener('click', openPricingModal);
+      });
     }
 
     if (closeModalBtn) {
-      closeModalBtn.addEventListener('click', closeModal);
+      closeModalBtn.addEventListener('click', closePricingModal);
     }
 
     pricingModal.addEventListener('click', (e) => {
       if (e.target === pricingModal) {
-        closeModal();
+        closePricingModal();
+      }
+    });
+
+    // Privacy policy modal functionality
+    const privacyLinks = document.querySelectorAll('a[href="#privacy"]');
+    const privacyModal = document.getElementById('privacy-modal');
+    const closePrivacyBtn = document.getElementById('close-privacy-btn');
+
+    const openPrivacyModal = (e) => {
+      e.preventDefault();
+      privacyModal.classList.add('active');
+    };
+
+    const closePrivacyModal = () => {
+      privacyModal.classList.remove('active');
+    };
+
+    if (privacyLinks.length > 0 && privacyModal) {
+      privacyLinks.forEach(link => {
+        link.addEventListener('click', openPrivacyModal);
+      });
+    }
+
+    if (closePrivacyBtn) {
+      closePrivacyBtn.addEventListener('click', closePrivacyModal);
+    }
+
+    privacyModal.addEventListener('click', (e) => {
+      if (e.target === privacyModal) {
+        closePrivacyModal();
+      }
+    });
+
+    // Terms of service modal functionality
+    const termsLinks = document.querySelectorAll('a[href="#terms"]');
+    const termsModal = document.getElementById('terms-modal');
+    const closeTermsBtn = document.getElementById('close-terms-btn');
+
+    const openTermsModal = (e) => {
+      e.preventDefault();
+      termsModal.classList.add('active');
+    };
+
+    const closeTermsModal = () => {
+      termsModal.classList.remove('active');
+    };
+
+    if (termsLinks.length > 0 && termsModal) {
+      termsLinks.forEach(link => {
+        link.addEventListener('click', openTermsModal);
+      });
+    }
+
+    if (closeTermsBtn) {
+      closeTermsBtn.addEventListener('click', closeTermsModal);
+    }
+
+    termsModal.addEventListener('click', (e) => {
+      if (e.target === termsModal) {
+        closeTermsModal();
       }
     });
 
@@ -987,6 +1472,56 @@
         }
       });
     }
+
+    // Disclaimer popup functionality
+    const disclaimerLink = document.getElementById('disclaimer-link');
+    const disclaimerPopup = document.getElementById('disclaimer-popup');
+    const closeDisclaimerBtn = document.getElementById('close-disclaimer-btn');
+
+    if (disclaimerLink && disclaimerPopup && closeDisclaimerBtn) {
+      const openDisclaimer = (e) => {
+        e.preventDefault();
+        disclaimerPopup.classList.add('active');
+      };
+
+      const closeDisclaimer = () => {
+        disclaimerPopup.classList.remove('active');
+      };
+
+      disclaimerLink.addEventListener('click', openDisclaimer);
+      closeDisclaimerBtn.addEventListener('click', closeDisclaimer);
+
+      // Close disclaimer when clicking outside
+      document.addEventListener('click', (e) => {
+        if (disclaimerPopup.classList.contains('active') && 
+            !disclaimerPopup.contains(e.target) && 
+            e.target !== disclaimerLink) {
+          closeDisclaimer();
+        }
+      });
+
+      // Close disclaimer with Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && disclaimerPopup.classList.contains('active')) {
+          closeDisclaimer();
+        }
+      });
+    }
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (pricingModal.classList.contains('active')) {
+          closePricingModal();
+        }
+        if (privacyModal.classList.contains('active')) {
+          closePrivacyModal();
+        }
+        if (termsModal.classList.contains('active')) {
+          closeTermsModal();
+        }
+      }
+    });
   });
 </script>
 
