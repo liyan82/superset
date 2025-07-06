@@ -159,3 +159,5 @@ While the Certbot-generated configuration worked, it was repetitive and allowed 
 ### Key Takeaway
 
 When securing a website with multiple domains (like `example.com` and `www.example.com`), the SSL certificate must be valid for **all** domains you want to serve traffic from, even if some are just being redirected. The certificate validation is the first step in an HTTPS connection. Furthermore, after ensuring certificate validity, it's a best practice to configure the web server to redirect all traffic to a single, canonical domain to avoid duplicate content issues and provide a consistent user experience. 
+
+
