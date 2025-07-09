@@ -161,6 +161,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         from superset.views.alerts import AlertView, ReportView
         from superset.views.all_entities import TaggedObjectsModelView
         from superset.views.annotations import AnnotationLayerView
+        from superset.views.attorneys import AttorneysView
         from superset.views.api import Api
         from superset.views.chart.views import SliceModelView
         from superset.views.core import Superset
@@ -388,6 +389,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         appbuilder.add_view_no_menu(ReportView)
         appbuilder.add_view_no_menu(RoleRestAPI)
         appbuilder.add_view_no_menu(UserInfoView)
+        appbuilder.add_view_no_menu(AttorneysView)
 
         #
         # Add links
