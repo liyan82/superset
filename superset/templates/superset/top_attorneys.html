@@ -362,176 +362,176 @@
         margin-top: 1.5rem;
         text-align: center;
     }
+    /* Floating Controls Sidebar */
     .floating-controls {
-        position: fixed;
-        top: 50%;
-        right: 2rem;
-        transform: translateY(-50%);
-        width: 320px;
-        background-color: var(--white);
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(40, 62, 83, 0.15);
-        border: 2px solid var(--p4-accent);
-        z-index: 998;
-        transition: all 0.3s ease;
-        max-height: 80vh;
-        overflow: hidden;
+      position: fixed;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      width: 320px;
+      background-color: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.15);
+      z-index: 1001;
+      transition: transform 0.3s ease;
     }
-    .floating-controls.collapsed .controls-content {
-        display: none;
-    }
-    .controls-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.2rem;
-        background-color: var(--p4-accent);
-        color: var(--white);
-        border-radius: 10px 10px 0 0;
-    }
-    .controls-header h4 {
-        font-size: 1rem;
-        font-weight: 600;
-        margin: 0;
+    .floating-controls.collapsed {
+      transform: translateY(-50%) translateX(280px);
     }
     .toggle-btn {
-        background: none;
-        border: none;
-        color: var(--white);
-        font-size: 1.2rem;
-        font-weight: bold;
-        cursor: pointer;
-        padding: 0.2rem 0.5rem;
-        border-radius: 3px;
-        transition: background-color 0.3s ease;
+      position: absolute;
+      left: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 60px;
+      background-color: var(--p4-accent);
+      color: var(--white);
+      border: none;
+      border-radius: 8px 0 0 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: background-color 0.3s ease;
     }
     .toggle-btn:hover {
-        background-color: rgba(255, 255, 255, 0.2);
+      background-color: var(--p4-blue);
     }
+    .controls-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e7e7e7;
+        background-color: var(--p4-light-gray);
+        border-radius: 12px 12px 0 0;
+    }
+    .controls-header h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--p4-dark-blue);
+        margin-bottom: 0.5rem;
+    }
+    .controls-header p {
+        font-size: 0.9rem;
+        color: var(--p4-blue);
+        line-height: 1.4;
+        margin: 0;
+    }
+
     .controls-content {
-        padding: 1.2rem;
-        max-height: calc(80vh - 60px);
-        overflow-y: auto;
-    }
-    .weight-sliders {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    .weight-control {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.8rem;
-        background-color: rgba(58, 90, 126, 0.05);
-        border-radius: 6px;
-        border: 1px solid #e0e4e7;
+      padding: 1.5rem;
     }
     .weight-control-row {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 0.5rem 0;
     }
-    .weight-control label {
-        font-weight: 500;
-        color: var(--p4-dark-gray);
-        font-size: 0.9rem;
-        margin-bottom: 0.3rem;
+    .weight-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--p4-dark-blue);
+      flex: 1;
+    }
+    .weight-control {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      justify-content: flex-end;
     }
     .weight-slider {
-        flex: 1;
-        height: 6px;
-        border-radius: 3px;
-        background: #e0e4e7;
-        outline: none;
-        -webkit-appearance: none;
+      width: 80px;
+      margin-right: 0.5rem;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: #ddd;
+      outline: none;
     }
     .weight-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--p4-accent);
-        cursor: pointer;
-        border: 2px solid var(--white);
-        box-shadow: 0 2px 4px rgba(0, 168, 232, 0.3);
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--p4-accent);
+      cursor: pointer;
     }
     .weight-slider::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--p4-accent);
-        cursor: pointer;
-        border: 2px solid var(--white);
-        box-shadow: 0 2px 4px rgba(0, 168, 232, 0.3);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--p4-accent);
+      cursor: pointer;
+      border: none;
     }
     .weight-value {
-        font-weight: 600;
-        color: var(--p4-dark-blue);
-        min-width: 35px;
-        text-align: right;
-        font-size: 0.9rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--p4-accent);
+      min-width: 35px;
+      text-align: right;
     }
-    .weight-total {
-        padding: 1rem;
-        background-color: var(--white);
-        border-radius: 6px;
-        border: 2px solid var(--p4-accent);
+    .formula-display {
+      background-color: var(--p4-light-gray);
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      color: var(--p4-dark-blue);
+      border-left: 4px solid var(--p4-accent);
     }
-    .weight-total strong {
-        color: var(--p4-dark-blue);
-        font-size: 1rem;
-        display: block;
-        text-align: center;
-        margin-bottom: 1rem;
+    .total-weight {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-align: center;
+      margin: 1rem 0;
+      padding: 0.5rem;
+      border-radius: 6px;
     }
-    .weight-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
+    .total-weight.valid {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .total-weight.invalid {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .control-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .btn-apply, .btn-reset {
+      flex: 1;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
     .btn-apply {
-        padding: 0.8rem 1rem;
-        background-color: var(--p4-accent);
-        color: var(--white);
-        border: none;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        width: 100%;
+      background-color: var(--p4-accent);
+      color: var(--white);
     }
-    .btn-apply:enabled:hover {
-        background-color: #007bb5;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
+    .btn-apply:hover:not(:disabled) {
+      background-color: var(--p4-blue);
     }
     .btn-apply:disabled {
-        background-color: #cccccc;
-        color: #888888;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
+      background-color: #ccc;
+      cursor: not-allowed;
     }
     .btn-reset {
-        padding: 0.6rem 1rem;
-        background-color: var(--p4-blue);
-        color: var(--white);
-        border: none;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        width: 100%;
+      background-color: var(--p4-light-gray);
+      color: var(--p4-dark-blue);
+      border: 1px solid #ddd;
     }
     .btn-reset:hover {
-        background-color: var(--p4-dark-blue);
+      background-color: #e9ecef;
     }
   </style>
 </head>
@@ -1648,47 +1648,52 @@
 
   <!-- Floating Weight Controls -->
   <div id="floating-controls" class="floating-controls">
+    <button class="toggle-btn" id="toggleControls">⚙</button>
     <div class="controls-header">
-      <h4>Customize Weights</h4>
-      <button id="toggle-controls" class="toggle-btn">−</button>
+      <h4>🎛️ Customize Weights</h4>
+      <p>Adjust the importance of each ranking factor to see how it affects attorney rankings</p>
     </div>
     <div class="controls-content">
-      <div class="weight-sliders">
+      <div class="weight-control-row">
+        <span class="weight-label">Grant Rate</span>
         <div class="weight-control">
-          <label for="grant-rate-weight">Grant Rate:</label>
-          <div class="weight-control-row">
-            <input type="range" id="grant-rate-weight" min="0" max="100" value="35" class="weight-slider">
-            <span class="weight-value">35%</span>
-          </div>
-        </div>
-        <div class="weight-control">
-          <label for="speed-weight">Speed:</label>
-          <div class="weight-control-row">
-            <input type="range" id="speed-weight" min="0" max="100" value="25" class="weight-slider">
-            <span class="weight-value">25%</span>
-          </div>
-        </div>
-        <div class="weight-control">
-          <label for="grant-volume-weight">Grant Volume:</label>
-          <div class="weight-control-row">
-            <input type="range" id="grant-volume-weight" min="0" max="100" value="25" class="weight-slider">
-            <span class="weight-value">25%</span>
-          </div>
-        </div>
-        <div class="weight-control">
-          <label for="application-volume-weight">Application Volume:</label>
-          <div class="weight-control-row">
-            <input type="range" id="application-volume-weight" min="0" max="100" value="15" class="weight-slider">
-            <span class="weight-value">15%</span>
-          </div>
+          <input type="range" class="weight-slider" id="grantRateWeight" min="0" max="100" value="35" step="5" aria-label="Grant Rate Weight">
+          <span class="weight-value" id="grantRateValue">35%</span>
         </div>
       </div>
-      <div class="weight-total">
-        <strong>Total: <span id="total-weight">100%</span></strong>
-        <div class="weight-buttons">
-          <button id="apply-weights" class="btn-apply" disabled>Apply Changes</button>
-          <button id="reset-weights" class="btn-reset">Reset to Default</button>
+      <div class="weight-control-row">
+        <span class="weight-label">Speed</span>
+        <div class="weight-control">
+          <input type="range" class="weight-slider" id="speedWeight" min="0" max="100" value="25" step="5" aria-label="Speed Weight">
+          <span class="weight-value" id="speedValue">25%</span>
         </div>
+      </div>
+      <div class="weight-control-row">
+        <span class="weight-label">Grant Volume</span>
+        <div class="weight-control">
+          <input type="range" class="weight-slider" id="grantVolumeWeight" min="0" max="100" value="25" step="5" aria-label="Grant Volume Weight">
+          <span class="weight-value" id="grantVolumeValue">25%</span>
+        </div>
+      </div>
+      <div class="weight-control-row">
+        <span class="weight-label">Application Volume</span>
+        <div class="weight-control">
+          <input type="range" class="weight-slider" id="appVolumeWeight" min="0" max="100" value="15" step="5" aria-label="Application Volume Weight">
+          <span class="weight-value" id="appVolumeValue">15%</span>
+        </div>
+      </div>
+      
+      <div class="formula-display" id="formulaDisplay">
+        Score = (35% × Grant Rate) + (25% × Speed) + (25% × Grant Volume) + (15% × Application Volume)
+      </div>
+      
+      <div class="total-weight valid" id="totalWeight">
+        Total Weight: 100%
+      </div>
+      
+      <div class="control-buttons">
+        <button class="btn-apply" id="applyWeights">Apply Changes</button>
+        <button class="btn-reset" id="resetWeights">Reset</button>
       </div>
     </div>
   </div>
@@ -1730,15 +1735,23 @@
       
       // Weight controls
       const weightSliders = {
-        grantRate: document.getElementById('grant-rate-weight'),
-        speed: document.getElementById('speed-weight'),
-        grantVolume: document.getElementById('grant-volume-weight'),
-        applicationVolume: document.getElementById('application-volume-weight')
+        grantRate: document.getElementById('grantRateWeight'),
+        speed: document.getElementById('speedWeight'),
+        grantVolume: document.getElementById('grantVolumeWeight'),
+        applicationVolume: document.getElementById('appVolumeWeight')
       };
       
-      const resetBtn = document.getElementById('reset-weights');
-      const applyBtn = document.getElementById('apply-weights');
-      const toggleBtn = document.getElementById('toggle-controls');
+      const weightValues = {
+        grantRate: document.getElementById('grantRateValue'),
+        speed: document.getElementById('speedValue'),
+        grantVolume: document.getElementById('grantVolumeValue'),
+        applicationVolume: document.getElementById('appVolumeValue')
+      };
+      
+      const formulaDisplay = document.getElementById('formulaDisplay');
+      const totalWeightDisplay = document.getElementById('totalWeight');
+      const resetBtn = document.getElementById('resetWeights');
+      const applyBtn = document.getElementById('applyWeights');
       const floatingControls = document.getElementById('floating-controls');
 
       // Extract original data from table on page load
@@ -1785,70 +1798,7 @@
         return values.map(v => (v - min) / (max - min));
       }
 
-      // Calculate scores with custom weights
-      function calculateScores(weights) {
-        const approvalRates = originalAttorneyData.map(a => a.approvalRate);
-        const speeds = originalAttorneyData.map(a => a.speed);
-        const grantVolumes = originalAttorneyData.map(a => a.grantVolume);
-        const appVolumes = originalAttorneyData.map(a => a.applicationVolume);
 
-        const normApprovalRates = normalize(approvalRates);
-        const normSpeeds = normalize(speeds);
-        const normGrantVolumes = normalize(grantVolumes);
-        const normAppVolumes = normalize(appVolumes);
-
-        return originalAttorneyData.map((attorney, i) => ({
-          ...attorney,
-          score: (
-            weights.grantRate * normApprovalRates[i] +
-            weights.speed * normSpeeds[i] +
-            weights.grantVolume * normGrantVolumes[i] +
-            weights.applicationVolume * normAppVolumes[i]
-          ) * 100
-        }));
-      }
-
-      // Update table with new scores and rankings
-      function updateTable(scoredData) {
-        try {
-          console.log('Updating table with', scoredData.length, 'entries');
-          
-          // Sort by score descending
-          scoredData.sort((a, b) => b.score - a.score);
-          
-          // Clear current table
-          tbody.innerHTML = '';
-          
-          // Add new rows
-          scoredData.forEach((attorney, index) => {
-            const rank = index + 1;
-            const approvalRatePercent = (attorney.approvalRate * 100).toFixed(2) + '%';
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td class="rank-cell">${rank}</td>
-              <td>${attorney.name}</td>
-              <td>${attorney.totalCases.toLocaleString()}</td>
-              <td>${attorney.grantedCases.toLocaleString()}</td>
-              <td>${approvalRatePercent}</td>
-              <td>${attorney.avgPendency}</td>
-            `;
-            tbody.appendChild(row);
-          });
-          
-          console.log('Table update completed');
-        } catch (error) {
-          console.error('Error updating table:', error);
-        }
-      }
-
-      // Update formula display
-      function updateFormulaDisplay(weights) {
-        const formulaDisplay = document.getElementById('formula-display');
-        formulaDisplay.innerHTML = `
-          <strong>Score = (${weights.grantRate}% × Grant Rate) + (${weights.speed}% × Speed) + (${weights.grantVolume}% × Grant Volume) + (${weights.applicationVolume}% × Application Volume)</strong>
-        `;
-      }
 
       function parseValue(value, columnIndex) {
         // Remove commas and whitespace
@@ -1972,150 +1922,138 @@
       // Initial check for button visibility
       toggleBackToTopButton();
 
-      // Weight control functionality
-      function getCurrentWeights() {
-        return {
-          grantRate: parseInt(weightSliders.grantRate.value) / 100,
-          speed: parseInt(weightSliders.speed.value) / 100,
-          grantVolume: parseInt(weightSliders.grantVolume.value) / 100,
-          applicationVolume: parseInt(weightSliders.applicationVolume.value) / 100
-        };
-      }
 
-      function updateWeightDisplays() {
-        // Update percentage displays
-        document.querySelectorAll('.weight-control').forEach(control => {
-          const slider = control.querySelector('.weight-slider');
-          const valueSpan = control.querySelector('.weight-value');
-          valueSpan.textContent = slider.value + '%';
+
+      // Update formula display and weight values
+      function updateFormula() {
+        const weights = {
+          grantRate: parseInt(weightSliders.grantRate.value),
+          speed: parseInt(weightSliders.speed.value),
+          grantVolume: parseInt(weightSliders.grantVolume.value),
+          appVolume: parseInt(weightSliders.applicationVolume.value)
+        };
+
+        // Update weight value displays
+        Object.keys(weightValues).forEach(key => {
+          if (key === 'applicationVolume') {
+            weightValues[key].textContent = weights.appVolume + '%';
+          } else {
+            weightValues[key].textContent = weights[key] + '%';
+          }
         });
 
-        // Update total
-        const total = Object.values(getCurrentWeights()).reduce((sum, w) => sum + w, 0) * 100;
-        document.getElementById('total-weight').textContent = total.toFixed(0) + '%';
+        // Update formula
+        formulaDisplay.textContent = 
+          `Score = (${weights.grantRate}% × Grant Rate) + (${weights.speed}% × Speed) + (${weights.grantVolume}% × Grant Volume) + (${weights.appVolume}% × Application Volume)`;
+
+        // Update total weight
+        const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
+        totalWeightDisplay.textContent = `Total Weight: ${total}%`;
+        totalWeightDisplay.className = total === 100 ? 'total-weight valid' : 'total-weight invalid';
         
-        // Color code the total and enable/disable apply button based on whether it's 100%
-        const totalElement = document.getElementById('total-weight');
-        const isValidTotal = Math.abs(total - 100) < 0.1;
-        
-        if (isValidTotal) {
-          totalElement.style.color = 'var(--p4-dark-blue)';
-          if (applyBtn) {
-            applyBtn.disabled = false;
-          }
-        } else {
-          totalElement.style.color = '#dc3545'; // Red for non-100%
-          if (applyBtn) {
-            applyBtn.disabled = true;
-          }
-        }
+        // Enable/disable apply button
+        applyBtn.disabled = total !== 100;
       }
 
-      function handleWeightChange() {
-        try {
-          console.log('Weight change triggered');
-          updateWeightDisplays();
-          const weights = getCurrentWeights();
-          console.log('Current weights:', weights);
-          
-          const weightsPercent = {
-            grantRate: Math.round(weights.grantRate * 100),
-            speed: Math.round(weights.speed * 100),
-            grantVolume: Math.round(weights.grantVolume * 100),
-            applicationVolume: Math.round(weights.applicationVolume * 100)
-          };
-          updateFormulaDisplay(weightsPercent);
-        } catch (error) {
-          console.error('Error in handleWeightChange:', error);
-        }
-      }
-
-      function applyWeightChanges() {
+      // Apply new weights and recalculate scores
+      function applyNewWeights() {
         try {
           console.log('Applying weight changes...');
-          const weights = getCurrentWeights();
-          
-          // Recalculate and update table
-          if (originalAttorneyData.length > 0) {
-            console.log('Recalculating scores...');
-            const scoredData = calculateScores(weights);
-            console.log('First 3 scores:', scoredData.slice(0, 3).map(d => ({ name: d.name, score: d.score })));
-            updateTable(scoredData);
-            console.log('Table updated');
-          } else {
+          const weights = {
+            grantRate: parseInt(weightSliders.grantRate.value) / 100,
+            speed: parseInt(weightSliders.speed.value) / 100,
+            grantVolume: parseInt(weightSliders.grantVolume.value) / 100,
+            appVolume: parseInt(weightSliders.applicationVolume.value) / 100
+          };
+
+          if (originalAttorneyData.length === 0) {
             console.error('No original data available for recalculation');
+            return;
           }
-          
-          // Reset sort state since we've re-ordered
-          currentSort = { column: -1, direction: '' };
-          headers.forEach(header => {
-            header.classList.remove('sorted-asc', 'sorted-desc');
+
+          // Calculate normalized values
+          const grantRates = originalAttorneyData.map(a => a.approvalRate);
+          const speeds = originalAttorneyData.map(a => a.speed);
+          const grantVolumes = originalAttorneyData.map(a => a.grantVolume);
+          const appVolumes = originalAttorneyData.map(a => a.applicationVolume);
+
+          const normGrantRates = normalize(grantRates);
+          const normSpeeds = normalize(speeds);
+          const normGrantVolumes = normalize(grantVolumes);
+          const normAppVolumes = normalize(appVolumes);
+
+          // Calculate new scores
+          originalAttorneyData.forEach((attorney, i) => {
+            attorney.score = 
+              weights.grantRate * normGrantRates[i] +
+              weights.speed * normSpeeds[i] +
+              weights.grantVolume * normGrantVolumes[i] +
+              weights.appVolume * normAppVolumes[i];
           });
+
+          // Sort by new scores
+          originalAttorneyData.sort((a, b) => b.score - a.score);
+
+          // Update table
+          tbody.innerHTML = '';
+          originalAttorneyData.forEach((attorney, i) => {
+            const rank = i + 1;
+            const approvalRatePercent = (attorney.approvalRate * 100).toFixed(2) + '%';
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="rank-cell">${rank}</td>
+              <td>${attorney.name}</td>
+              <td>${attorney.totalCases.toLocaleString()}</td>
+              <td>${attorney.grantedCases.toLocaleString()}</td>
+              <td>${approvalRatePercent}</td>
+              <td>${attorney.avgPendency}</td>
+            `;
+            tbody.appendChild(row);
+          });
+          
+          console.log('Table updated with', originalAttorneyData.length, 'attorneys');
         } catch (error) {
-          console.error('Error in applyWeightChanges:', error);
+          console.error('Error in applyNewWeights:', error);
         }
       }
 
+      // Reset to default weights
       function resetWeights() {
         weightSliders.grantRate.value = 35;
         weightSliders.speed.value = 25;
         weightSliders.grantVolume.value = 25;
         weightSliders.applicationVolume.value = 15;
-        handleWeightChange();
-        // Automatically apply default weights
-        applyWeightChanges();
+        updateFormula();
+        applyNewWeights();
       }
 
       // Add event listeners to sliders
-      console.log('Setting up event listeners...');
-      Object.entries(weightSliders).forEach(([name, slider]) => {
-        if (slider) {
-          console.log(`Adding listener to ${name} slider`);
-          slider.addEventListener('input', handleWeightChange);
-        } else {
-          console.error(`Slider ${name} not found`);
-        }
+      Object.values(weightSliders).forEach(slider => {
+        slider.addEventListener('input', updateFormula);
       });
 
-      // Add apply button listener
-      if (applyBtn) {
-        console.log('Adding apply button listener');
-        applyBtn.addEventListener('click', applyWeightChanges);
-      } else {
-        console.error('Apply button not found');
-      }
+      // Event handlers
+      applyBtn.addEventListener('click', applyNewWeights);
+      resetBtn.addEventListener('click', resetWeights);
 
-      // Add reset button listener
-      if (resetBtn) {
-        console.log('Adding reset button listener');
-        resetBtn.addEventListener('click', resetWeights);
-      } else {
-        console.error('Reset button not found');
-      }
-
-      // Add toggle button listener
-      if (toggleBtn && floatingControls) {
-        console.log('Adding toggle button listener');
-        toggleBtn.addEventListener('click', function() {
-          floatingControls.classList.toggle('collapsed');
-          toggleBtn.textContent = floatingControls.classList.contains('collapsed') ? '+' : '−';
-        });
-      } else {
-        console.error('Toggle button or floating controls not found');
-      }
-
-      // Initialize
-      console.log('Initializing...');
-      extractOriginalData();
-      updateWeightDisplays();
-      console.log('Initialization complete');
-      
-      // Apply initial weights (default 100% total should enable apply button)
-      if (applyBtn && !applyBtn.disabled) {
-        console.log('Applying initial default weights');
-        applyWeightChanges();
-      }
+      // Initialize when table is loaded
+      setTimeout(() => {
+        extractOriginalData();
+        updateFormula();
+      }, 200);
     });
+
+    // Floating controls toggle
+    (function() {
+      const controls = document.getElementById('floating-controls');
+      const toggleBtn = document.getElementById('toggleControls');
+
+      toggleBtn.addEventListener('click', () => {
+        controls.classList.toggle('collapsed');
+        toggleBtn.textContent = controls.classList.contains('collapsed') ? '⚙' : '✕';
+      });
+    })();
 
     // Basic table protection only
     document.addEventListener('copy', function(e) {
