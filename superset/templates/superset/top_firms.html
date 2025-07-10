@@ -506,6 +506,34 @@
     <div class="container">
       <div class="table-container">
         <h1>Top 1024 Law Firms Ranking (2022 - 2024)</h1>
+        
+        <!-- Ranking Methodology Section -->
+        <div class="formula-section">
+          <h2>🏆 Ranking Methodology</h2>
+          <p>Our comprehensive ranking system evaluates law firms using a weighted composite score based on four key performance indicators:</p>
+          
+          <div class="formula-display-static">
+            <strong>Composite Score = (35% × Grant Rate) + (25% × Speed) + (25% × Grant Volume) + (15% × Application Volume)</strong>
+          </div>
+
+          <ul>
+            <li><strong>Grant Rate (35% weight):</strong> Percentage of patent applications successfully granted, indicating the firm's effectiveness in patent prosecution</li>
+            <li><strong>Speed (25% weight):</strong> Inverse of average pendency days, measuring how efficiently the firm navigates the patent process</li>
+            <li><strong>Grant Volume (25% weight):</strong> Total number of patents successfully granted, demonstrating the firm's track record and experience</li>
+            <li><strong>Application Volume (15% weight):</strong> Total patent applications filed, indicating the firm's market presence and client base</li>
+          </ul>
+
+          <p><strong>Normalization Process:</strong> All metrics are normalized using min-max scaling to ensure fair comparison across different scales, then combined using the weighted formula above.</p>
+          
+          <p><strong>Data Accuracy:</strong> Grant rates exclude applications currently in process to provide accurate success rate calculations based on final outcomes only.</p>
+        </div>
+
+        <!-- Data Disclaimer Section -->
+        <div class="disclaimer-section">
+          <h2>📊 Data Source & Disclaimer</h2>
+          <p>All data presented in this ranking is sourced from the United States Patent and Trademark Office (USPTO) public records. The information includes patent applications metadata and documents. While we strive for accuracy, this data is provided for informational purposes only and should not be the sole factor in selecting legal representation. Individual case outcomes may vary based on numerous factors not reflected in these statistics. Users are encouraged to conduct their own due diligence when selecting patent counsel.</p>
+        </div>
+        
         <table id="firmsTable">
           <thead>
             <tr>
@@ -1546,29 +1574,8 @@
         </table>
       </div>
 
-      <!-- Ranking Methodology Section -->
-      <div class="formula-section">
-        <h2>🏆 Ranking Methodology</h2>
-        <p>Our comprehensive ranking system evaluates law firms using a weighted composite score based on four key performance indicators:</p>
-        
-        <div class="formula-display-static">
-          <strong>Composite Score = (35% × Grant Rate) + (25% × Speed) + (25% × Grant Volume) + (15% × Application Volume)</strong>
-        </div>
-
-        <ul>
-          <li><strong>Grant Rate (35% weight):</strong> Percentage of patent applications successfully granted, indicating the firm's effectiveness in patent prosecution</li>
-          <li><strong>Speed (25% weight):</strong> Inverse of average pendency days, measuring how efficiently the firm navigates the patent process</li>
-          <li><strong>Grant Volume (25% weight):</strong> Total number of patents successfully granted, demonstrating the firm's track record and experience</li>
-          <li><strong>Application Volume (15% weight):</strong> Total patent applications filed, indicating the firm's market presence and client base</li>
-        </ul>
-
-        <p><strong>Normalization Process:</strong> All metrics are normalized using min-max scaling to ensure fair comparison across different scales, then combined using the weighted formula above.</p>
-        
-        <p><strong>Data Accuracy:</strong> Grant rates exclude applications currently in process to provide accurate success rate calculations based on final outcomes only.</p>
-      </div>
-
       <!-- Interactive Weight Controls -->
-      <div class="floating-controls" id="weightControls">
+      <div class="floating-controls collapsed" id="weightControls">
         <button class="toggle-btn" id="toggleControls">⚙</button>
         <div class="controls-header">
           <h3>🎛️ Customize Weights</h3>
@@ -1623,14 +1630,9 @@
       <div class="signup-cta">
         <h3>🚀 Unlock Advanced Analytics</h3>
         <p>Get detailed insights, custom reports, and priority access to new features with our premium subscription.</p>
-        <a href="/signup" class="btn">Start Your Free Trial</a>
+        <a href="/register/form" class="btn">Start Your Free Trial</a>
       </div>
 
-      <!-- Data Disclaimer -->
-      <div class="disclaimer-section">
-        <h2>📊 Data Source & Disclaimer</h2>
-        <p>All data presented in this ranking is sourced from the United States Patent and Trademark Office (USPTO) public records. The information includes patent applications metadata and documents. While we strive for accuracy, this data is provided for informational purposes only and should not be the sole factor in selecting legal representation. Individual case outcomes may vary based on numerous factors not reflected in these statistics. Users are encouraged to conduct their own due diligence when selecting patent counsel.</p>
-      </div>
     </div>
   </main>
 
