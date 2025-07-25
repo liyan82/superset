@@ -371,4 +371,127 @@ The real issue was discovered through browser inspector examination. The paginat
 
 ### Key Takeaway
 
-When pagination or other list-based UI components display vertically instead of horizontally after a merge, the issue is often missing **fundamental CSS layout properties** rather than complex logic changes. The `<li>` elements in pagination require explicit `display: inline-block` or a parent with `display: flex` to achieve horizontal alignment. Browser inspector examination of the actual rendered HTML and applied CSS is crucial for diagnosing layout issues, as the problem may not be apparent from code review alone. 
+When pagination or other list-based UI components display vertically instead of horizontally after a merge, the issue is often missing **fundamental CSS layout properties** rather than complex logic changes. The `<li>` elements in pagination require explicit `display: inline-block` or a parent with `display: flex` to achieve horizontal alignment. Browser inspector examination of the actual rendered HTML and applied CSS is crucial for diagnosing layout issues, as the problem may not be apparent from code review alone.
+
+## Issue: React Subscription Cancel Button Not Working Due to Modal Component Incompatibility
+
+**Date:** 2025-07-25
+
+### The Problem
+
+During the transition from Flask HTML templates to React components for the subscription system, the cancel subscription functionality was not working. When users clicked the "Yes, Cancel My Subscription" button in the confirmation modal, there was no reaction from either the frontend or backend - no console logs, no API calls, and no errors.
+
+### The Goal
+
+To fix the subscription cancellation functionality in the React-based subscription management page, ensuring the cancel button properly triggers the API call to `/subscription/api/cancel` and updates the subscription status.
+
+### The Solution Journey
+
+#### Attempt 1: Investigating Backend API Implementation
+
+Initially assumed the issue was with the backend API endpoint. Upon examination, the `/subscription/api/cancel` endpoint was correctly implemented with proper business logic:
+- Cancel subscription in Stripe using `external_subscription_id`
+- Update local database: `subscription.status = "cancelled"` and `subscription.is_auto_renew = False`
+- Return JSON response with success status
+
+The backend logic was sound and ready for React integration.
+
+#### Attempt 2: Adding Frontend Debugging
+
+Added comprehensive debugging to the `handleCancelSubscription` function to trace the execution flow:
+```javascript
+const handleCancelSubscription = async () => {
+  console.log('handleCancelSubscription called!');
+  console.log('details:', details);
+  // ... additional logging for API calls and responses
+};
+```
+
+However, when clicking the cancel button, none of these logs appeared, indicating the function wasn't being called at all.
+
+#### Attempt 3: Identifying the Modal Component Issue
+
+The root cause was discovered to be the **Modal component from `@superset-ui/core/components`**. This component's `footer` prop was not properly handling React click events. The modal was structured as:
+
+```jsx
+<Modal
+  title="Confirm Cancellation"
+  show={showCancelModal}
+  onHide={() => setShowCancelModal(false)}
+  footer={[
+    <StyledButton key="cancel" onClick={handleCancelSubscription}>
+      Yes, Cancel My Subscription
+    </StyledButton>,
+  ]}
+>
+```
+
+The `footer` prop was rendering the buttons but not binding the click event handlers correctly.
+
+#### Attempt 4: Temporary Solution with Custom Footer
+
+Initially tried moving the buttons inside the modal body as a custom footer:
+```jsx
+<Modal show={showCancelModal} onHide={() => setShowCancelModal(false)}>
+  {/* Modal content */}
+  <div style={{ borderTop: '1px solid #e5e5e5', textAlign: 'right' }}>
+    <StyledButton onClick={handleCancelSubscription}>
+      Yes, Cancel My Subscription
+    </StyledButton>
+  </div>
+</Modal>
+```
+
+This created double layers of buttons - the custom ones (working) and the default modal footer buttons (OK/Cancel from the Modal component).
+
+### The Final Fix
+
+The solution was to **switch from `@superset-ui/core/components` Modal to Ant Design's Modal component**, which has proper footer support for React components:
+
+1. **Changed Import:**
+   ```javascript
+   // Before (broken):
+   import { Modal } from '@superset-ui/core/components';
+   
+   // After (working):
+   import { Modal } from 'antd';
+   ```
+
+2. **Updated Modal Props:**
+   ```jsx
+   // Before (broken):
+   <Modal
+     show={showCancelModal}
+     onHide={() => setShowCancelModal(false)}
+     footer={[/* buttons */]}
+   >
+   
+   // After (working):
+   <Modal
+     open={showCancelModal}
+     onCancel={() => setShowCancelModal(false)}
+     footer={[/* buttons */]}
+   >
+   ```
+
+3. **API Compatibility:**
+   - `show` → `open` (Ant Design v4+ API)
+   - `onHide` → `onCancel` (Ant Design event handler)
+   - `footer` prop properly supports React components with event handlers
+
+### Additional Backend Debugging Added
+
+Enhanced the backend API endpoint with comprehensive logging:
+```python
+@expose("/api/cancel", methods=["POST"])
+@has_access
+def api_cancel(self) -> Response:
+    self.log_subscription("=== API Cancel endpoint called ===", level="info")
+    # ... detailed logging throughout the cancellation process
+```
+
+This provided visibility into the entire cancellation flow from request receipt to database updates.
+
+### Key Takeaway
+
+When React event handlers (onClick, onSubmit, etc.) are not working in modal components, the issue is often **Modal component compatibility** rather than business logic problems. The `@superset-ui/core` Modal component's `footer` prop does not properly bind React event handlers, while Ant Design's Modal has robust footer support. **Always test event handler functionality when switching between UI component libraries**, especially in modal dialogs where event handling can be complex. Additionally, when frontend interactions show no response, add debugging to both the UI event handlers AND the backend endpoints to identify where the communication breakdown occurs. 

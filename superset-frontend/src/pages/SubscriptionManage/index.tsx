@@ -18,11 +18,12 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { css, t, styled } from '@superset-ui/core';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
-import { Modal } from '@superset-ui/core/components';
+import { Modal } from 'antd';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
 import getBootstrapData from 'src/utils/getBootstrapData';
 
@@ -317,6 +318,7 @@ interface SubscriptionManageProps {
 }
 
 export default function SubscriptionManage({ user }: SubscriptionManageProps) {
+  const history = useHistory();
   const { addDangerToast, addSuccessToast } = useToasts();
   const bootstrapData = getBootstrapData();
   const currentUser = user || bootstrapData?.user;
@@ -341,7 +343,7 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
       // If no subscription, redirect to plans page
       if (!data.subscription) {
         addSuccessToast(t('You don\'t have an active subscription. Choose a plan below to subscribe.'));
-        window.location.href = '/subscription/plans';
+        history.push('/subscription/plans');
         return;
       }
       
@@ -359,27 +361,30 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
   }, [fetchDetails]);
 
   const handleCancelSubscription = async () => {
-    if (!details?.subscription) return;
+    console.log('handleCancelSubscription called!');
+    console.log('details:', details);
+    
+    if (!details?.subscription) {
+      console.log('No subscription found, returning early');
+      return;
+    }
     
     setCancelling(true);
     try {
-      // Get CSRF token
-      const csrfToken = document.querySelector<HTMLInputElement>('#csrf_token')?.value;
+      console.log('Making API call to cancel subscription...');
+      console.log('subscription_id:', details.subscription.id);
       
-      const response = await fetch('/subscription/api/cancel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken || '',
-        },
-        body: JSON.stringify({
+      const response = await SupersetClient.post({
+        endpoint: '/subscription/api/cancel',
+        jsonPayload: {
           subscription_id: details.subscription.id,
-        }),
+        },
       });
       
-      const result = await response.json();
+      console.log('API Response:', response);
+      const result = response.json as any;
       
-      if (response.ok && result.success) {
+      if (result.success) {
         addSuccessToast(result.message || t('Your subscription has been cancelled'));
         setShowCancelModal(false);
         // Refresh the details to show updated status
@@ -397,7 +402,7 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
 
   const handleResumePayment = () => {
     if (!details?.subscription?.plan?.product_id) return;
-    window.location.href = `/subscription/payment/${details.subscription.plan.product_id}`;
+    history.push(`/subscription/payment/${details.subscription.plan.product_id}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -611,16 +616,25 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
       {/* Cancellation Confirmation Modal */}
       <Modal
         title={t('Confirm Cancellation')}
-        show={showCancelModal}
-        onHide={() => setShowCancelModal(false)}
+        open={showCancelModal}
+        onCancel={() => setShowCancelModal(false)}
         footer={[
-          <StyledButton key="keep" onClick={() => setShowCancelModal(false)}>
+          <StyledButton 
+            key="keep"
+            onClick={() => {
+              console.log('Keep Subscription button clicked!');
+              setShowCancelModal(false);
+            }}
+          >
             {t('Keep Subscription')}
           </StyledButton>,
           <StyledButton 
-            key="cancel" 
+            key="cancel"
             variant="danger" 
-            onClick={handleCancelSubscription}
+            onClick={() => {
+              console.log('Cancel button clicked!');
+              handleCancelSubscription();
+            }}
             disabled={cancelling}
           >
             {cancelling ? t('Cancelling...') : t('Yes, Cancel My Subscription')}

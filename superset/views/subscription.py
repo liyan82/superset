@@ -1068,30 +1068,45 @@ class SubscriptionView(BaseView):
     @has_access
     def api_cancel(self) -> Response:
         """API endpoint to cancel subscription"""
+        self.log_subscription("=== API Cancel endpoint called ===", level="info")
         try:
             data = request.get_json()
+            self.log_subscription(f"Request data: {data}", level="info")
             subscription_id = data.get("subscription_id") if data else None
+            self.log_subscription(f"Subscription ID from request: {subscription_id}", level="info")
             
             if not subscription_id:
+                self.log_subscription("No subscription ID provided", level="error")
                 return make_response(jsonify({"error": "Subscription ID is required"}), 400)
             
             user = self._get_user()
+            self.log_subscription(f"User retrieved: {user.id if user else 'None'}", level="info")
             subscription = user.current_subscription
+            self.log_subscription(f"Current subscription: {subscription.id if subscription else 'None'}", level="info")
             
             if not subscription or str(subscription.id) != str(subscription_id):
+                self.log_subscription(f"Subscription mismatch - current: {subscription.id if subscription else 'None'}, requested: {subscription_id}", level="error")
                 return make_response(jsonify({"error": "Subscription not found"}), 404)
             
             # Cancel in Stripe if we have external subscription ID
             if hasattr(subscription, "external_subscription_id") and subscription.external_subscription_id:
+                self.log_subscription(f"Cancelling Stripe subscription: {subscription.external_subscription_id}", level="info")
                 success = self.payment_processor.cancel_subscription(subscription.external_subscription_id)
                 if not success:
+                    self.log_subscription("Failed to cancel subscription in Stripe", level="error")
                     return make_response(jsonify({"error": "Error cancelling subscription with payment provider"}), 500)
+                self.log_subscription("Successfully cancelled subscription in Stripe", level="info")
+            else:
+                self.log_subscription("No external subscription ID found, skipping Stripe cancellation", level="info")
             
             # Update local subscription
+            self.log_subscription("Updating local subscription status to cancelled", level="info")
             subscription.status = "cancelled"
             subscription.is_auto_renew = False
             self.appbuilder.session.commit()
+            self.log_subscription("Successfully updated local subscription status", level="info")
             
+            self.log_subscription("=== API Cancel completed successfully ===", level="info")
             return jsonify({
                 "success": True,
                 "message": "Your subscription has been cancelled"
