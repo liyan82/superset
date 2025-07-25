@@ -18,7 +18,7 @@
  */
 
 import { useCallback, useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import { css, t, styled, useTheme } from '@superset-ui/core';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
@@ -294,6 +294,7 @@ declare global {
 
 export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) {
   const { planId } = useParams<{ planId: string }>();
+  const history = useHistory();
   const bootstrapData = getBootstrapData();
   const currentUser = user || bootstrapData?.user;
   const theme = useTheme();
@@ -315,16 +316,29 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
   const [subscriptionId, setSubscriptionId] = useState<string>('');
   const [paymentId, setPaymentId] = useState<string>('');
 
-  // Load Stripe script
+  // Load Stripe script with error handling
   useEffect(() => {
+    // Check if Stripe is already loaded
+    if (window.Stripe) {
+      setStripeLoaded(true);
+      return;
+    }
+    
     const script = document.createElement('script');
     script.src = 'https://js.stripe.com/v3/';
     script.async = true;
     script.onload = () => setStripeLoaded(true);
+    script.onerror = () => {
+      console.error('Failed to load Stripe script');
+      setError(t('Failed to load payment system. Please refresh the page.'));
+    };
     document.body.appendChild(script);
     
     return () => {
-      document.body.removeChild(script);
+      // Only remove if we added it
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 
@@ -346,29 +360,25 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
       
       const statusData = statusResponse.json as any;
       if (statusData.has_active_subscription) {
-        addSuccessToast(t('You already have an active subscription. Please cancel it before subscribing to a new plan.'));
-        window.location.href = '/subscription/manage';
+        addDangerToast(t('You already have an active subscription. Please cancel it before subscribing to a new plan.'));
+        history.push('/subscription/manage');
         return;
       }
       
-      // Fetch plan details from the backend's existing logic
-      const stripeResponse = await fetch(`/subscription/api/stripe-plan/${planId}`, {
-        method: 'GET',
+      // Fetch plan details using SupersetClient for consistency
+      const planResponse = await SupersetClient.get({
+        endpoint: `/subscription/api/stripe-plan/${planId}`,
       });
       
-      if (!stripeResponse.ok) {
-        throw new Error('Plan not found');
-      }
-      
-      const planData = await stripeResponse.json();
+      const planData = planResponse.json as any;
       setPlan({
         id: planData.id,
         product_id: planData.id,
-        name: planData.product,
+        name: planData.product || planData.name,
         description: planData.description || '',
         price: parseFloat(planData.price),
-        billing_cycle: planData.billing_cycle,
-        stripe_price_id: planData.stripe_price_id,
+        billing_cycle: planData.billing_cycle || 'month',
+        stripe_price_id: planData.stripe_price_id || planData.id,
       });
       
     } catch (error) {
@@ -376,7 +386,7 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
       setError(t('Invalid subscription plan or plan not found.'));
       addDangerToast(t('Invalid subscription plan. Redirecting to plans page.'));
       setTimeout(() => {
-        window.location.href = '/subscription/plans';
+        history.push('/subscription/plans');
       }, 2000);
     } finally {
       setLoading(false);
@@ -387,22 +397,19 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
     if (!stripeLoaded || !plan || !window.Stripe) return;
     
     try {
-      // Get Stripe publishable key from the backend (same way as original)
-      const configResponse = await fetch('/subscription/payment/' + planId);
-      const configText = await configResponse.text();
+      // Get Stripe configuration from the new API endpoint
+      const configResponse = await SupersetClient.get({
+        endpoint: '/subscription/api/stripe-config',
+      });
       
-      // Extract the stripe publishable key from the HTML response
-      // This maintains the same mechanism as the original template
-      const keyMatch = configText.match(/stripe_publishable_key["']\s*value=["']([^"']+)["']/);
-      if (!keyMatch) {
-        throw new Error('Could not find Stripe publishable key');
+      const configData = configResponse.json as any;
+      if (!configData.publishable_key) {
+        throw new Error('No Stripe publishable key received from server');
       }
       
-      const stripePublishableKey = keyMatch[1];
-      
-      // Initialize Stripe with the same configuration as original
-      stripeRef.current = window.Stripe(stripePublishableKey, {
-        apiVersion: '2025-01-27.acacia; custom_checkout_beta=v1;',
+      // Initialize Stripe with the configuration from API
+      stripeRef.current = window.Stripe(configData.publishable_key, {
+        apiVersion: configData.api_version || '2025-01-27.acacia; custom_checkout_beta=v1;',
       });
       
       console.log('Stripe initialized with version:', window.Stripe.version);
@@ -420,51 +427,52 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
     if (!plan) return;
     
     try {
-      // Get CSRF token (same as original)
-      const csrfToken = document.querySelector<HTMLInputElement>('#csrf_token')?.value;
-      
-      // Create payment intent with IDENTICAL logic to original
-      const response = await fetch('/subscription/create-payment-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken || '',
-        },
-        body: JSON.stringify({
+      // Create payment intent using SupersetClient for CSRF handling
+      const response = await SupersetClient.post({
+        endpoint: '/subscription/create-payment-intent',
+        jsonPayload: {
           orderAmount: plan.price.toString(),
           product_id: plan.product_id,
-        }),
+        },
       });
       
-      const data = await response.json();
+      const data = response.json as any;
       
-      if (response.ok) {
-        if (data.redirect_url) {
+      if (data.redirect_url) {
+        // Use React Router navigation to stay in React app where possible
+        if (data.redirect_url.includes('/subscription/manage')) {
+          history.push('/subscription/manage');
+        } else if (data.redirect_url.includes('/subscription/plans')) {
+          history.push('/subscription/plans');
+        } else {
           window.location.href = data.redirect_url;
-          return;
         }
-        
-        // Store the client secret and IDs (identical to original)
-        setClientSecret(data.clientSecret);
-        setCustomerId(data.customer_id);
-        setSubscriptionId(data.subscription_id);
-        setPaymentId(data.payment_id);
-        
-        // Create elements instance (identical to original)
-        const loader = 'auto';
-        elementsRef.current = stripeRef.current.elements({ clientSecret: data.clientSecret, loader });
-        
-        // Create and mount Payment Element (identical to original)
-        paymentElementRef.current = elementsRef.current.create('payment');
-        paymentElementRef.current.mount('#payment-element-container');
-        
-        // Create and mount linkAuthentication Element (identical to original)
-        const linkAuthenticationElement = elementsRef.current.create("linkAuthentication");
-        linkAuthenticationElement.mount("#link-authentication-element");
-        
-      } else {
-        throw new Error(data.error || 'Failed to create checkout session');
+        return;
       }
+      
+      // Validate required fields
+      if (!data.clientSecret) {
+        throw new Error('No client secret received from server');
+      }
+      
+      // Store the client secret and IDs (identical to original)
+      setClientSecret(data.clientSecret);
+      setCustomerId(data.customer_id || '');
+      setSubscriptionId(data.subscription_id || '');
+      setPaymentId(data.payment_id || '');
+      
+      // Create elements instance (identical to original)
+      const loader = 'auto';
+      elementsRef.current = stripeRef.current.elements({ clientSecret: data.clientSecret, loader });
+      
+      // Create and mount Payment Element (identical to original)
+      paymentElementRef.current = elementsRef.current.create('payment');
+      paymentElementRef.current.mount('#payment-element-container');
+      
+      // Create and mount linkAuthentication Element (identical to original)
+      const linkAuthenticationElement = elementsRef.current.create("linkAuthentication");
+      linkAuthenticationElement.mount("#link-authentication-element");
+      
     } catch (error) {
       console.error('Error creating payment intent:', error);
       setError(error instanceof Error ? error.message : t('Failed to initialize payment. Please try again.'));
@@ -524,30 +532,26 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
     console.log('Payment intent:', JSON.stringify(paymentIntent));
     
     try {
-      // Get CSRF token
-      const csrfToken = document.querySelector<HTMLInputElement>('#csrf_token')?.value;
-      
-      // Notify server of successful payment (IDENTICAL to original)
-      const response = await fetch('/subscription/payment-complete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken || '',
-        },
-        body: JSON.stringify({
+      // Notify server of successful payment using SupersetClient
+      const response = await SupersetClient.post({
+        endpoint: '/subscription/payment-complete',
+        jsonPayload: {
           payment_intent_id: paymentIntent.id,
           plan_id: planId,
           customer_id: customerId,
           subscription_id: subscriptionId,
           payment_id: paymentId,
-        }),
+        },
       });
       
-      const data = await response.json();
+      const data = response.json as any;
       
-      if (response.ok && data.success) {
-        // Redirect to success page (identical to original)
-        window.location.href = '/subscription/subscription-success';
+      if (data.success) {
+        // Show success message and redirect
+        addSuccessToast(t('Payment successful! Redirecting to success page...'));
+        setTimeout(() => {
+          history.push('/subscription/subscription-success');
+        }, 1000);
       } else {
         throw new Error(data.error || 'Failed to record payment');
       }
@@ -555,7 +559,7 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
       console.error('Error in payment completion:', error);
       setPaymentError(error instanceof Error ? error.message : t('Payment successful, but failed to update subscription status'));
     }
-  }, [customerId, subscriptionId, paymentId, planId]);
+  }, [customerId, subscriptionId, paymentId, planId, addSuccessToast]);
 
   const subMenuButtons: SubMenuProps['buttons'] = [];
 
@@ -611,7 +615,7 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
             </StyledCardHeader>
             <StyledCardBody>
               <form id="payment-form" onSubmit={handlePaymentSubmit}>
-                {/* Hidden inputs for compatibility */}
+                {/* Hidden inputs for compatibility - not needed in React but keeping for consistency */}
                 <input type="hidden" id="plan-price" value={plan.price} />
                 <input type="hidden" id="plan-id" value={planId} />
                 <input type="hidden" id="stripe-publishable-key" value="" />

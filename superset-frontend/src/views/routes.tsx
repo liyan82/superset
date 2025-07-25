@@ -309,6 +309,10 @@ export const routes: Routes = [
     Component: SubscriptionManage,
   },
   {
+    path: '/subscription/subscribe/:planId',
+    Component: SubscriptionPayment,
+  },
+  {
     path: '/subscription/payment/:planId',
     Component: SubscriptionPayment,
   },

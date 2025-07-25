@@ -364,6 +364,9 @@ class SubscriptionView(BaseView):
         user = self._get_user()
         self.log_subscription(f"User obtained: {user.username if user else 'None'}", level="info")
 
+        # Check if this is a JSON request (from React)
+        is_json_request = request.headers.get('Accept') == 'application/json' or request.args.get('format') == 'json'
+
         current_subscription = user.current_subscription
         if current_subscription:
             self.log_subscription(
@@ -378,13 +381,17 @@ class SubscriptionView(BaseView):
             )
 
         if user.has_active_subscription:
-            flash(
-                _("You already have an active subscription. Please cancel it before subscribing to a new plan."),
-                "warning",
-            )
+            message = _("You already have an active subscription. Please cancel it before subscribing to a new plan.")
             self.log_subscription(
                 f"User {user.username} already has an active subscription. Redirecting to manage page.", level="info"
             )
+            if is_json_request:
+                return jsonify({
+                    "redirect": "/subscription/manage",
+                    "message": message,
+                    "message_type": "warning"
+                })
+            flash(message, "warning")
             return redirect(url_for(".manage"))
         elif (
             current_subscription
@@ -402,19 +409,29 @@ class SubscriptionView(BaseView):
                 current_subscription.status = "active"
                 current_subscription.is_auto_renew = True
                 self.appbuilder.session.commit()
-                flash(
-                    _("Your subscription has been revived. Subscription billing will resume on the next billing date."),
-                    "info",
-                )
+                message = _("Your subscription has been revived. Subscription billing will resume on the next billing date.")
                 self.log_subscription(
                     f"Subscription revived successfully for user {user.username}. Redirecting to manage page.",
                     level="info",
                 )
+                if is_json_request:
+                    return jsonify({
+                        "redirect": "/subscription/manage",
+                        "message": message,
+                        "message_type": "info"
+                    })
+                flash(message, "info")
             else:
                 self.log_subscription(
                     f"Failed to revive subscription for user {user.username}. Redirecting to manage page.",
                     level="warning",
                 )
+                if is_json_request:
+                    return jsonify({
+                        "redirect": "/subscription/manage",
+                        "message": _("Failed to revive subscription. Please contact support."),
+                        "message_type": "warning"
+                    })
             return redirect(url_for(".manage"))
         else:
             # Find plan by Stripe product ID
@@ -425,10 +442,17 @@ class SubscriptionView(BaseView):
             )
             plan = self.payment_processor.get_stripe_plan(plan_id)
             if not plan:
-                flash(_("Invalid subscription plan"), "danger")
+                message = _("Invalid subscription plan")
                 self.log_subscription(
                     f"Invalid subscription plan_id: {plan_id}. Redirecting to plans page.", level="warning"
                 )
+                if is_json_request:
+                    return jsonify({
+                        "redirect": "/subscription/plans",
+                        "message": message,
+                        "message_type": "danger"
+                    })
+                flash(message, "danger")
                 return redirect(url_for(".plans"))
 
             self.log_subscription(
@@ -436,6 +460,10 @@ class SubscriptionView(BaseView):
                 f"Redirecting user {user.username} to payment page for plan_id: {plan_id}",
                 level="info",
             )
+            if is_json_request:
+                return jsonify({
+                    "redirect": f"/subscription/payment/{plan_id}"
+                })
             return redirect(url_for(".payment", plan_id=plan_id))
 
     @expose("/payment/<plan_id>", methods=["GET", "POST"])
@@ -1092,6 +1120,25 @@ class SubscriptionView(BaseView):
         """Simple test endpoint to verify API routing is working"""
         self.log_subscription("=== API Test endpoint called ===", level="info")
         return jsonify({"message": "API routing is working!", "timestamp": datetime.datetime.now().isoformat()})
+
+    @expose("/api/stripe-config")
+    def api_stripe_config(self) -> Response:
+        """Return Stripe configuration for React frontend"""
+        try:
+            self.log_subscription("=== API Stripe Config endpoint called ===", level="info")
+            stripe_publishable_key = current_app.config.get("STRIPE_PUBLIC_KEY")
+            
+            if not stripe_publishable_key:
+                self.log_subscription("No Stripe publishable key found in configuration", level="warning")
+                return make_response(jsonify({"error": "Stripe configuration not available"}), 500)
+            
+            return jsonify({
+                "publishable_key": stripe_publishable_key,
+                "api_version": "2025-01-27.acacia; custom_checkout_beta=v1;"
+            })
+        except Exception as e:
+            self.log_subscription(f"Error in api_stripe_config: {str(e)}", level="error")
+            return make_response(jsonify({"error": str(e)}), 500)
 
     # Helper methods
     def calc_subscription_period(self, plan: SubscriptionPlan | None) -> datetime.timedelta:

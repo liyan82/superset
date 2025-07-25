@@ -18,6 +18,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { css, t, styled, useTheme } from '@superset-ui/core';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
@@ -306,6 +307,7 @@ interface SubscriptionPlansProps {
 
 export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
   const theme = useTheme();
+  const history = useHistory();
   const { addDangerToast, addSuccessToast } = useToasts();
   const bootstrapData = getBootstrapData();
   const currentUser = user || bootstrapData?.user;
@@ -325,7 +327,7 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
       
       // If user has active subscription, redirect to manage page
       if (status.has_active_subscription) {
-        window.location.href = '/subscription/manage';
+        history.push('/subscription/manage');
         return;
       }
       
@@ -365,7 +367,14 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
         
         const data = response.json;
         if (data.redirect) {
-          window.location.href = data.redirect;
+          // Use React Router navigation to stay in React app
+          if (data.redirect.includes('/subscription/manage')) {
+            history.push('/subscription/manage');
+          } else if (data.redirect.includes('/subscription/plans')) {
+            history.push('/subscription/plans');
+          } else {
+            window.location.href = data.redirect;
+          }
           return;
         }
         
@@ -441,8 +450,46 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
     
     setSubscribingToPlan(planId);
     try {
-      // Navigate to subscription page - this maintains the exact same flow as the template
-      window.location.href = `/subscription/subscribe/${planId}`;
+      // Call backend subscribe endpoint with JSON request
+      const response = await SupersetClient.get({
+        endpoint: `/subscription/subscribe/${planId}`,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      const data = response.json as any;
+      
+      // Handle response from backend
+      if (data.redirect) {
+        // Show message if provided
+        if (data.message) {
+          if (data.message_type === 'info') {
+            addSuccessToast(data.message);
+          } else if (data.message_type === 'warning' || data.message_type === 'danger') {
+            addDangerToast(data.message);
+          }
+        }
+        
+        // Navigate using React Router to stay in React app
+        const redirectPath = data.redirect;
+        if (redirectPath.includes('/subscription/manage')) {
+          setTimeout(() => history.push('/subscription/manage'), data.message ? 1500 : 0);
+        } else if (redirectPath.includes('/subscription/payment/')) {
+          // Extract plan ID from redirect URL
+          const match = redirectPath.match(/\/subscription\/payment\/(.+)/);
+          const redirectPlanId = match ? match[1] : planId;
+          setTimeout(() => history.push(`/subscription/payment/${redirectPlanId}`), data.message ? 1500 : 0);
+        } else if (redirectPath.includes('/subscription/plans')) {
+          setTimeout(() => history.push('/subscription/plans'), data.message ? 1500 : 0);
+        } else {
+          // Fallback to window.location for external or unknown redirects
+          setTimeout(() => window.location.href = redirectPath, data.message ? 1500 : 0);
+        }
+      } else {
+        // Fallback: direct navigation to payment page
+        history.push(`/subscription/payment/${planId}`);
+      }
     } catch (error) {
       console.error('Error initiating subscription:', error);
       addDangerToast(t('Error starting subscription process. Please try again.'));
