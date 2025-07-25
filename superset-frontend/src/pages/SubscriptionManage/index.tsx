@@ -18,7 +18,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { css, t, styled, useTheme } from '@superset-ui/core';
+import { css, t, styled } from '@superset-ui/core';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
@@ -26,11 +26,31 @@ import { Modal } from '@superset-ui/core/components';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
 import getBootstrapData from 'src/utils/getBootstrapData';
 
+const StyledPageWrapper = styled.div`
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: #f5f7fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #f5f7fa;
+    z-index: -1;
+  }
+`;
+
 const StyledContainer = styled.div`
-  ${({ theme }) => css`
-    padding: ${theme.sizeUnit * 5}px;
-    margin-bottom: ${theme.sizeUnit * 10}px;
-  `}
+  padding: 25px;
+  margin-bottom: 50px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
 `;
 
 const StyledRow = styled.div`
@@ -297,7 +317,6 @@ interface SubscriptionManageProps {
 }
 
 export default function SubscriptionManage({ user }: SubscriptionManageProps) {
-  const theme = useTheme();
   const { addDangerToast, addSuccessToast } = useToasts();
   const bootstrapData = getBootstrapData();
   const currentUser = user || bootstrapData?.user;
@@ -428,19 +447,22 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
 
   if (loading) {
     return (
-      <StyledContainer>
-        <SubMenu name={t('Manage Subscription')} buttons={subMenuButtons} />
-        <div style={{ textAlign: 'center', padding: '50px' }}>
-          {t('Loading subscription details...')}
-        </div>
-      </StyledContainer>
+      <StyledPageWrapper>
+        <StyledContainer>
+          <SubMenu name={t('Manage Subscription')} buttons={subMenuButtons} />
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            {t('Loading subscription details...')}
+          </div>
+        </StyledContainer>
+      </StyledPageWrapper>
     );
   }
 
   if (error) {
     return (
-      <StyledContainer>
-        <SubMenu name={t('Manage Subscription')} buttons={subMenuButtons} />
+      <StyledPageWrapper>
+        <StyledContainer>
+          <SubMenu name={t('Manage Subscription')} buttons={subMenuButtons} />
         <StyledAlert variant="warning">
           <h4>{t('Error Loading Subscription')}</h4>
           <p>{error}</p>
@@ -448,14 +470,16 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
             {t('Retry')}
           </StyledButton>
         </StyledAlert>
-      </StyledContainer>
+        </StyledContainer>
+      </StyledPageWrapper>
     );
   }
 
   if (!details?.subscription) {
     return (
-      <StyledContainer>
-        <SubMenu name={t('Manage Subscription')} buttons={subMenuButtons} />
+      <StyledPageWrapper>
+        <StyledContainer>
+          <SubMenu name={t('Manage Subscription')} buttons={subMenuButtons} />
         <StyledAlert variant="warning">
           <h4>{t('No Active Subscription')}</h4>
           <p>{t('You don\'t have an active subscription at the moment.')}</p>
@@ -463,15 +487,17 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
             <StyledButton variant="primary">{t('View Available Plans')}</StyledButton>
           </a>
         </StyledAlert>
-      </StyledContainer>
+        </StyledContainer>
+      </StyledPageWrapper>
     );
   }
 
   const subscription = details.subscription;
 
   return (
-    <StyledContainer>
-      <SubMenu name={t('Manage Your Subscription')} buttons={subMenuButtons} />
+    <StyledPageWrapper>
+      <StyledContainer>
+        <SubMenu name={t('Manage Your Subscription')} buttons={subMenuButtons} />
       
       <StyledRow>
         <StyledCol md={8}>
@@ -607,6 +633,7 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
           <strong>{formatDate(subscription.end_date)}</strong>.
         </p>
       </Modal>
-    </StyledContainer>
+      </StyledContainer>
+    </StyledPageWrapper>
   );
 } 
