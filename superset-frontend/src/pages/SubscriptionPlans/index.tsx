@@ -319,11 +319,19 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
   const [subscribingToPlan, setSubscribingToPlan] = useState<string | null>(null);
   const [showReactivationModal, setShowReactivationModal] = useState(false);
   const [planToReactivate, setPlanToReactivate] = useState<string | null>(null);
+  const [showPlanSwitchModal, setShowPlanSwitchModal] = useState(false);
+  const [planToSwitch, setPlanToSwitch] = useState<string | null>(null);
 
   // Helper function to check if user is subscribing to the same plan they previously cancelled
   const isSameCancelledPlan = useCallback((planId: string) => {
     return userStatus?.subscription?.status === 'cancelled' && 
            userStatus.subscription?.plan?.product_id === planId;
+  }, [userStatus]);
+
+  // Helper function to check if user is subscribing to a different plan they previously cancelled
+  const isDifferentCancelledPlan = useCallback((planId: string) => {
+    return userStatus?.subscription?.status === 'cancelled' && 
+           userStatus.subscription?.plan?.product_id !== planId;
   }, [userStatus]);
 
   const checkUserStatus = useCallback(async () => {
@@ -464,6 +472,13 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
       return;
     }
     
+    // Check if user is subscribing to a different plan they previously cancelled
+    if (isDifferentCancelledPlan(planId)) {
+      setPlanToSwitch(planId);
+      setShowPlanSwitchModal(true);
+      return;
+    }
+    
     setSubscribingToPlan(planId);
     try {
       // Call backend subscribe endpoint with JSON request
@@ -572,6 +587,51 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
   const handleCancelReactivation = () => {
     setShowReactivationModal(false);
     setPlanToReactivate(null);
+  };
+
+  const handleConfirmPlanSwitch = async () => {
+    if (!planToSwitch) return;
+    
+    setShowPlanSwitchModal(false);
+    setSubscribingToPlan(planToSwitch);
+    
+    try {
+      // Call new plan switch API directly (bypasses payment page)
+      const response = await SupersetClient.post({
+        endpoint: '/subscription/api/switch-plan',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        jsonPayload: {
+          plan_id: planToSwitch,
+        },
+      });
+      
+      const data = response.json as any;
+      
+      if (data.success) {
+        // Show success message
+        addSuccessToast(data.message || t('Plan switched successfully!'));
+        
+        // Navigate to manage page after brief delay
+        setTimeout(() => history.push('/subscription/manage'), 1500);
+      } else {
+        // Handle error response
+        addDangerToast(data.error || t('Error switching subscription plan. Please try again.'));
+      }
+    } catch (error) {
+      console.error('Error switching subscription plan:', error);
+      const errorMessage = error instanceof Error ? error.message : t('Error switching subscription plan. Please try again.');
+      addDangerToast(errorMessage);
+    } finally {
+      setSubscribingToPlan(null);
+      setPlanToSwitch(null);
+    }
+  };
+
+  const handleCancelPlanSwitch = () => {
+    setShowPlanSwitchModal(false);
+    setPlanToSwitch(null);
   };
 
   if (loading) {
@@ -688,7 +748,9 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
                         ? t('Processing...') 
                         : isSameCancelledPlan(plan.product_id) 
                           ? t('Reactivate Subscription')
-                          : t('Subscribe')
+                          : isDifferentCancelledPlan(plan.product_id)
+                            ? t('Switch Plan')
+                            : t('Subscribe')
                       }
                     </button>
                   </div>
@@ -728,6 +790,38 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
           </p>
           <p>
             {t('Would you like to reactivate your subscription to this plan?')}
+          </p>
+        </div>
+      </Modal>
+
+      {/* Plan switching confirmation modal */}
+      <Modal
+        title={t('Switch Subscription Plan')}
+        open={showPlanSwitchModal}
+        onOk={handleConfirmPlanSwitch}
+        onCancel={handleCancelPlanSwitch}
+        okText={t('Switch Plan')}
+        cancelText={t('Cancel')}
+        okButtonProps={{
+          loading: subscribingToPlan === planToSwitch,
+        }}
+      >
+        <div style={{ marginBottom: '16px' }}>
+          <p>
+            {t('You currently have a cancelled subscription that\'s still valid until %s.', 
+              userStatus?.subscription?.end_date ? new Date(userStatus.subscription.end_date).toLocaleDateString() : 'N/A'
+            )}
+          </p>
+          <p>
+            <strong>{t('Great news!')}</strong> {t('You can switch to this new plan immediately and get access to all its features right away!')}
+          </p>
+          <p>
+            {t('Your billing for the new plan will start on %s when your current subscription expires, so you won\'t pay double.', 
+              userStatus?.subscription?.end_date ? new Date(userStatus.subscription.end_date).toLocaleDateString() : 'N/A'
+            )}
+          </p>
+          <p>
+            <strong>{t('Would you like to switch to this plan now?')}</strong>
           </p>
         </div>
       </Modal>

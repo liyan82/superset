@@ -1021,18 +1021,24 @@ class SubscriptionView(BaseView):
                     }
                 })
             
-            # Get payments
+            # Get ALL payments for this user (not just current subscription)
             payments_data = []
-            if hasattr(subscription, 'payments') and subscription.payments:
-                for payment in subscription.payments:
-                    payments_data.append({
-                        "id": payment.id,
-                        "amount": float(payment.amount),
-                        "status": payment.status,
-                        "payment_date": payment.payment_date.isoformat() if payment.payment_date else None,
-                        "payment_method": payment.payment_method,
-                        "transaction_id": payment.transaction_id
-                    })
+            all_user_payments = self.check_user_payments(user.id)
+            self.log_subscription(f"Found {len(all_user_payments)} total payments for user {user.id}", level="info")
+            
+            for payment in all_user_payments:
+                payments_data.append({
+                    "id": payment.id,
+                    "amount": float(payment.amount),
+                    "status": payment.status,
+                    "payment_date": payment.payment_date.isoformat() if payment.payment_date else None,
+                    "payment_method": payment.payment_method,
+                    "transaction_id": payment.transaction_id,
+                    "subscription_id": payment.subscription_id  # Include which subscription this payment was for
+                })
+            
+            # Sort payments by date (most recent first)
+            payments_data.sort(key=lambda x: x["payment_date"] or "", reverse=True)
             
             return jsonify({
                 "subscription": {
@@ -1128,6 +1134,105 @@ class SubscriptionView(BaseView):
             return jsonify(plan)
         except Exception as e:
             self.log_subscription(f"Error in api_stripe_plan: {str(e)}", level="error")
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    @expose("/api/switch-plan", methods=["POST"])
+    def api_switch_plan(self) -> Response:
+        """API endpoint for direct plan switching without payment page"""
+        self.log_subscription("=== API Switch Plan endpoint called ===", level="info")
+        try:
+            # Check if user is logged in first
+            if not hasattr(g, 'user') or not g.user:
+                self.log_subscription("No user found in session for API switch plan", level="info")
+                return make_response(jsonify({"error": "Authentication required"}), 401)
+            
+            data = request.get_json()
+            if not data or not data.get("plan_id"):
+                return make_response(jsonify({"error": "Plan ID is required"}), 400)
+            
+            plan_id = data["plan_id"]
+            self.log_subscription(f"Switching to plan: {plan_id}", level="info")
+            
+            user = self._get_user()
+            current_subscription = user.current_subscription
+            
+            if not current_subscription or current_subscription.status != "cancelled":
+                return make_response(jsonify({"error": "No cancelled subscription found to switch from"}), 400)
+            
+            # Get the new plan
+            new_plan = self.appbuilder.session.query(SubscriptionPlan).filter_by(product_id=plan_id).first()
+            if not new_plan:
+                return make_response(jsonify({"error": "Invalid plan ID"}), 400)
+            
+            # Check if it's the same plan (should use reactivation instead)
+            current_plan = self.appbuilder.session.query(SubscriptionPlan).filter_by(id=current_subscription.plan_id).first()
+            if current_plan and current_plan.product_id == plan_id:
+                return make_response(jsonify({"error": "Use reactivation for same plan"}), 400)
+            
+            # Calculate trial period until old subscription expires
+            now = datetime.datetime.now()
+            if current_subscription.end_date > now:
+                trial_days = (current_subscription.end_date - now).days
+                billing_start_date = current_subscription.end_date
+            else:
+                trial_days = 0
+                billing_start_date = now
+            
+            self.log_subscription(f"Trial period: {trial_days} days, billing starts: {billing_start_date}", level="info")
+            
+            # Create new subscription with immediate access
+            new_subscription = UserSubscription(
+                user_id=user.id,
+                plan_id=new_plan.id,
+                status="active",  # Immediate access
+                start_date=now,
+                end_date=billing_start_date + self.calc_subscription_period(new_plan),
+                is_auto_renew=True,
+            )
+            
+            # Create Stripe customer if needed
+            stripe_customer = self.payment_processor.create_customer(user)
+            if not stripe_customer:
+                return make_response(jsonify({"error": "Failed to create Stripe customer"}), 500)
+            
+            # Create Stripe subscription with trial period
+            if trial_days > 0:
+                # Create subscription with trial period
+                stripe_subscription = self.payment_processor.create_stripe_subscription_with_trial(
+                    stripe_customer, new_plan, trial_days
+                )
+            else:
+                # Regular subscription starting immediately
+                stripe_subscription = self.payment_processor.create_stripe_subscription(
+                    stripe_customer, new_plan, billing_start_date
+                )
+            
+            if not stripe_subscription:
+                return make_response(jsonify({"error": "Failed to create Stripe subscription"}), 500)
+            
+            # Update subscription with Stripe details
+            new_subscription.external_subscription_id = stripe_subscription.id
+            
+            # Mark old subscription as replaced
+            current_subscription.status = "replaced"
+            
+            # Save to database
+            self.appbuilder.session.add(new_subscription)
+            self.appbuilder.session.commit()
+            
+            self.log_subscription(f"Successfully switched plan from {current_plan.name if current_plan else 'Unknown'} to {new_plan.name}", level="info")
+            
+            return jsonify({
+                "success": True,
+                "message": f"Plan switched successfully! You now have immediate access to {new_plan.name}. " +
+                          (f"Billing will start on {billing_start_date.strftime('%Y-%m-%d')}." if trial_days > 0 else "Billing starts immediately."),
+                "redirect_url": "/subscription/manage",
+                "trial_days": trial_days,
+                "billing_start_date": billing_start_date.isoformat()
+            })
+            
+        except Exception as e:
+            self.log_subscription(f"Error in api_switch_plan: {str(e)}", level="error")
             return make_response(jsonify({"error": str(e)}), 500)
 
     @expose("/api/test")

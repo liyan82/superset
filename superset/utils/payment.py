@@ -451,6 +451,52 @@ class PaymentProcessor:
             self.log_payment(f"General error creating subscription: {str(e)}", level="error")
             raise
 
+    def create_stripe_subscription_with_trial(
+        self, customer: stripe.Customer, plan: SubscriptionPlan, trial_days: int
+    ) -> Optional[stripe.Subscription]:
+        """Create a Stripe subscription with a trial period (no payment required)"""
+        self.log_payment(
+            f"Starting create_stripe_subscription_with_trial: "
+            f"customer_id={customer.id}, "
+            f"plan_id={plan.id}, "
+            f"trial_days={trial_days}",
+            level="info",
+        )
+        try:
+            if plan.stripe_price_id is None or plan.stripe_price_id == "":
+                self.log_payment(f"Plan {plan.id} has no Stripe price ID", level="error")
+                return None
+
+            self.log_payment(f"Using stripe_price_id: {plan.stripe_price_id}", level="info")
+
+            # Create subscription with trial period - no payment method required
+            subscription = stripe.Subscription.create(
+                customer=customer.id,
+                items=[{"price": plan.stripe_price_id}],
+                trial_period_days=trial_days,
+                collection_method="charge_automatically",
+                # Note: No payment method required during trial
+                expand=["latest_invoice"],
+            )
+
+            self.log_payment(
+                f"Successfully created trial subscription: "
+                f"id={subscription.id}, "
+                f"status={subscription.status}, "
+                f"trial_end={datetime.datetime.fromtimestamp(subscription.trial_end) if subscription.trial_end else 'None'}, "
+                f"current_period_start={datetime.datetime.fromtimestamp(subscription.current_period_start)}, "
+                f"current_period_end={datetime.datetime.fromtimestamp(subscription.current_period_end)}",
+                level="info",
+            )
+            return subscription
+
+        except stripe.StripeError as e:
+            self.log_payment(f"Stripe error creating trial subscription: {str(e)}", level="error")
+            raise
+        except Exception as e:
+            self.log_payment(f"General error creating trial subscription: {str(e)}", level="error")
+            raise
+
     def retrieve_intent_from_invoice(self, invoice_id: str) -> Optional[stripe.PaymentIntent]:
         """Retrieve a Stripe Payment Intent from an invoice"""
         try:
