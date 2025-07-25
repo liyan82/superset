@@ -217,6 +217,8 @@ const config = {
     menu: addPreamble('src/views/menu.tsx'),
     spa: addPreamble('/src/views/index.tsx'),
     embedded: addPreamble('/src/embedded/index.tsx'),
+    registration: addPreamble('/src/views/registration.tsx'),
+    checkEmail: addPreamble('/src/views/checkEmail.tsx'),
   },
   cache: {
     type: 'filesystem', // Enable filesystem caching

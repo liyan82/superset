@@ -14,6 +14,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+import json
 import logging
 from typing import cast, Optional
 import re
@@ -32,6 +33,8 @@ from flask_appbuilder.security.registerviews import RegisterUserDBView
 from flask_appbuilder.security.sqla.models import RegisterUser
 from flask_babel import lazy_gettext
 from flask_login import logout_user
+from flask_wtf.csrf import generate_csrf
+from superset.utils import json as superset_json
 
 logger = logging.getLogger(__name__)
 
@@ -78,12 +81,20 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
     def this_form_get(self) -> Response:
         logout_user()
         self._init_vars()
-        form = self.form()
+        # Serve the React app instead of Jinja template
+        # Import here to avoid circular import
+        from superset.views.base import common_bootstrap_payload
+        
+        payload = {
+            "common": common_bootstrap_payload(),
+            "registration": {
+                "title": str(self.form_title),
+            }
+        }
         return self.render_template(
-            self.form_template,
-            title=self.form_title,
-            form=form,
-            appbuilder=self.appbuilder,
+            "superset/basic.html",
+            entry="registration",
+            bootstrap_data=json.dumps(payload, default=superset_json.pessimistic_json_iso_dttm_ser),
         )
 
     @expose("/form", methods=["POST"])
@@ -211,14 +222,24 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
             )
             return cast(Response, redirect(self.appbuilder.get_url_for_login))
 
+        # Serve the React app instead of Jinja template
+        # Import here to avoid circular import
+        from superset.views.base import common_bootstrap_payload
+        
+        payload = {
+            "common": common_bootstrap_payload(),
+            "checkEmail": {
+                "title": str(lazy_gettext("Check Your Email")),
+                "email": email,
+                "register_user_id": register_user.id,
+            }
+        }
         return cast(
             Response,
             self.render_template(
-                "appbuilder/general/security/check_email_for_activation.html",
-                title=lazy_gettext("Check Your Email"),
-                appbuilder=self.appbuilder,
-                register_user_id=register_user.id,
-                email=email,
+                "superset/basic.html",
+                entry="checkEmail",
+                bootstrap_data=json.dumps(payload, default=superset_json.pessimistic_json_iso_dttm_ser),
             ),
         )
 

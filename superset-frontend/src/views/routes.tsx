@@ -154,6 +154,8 @@ const Register = lazy(
   () => import(/* webpackChunkName: "Register" */ 'src/pages/Register'),
 );
 
+
+
 const GroupsList: LazyExoticComponent<any> = lazy(
   () => import(/* webpackChunkName: "GroupsList" */ 'src/pages/GroupsList'),
 );
@@ -190,6 +192,7 @@ export const routes: Routes = [
     path: '/register/',
     Component: Register,
   },
+
   {
     path: '/logout/',
     Component: Login,

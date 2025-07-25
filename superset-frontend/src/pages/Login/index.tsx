@@ -207,7 +207,7 @@ export default function Login() {
                     <Button
                       block
                       type="default"
-                      href="/register/"
+                      href="/register/form"
                       data-test="register-button"
                     >
                       {t('Register')}

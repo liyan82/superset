@@ -193,7 +193,7 @@ export default function CustomLoginPage() {
               `}
             >
               {t("Don't have an account?")}{' '}
-              <a href="/register/">{t('Sign Up')}</a>
+              <a href="/register/form">{t('Sign Up')}</a>
             </div>
           )}
         </StyledCard>
