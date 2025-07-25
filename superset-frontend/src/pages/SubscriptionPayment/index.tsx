@@ -26,14 +26,34 @@ import { SupersetClient } from '@superset-ui/core';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
 import getBootstrapData from 'src/utils/getBootstrapData';
 
+const StyledPageWrapper = styled.div`
+  min-height: 100vh;
+  min-height: 100dvh; /* Use dynamic viewport height for mobile browsers */
+  background-color: #f5f7fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  position: relative;
+  
+  /* Ensure it covers the full page */
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #f5f7fa;
+    z-index: -1;
+  }
+`;
+
 const StyledContainer = styled.div`
   ${({ theme }) => css`
     padding-top: 50px;
-    padding-bottom: 50px;
+    padding-bottom: 100px; /* Increased bottom padding */
     max-width: 960px;
     margin: 0 auto;
-    background-color: #f5f7fa;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    position: relative;
+    min-height: calc(100vh - 100px); /* Ensure content takes up most of viewport */
   `}
 `;
 
@@ -208,19 +228,22 @@ const StyledSecurePaymentCard = styled(StyledCard)`
   .fa-lock {
     color: #20a7c9;
     margin-right: 1rem;
-    font-size: 2rem;
+    font-size: 2.5rem;
+    flex-shrink: 0;
   }
   
   h6 {
     font-weight: 600;
     color: #156378;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
   }
   
   p {
     color: #6c757d;
-    font-size: 0.875rem;
+    font-size: 1rem;
     margin: 0;
+    line-height: 1.4;
   }
 `;
 
@@ -239,6 +262,7 @@ const StyledListGroupItem = styled.li`
   background-color: transparent;
   border: 0;
   border-bottom: 1px solid rgba(0,0,0,.125);
+  font-size: 1rem;
   
   &:last-child {
     border-bottom: 0;
@@ -249,8 +273,24 @@ const StyledListGroupItem = styled.li`
     border-top: 2px solid #e9f6f9;
     padding-top: 1rem;
     margin-top: 0.5rem;
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     color: #1a85a0;
+  }
+  
+  h6 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  small {
+    font-size: 0.95rem;
+    color: #6c757d;
+  }
+  
+  span {
+    font-size: 1rem;
+    color: #6c757d;
   }
 `;
 
@@ -306,6 +346,7 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
   const [stripeLoaded, setStripeLoaded] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showFallbackIcon, setShowFallbackIcon] = useState(false);
   
   // Stripe-related state
   const stripeRef = useRef<any>(null);
@@ -489,6 +530,24 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
     }
   }, [plan, stripeLoaded, initializeStripe]);
 
+  // Check if FontAwesome is loaded and show fallback icon if needed
+  useEffect(() => {
+    // Small delay to let FontAwesome load
+    const timer = setTimeout(() => {
+      const faElement = document.querySelector('.fa-lock');
+      if (faElement) {
+        const computedStyle = window.getComputedStyle(faElement);
+        // If FontAwesome is not loaded, the icon will likely have no content or default font
+        if (computedStyle.fontFamily.indexOf('FontAwesome') === -1 && 
+            computedStyle.fontFamily.indexOf('Font Awesome') === -1) {
+          setShowFallbackIcon(true);
+        }
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleCopyEmail = useCallback(() => {
     if (currentUser?.email) {
       navigator.clipboard.writeText(currentUser.email).then(() => {
@@ -565,40 +624,47 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
 
   if (loading) {
     return (
-      <StyledContainer>
-        <SubMenu name={t('Checkout')} buttons={subMenuButtons} />
-        <div style={{ textAlign: 'center', padding: '50px' }}>
-          {t('Loading payment information...')}
-        </div>
-      </StyledContainer>
+      <StyledPageWrapper>
+        <StyledContainer>
+          <SubMenu name={t('Checkout')} buttons={subMenuButtons} />
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            {t('Loading payment information...')}
+          </div>
+        </StyledContainer>
+      </StyledPageWrapper>
     );
   }
 
   if (error) {
     return (
-      <StyledContainer>
-        <SubMenu name={t('Checkout')} buttons={subMenuButtons} />
-        <StyledAlert variant="danger">
-          {error}
-        </StyledAlert>
-      </StyledContainer>
+      <StyledPageWrapper>
+        <StyledContainer>
+          <SubMenu name={t('Checkout')} buttons={subMenuButtons} />
+          <StyledAlert variant="danger">
+            {error}
+          </StyledAlert>
+        </StyledContainer>
+      </StyledPageWrapper>
     );
   }
 
   if (!plan) {
     return (
-      <StyledContainer>
-        <SubMenu name={t('Checkout')} buttons={subMenuButtons} />
-        <StyledAlert variant="danger">
-          {t('Plan not found. Redirecting to plans page...')}
-        </StyledAlert>
-      </StyledContainer>
+      <StyledPageWrapper>
+        <StyledContainer>
+          <SubMenu name={t('Checkout')} buttons={subMenuButtons} />
+          <StyledAlert variant="danger">
+            {t('Plan not found. Redirecting to plans page...')}
+          </StyledAlert>
+        </StyledContainer>
+      </StyledPageWrapper>
     );
   }
 
   return (
-    <StyledContainer>
-      <SubMenu name={t('Checkout')} buttons={subMenuButtons} />
+    <StyledPageWrapper>
+      <StyledContainer>
+        <SubMenu name={t('Checkout')} buttons={subMenuButtons} />
       
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <h1>{t('Checkout')}</h1>
@@ -686,10 +752,10 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
                 <StyledListGroupItem>
                   <StyledFlexBetween>
                     <div>
-                      <h6 style={{ margin: 0 }}>{plan.name}</h6>
-                      <small style={{ color: '#6c757d' }}>{plan.description}</small>
+                      <h6>{plan.name}</h6>
+                      <small>{plan.description}</small>
                     </div>
-                    <span style={{ color: '#6c757d' }}>${plan.price.toFixed(2)}</span>
+                    <span>${plan.price.toFixed(2)}</span>
                   </StyledFlexBetween>
                 </StyledListGroupItem>
                 <StyledListGroupItem className="fw-bold">
@@ -703,10 +769,43 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
           </StyledCard>
 
           <StyledSecurePaymentCard>
-            <StyledCardBody style={{ textAlign: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className="fa fa-lock fa-2x" aria-hidden="true"></i>
-                <div>
+            <StyledCardBody style={{ textAlign: 'center', padding: '2rem 1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'left' }}>
+                <div style={{ 
+                  minWidth: '2.5rem', 
+                  height: '2.5rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  marginRight: '1rem',
+                  flexShrink: 0
+                }}>
+                  {!showFallbackIcon ? (
+                    <i className="fa fa-lock" aria-hidden="true" style={{ 
+                      fontSize: '2.5rem', 
+                      color: '#20a7c9',
+                      display: 'block'
+                    }}></i>
+                  ) : (
+                    /* SVG Lock Icon - uniform across all systems */
+                    <svg 
+                      width="40" 
+                      height="40" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <path 
+                        d="M6 10V8C6 5.79086 7.79086 4 10 4H14C16.2091 4 18 5.79086 18 8V10H19C19.5523 10 20 10.4477 20 11V19C20 19.5523 19.5523 20 19 20H5C4.44772 20 4 19.5523 4 19V11C4 10.4477 4.44772 10 5 10H6ZM8 10H16V8C16 6.89543 15.1046 6 14 6H10C8.89543 6 8 6.89543 8 8V10Z" 
+                        fill="#20a7c9"
+                        stroke="#20a7c9"
+                        strokeWidth="0.5"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
                   <h6>{t('Secure Payment via Stripe')}</h6>
                   <p>
                     {t('Your payment is processed securely. We do not store your card details.')}
@@ -717,6 +816,7 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
           </StyledSecurePaymentCard>
         </StyledCol>
       </StyledRow>
-    </StyledContainer>
+      </StyledContainer>
+    </StyledPageWrapper>
   );
 } 
