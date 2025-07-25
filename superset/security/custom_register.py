@@ -243,6 +243,60 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
             ),
         )
 
+    @expose("/activation/<string:activation_hash>")
+    def activation(self, activation_hash: str) -> Response:
+        """
+        Override the activation endpoint to serve React activation success page
+        instead of the default Jinja template.
+        """
+        from superset.views.base import common_bootstrap_payload
+        
+        # Find the registration record
+        reg = self.appbuilder.sm.find_register_user(activation_hash)
+        if not reg:
+            logger.error("No registration found for activation hash: %s", activation_hash)
+            flash(lazy_gettext("Registration not found"), "danger")
+            return cast(Response, redirect(self.appbuilder.get_url_for_login))
+
+        # Try to create the user
+        user_created = self.appbuilder.sm.add_user(
+            username=reg.username,
+            email=reg.email,
+            first_name=reg.first_name,
+            last_name=reg.last_name,
+            role=self.appbuilder.sm.find_role(
+                self.appbuilder.sm.auth_user_registration_role
+            ),
+            hashed_password=reg.password,
+        )
+
+        if not user_created:
+            flash(lazy_gettext("Registration failed. Please try again or contact support."), "danger")
+            return cast(Response, redirect(self.appbuilder.get_url_for_login))
+
+        # User successfully created, clean up registration record
+        self.appbuilder.sm.del_register_user(reg)
+
+        # Serve React activation success page
+        payload = {
+            "common": common_bootstrap_payload(),
+            "activationSuccess": {
+                "title": str(lazy_gettext("Account Activated Successfully!")),
+                "username": reg.username,
+                "first_name": reg.first_name,
+                "last_name": reg.last_name,
+            }
+        }
+        
+        return cast(
+            Response,
+            self.render_template(
+                "superset/basic.html",
+                entry="activationSuccess",
+                bootstrap_data=json.dumps(payload, default=superset_json.pessimistic_json_iso_dttm_ser),
+            ),
+        )
+
     @expose("/resend-activation/<int:register_user_id>", methods=["POST"])
     def resend_activation(self, register_user_id: int) -> Response:
         """

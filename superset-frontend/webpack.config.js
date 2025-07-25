@@ -219,6 +219,7 @@ const config = {
     embedded: addPreamble('/src/embedded/index.tsx'),
     registration: addPreamble('/src/views/registration.tsx'),
     checkEmail: addPreamble('/src/views/checkEmail.tsx'),
+    activationSuccess: addPreamble('/src/views/activationSuccess.tsx'),
   },
   cache: {
     type: 'filesystem', // Enable filesystem caching
