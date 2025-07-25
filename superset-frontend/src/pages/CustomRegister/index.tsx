@@ -20,6 +20,7 @@
 import { useState, useEffect } from 'react';
 import { styled, t } from '@superset-ui/core';
 import getBootstrapData from 'src/utils/getBootstrapData';
+import ReactCAPTCHA from 'react-google-recaptcha';
 
 interface RegisterForm {
   username: string;
@@ -261,6 +262,11 @@ export default function CustomRegister() {
     passwordLowercase: false,
     passwordNumber: false,
   });
+  const [captchaResponse, setCaptchaResponse] = useState<string | null>(null);
+
+  // Get reCAPTCHA public key from bootstrap data
+  const authRecaptchaPublicKey: string = 
+    (bootstrapData as any)?.common?.conf?.RECAPTCHA_PUBLIC_KEY || '';
 
   // Real-time validation for username
   useEffect(() => {
@@ -303,6 +309,11 @@ export default function CustomRegister() {
     const csrfToken = bootstrapData?.common?.conf?.CSRF_TOKEN || 
                      document.querySelector<HTMLInputElement>('#csrf_token')?.value || '';
     formData.append('csrf_token', csrfToken);
+    
+    // Add captcha response if available
+    if (captchaResponse) {
+      formData.append('g-recaptcha-response', captchaResponse);
+    }
 
     // Create a hidden form and submit it traditionally
     const hiddenForm = document.createElement('form');
@@ -481,6 +492,20 @@ export default function CustomRegister() {
                   </div>
                 )}
               </div>
+
+              {/* Google reCAPTCHA */}
+              {authRecaptchaPublicKey && (
+                <div className="form-group">
+                  <label>{t('Captcha')}</label>
+                  <ReactCAPTCHA
+                    sitekey={authRecaptchaPublicKey}
+                    onChange={(value) => {
+                      setCaptchaResponse(value);
+                    }}
+                    data-test="captcha-input"
+                  />
+                </div>
+              )}
 
               <button
                 type="submit"
