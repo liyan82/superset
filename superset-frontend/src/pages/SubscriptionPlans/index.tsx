@@ -24,6 +24,7 @@ import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
 import getBootstrapData from 'src/utils/getBootstrapData';
+import { Modal } from 'antd';
 
 // Unified styled component that replicates the exact styling from plans.html template
 const StyledPlansPage = styled.div`
@@ -316,6 +317,14 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
   const [userStatus, setUserStatus] = useState<SubscriptionStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subscribingToPlan, setSubscribingToPlan] = useState<string | null>(null);
+  const [showReactivationModal, setShowReactivationModal] = useState(false);
+  const [planToReactivate, setPlanToReactivate] = useState<string | null>(null);
+
+  // Helper function to check if user is subscribing to the same plan they previously cancelled
+  const isSameCancelledPlan = useCallback((planId: string) => {
+    return userStatus?.subscription?.status === 'cancelled' && 
+           userStatus.subscription?.plan?.product_id === planId;
+  }, [userStatus]);
 
   const checkUserStatus = useCallback(async () => {
     try {
@@ -448,6 +457,13 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
   const handleSubscribe = async (planId: string) => {
     if (subscribingToPlan) return; // Prevent double-clicking
     
+    // Check if user is subscribing to the same plan they previously cancelled
+    if (isSameCancelledPlan(planId)) {
+      setPlanToReactivate(planId);
+      setShowReactivationModal(true);
+      return;
+    }
+    
     setSubscribingToPlan(planId);
     try {
       // Call backend subscribe endpoint with JSON request
@@ -495,6 +511,67 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
       addDangerToast(t('Error starting subscription process. Please try again.'));
       setSubscribingToPlan(null);
     }
+  };
+
+  const handleConfirmReactivation = async () => {
+    if (!planToReactivate) return;
+    
+    setShowReactivationModal(false);
+    setSubscribingToPlan(planToReactivate);
+    
+    try {
+      // Call backend subscribe endpoint with JSON request
+      const response = await SupersetClient.get({
+        endpoint: `/subscription/subscribe/${planToReactivate}`,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      const data = response.json as any;
+      
+      // Handle response from backend
+      if (data.redirect) {
+        // Show message if provided
+        if (data.message) {
+          if (data.message_type === 'info') {
+            addSuccessToast(data.message);
+          } else if (data.message_type === 'warning' || data.message_type === 'danger') {
+            addDangerToast(data.message);
+          }
+        }
+        
+        // Navigate using React Router to stay in React app
+        const redirectPath = data.redirect;
+        if (redirectPath.includes('/subscription/manage')) {
+          setTimeout(() => history.push('/subscription/manage'), data.message ? 1500 : 0);
+        } else if (redirectPath.includes('/subscription/payment/')) {
+          // Extract plan ID from redirect URL
+          const match = redirectPath.match(/\/subscription\/payment\/(.+)/);
+          const redirectPlanId = match ? match[1] : planToReactivate;
+          setTimeout(() => history.push(`/subscription/payment/${redirectPlanId}`), data.message ? 1500 : 0);
+        } else if (redirectPath.includes('/subscription/plans')) {
+          setTimeout(() => history.push('/subscription/plans'), data.message ? 1500 : 0);
+        } else {
+          // Fallback to window.location for external or unknown redirects
+          setTimeout(() => window.location.href = redirectPath, data.message ? 1500 : 0);
+        }
+      } else {
+        // Fallback: direct navigation to payment page
+        history.push(`/subscription/payment/${planToReactivate}`);
+      }
+    } catch (error) {
+      console.error('Error reactivating subscription:', error);
+      addDangerToast(t('Error reactivating subscription. Please try again.'));
+    } finally {
+      setSubscribingToPlan(null);
+      setPlanToReactivate(null);
+    }
+  };
+
+  const handleCancelReactivation = () => {
+    setShowReactivationModal(false);
+    setPlanToReactivate(null);
   };
 
   if (loading) {
@@ -607,7 +684,12 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
                       disabled={subscribingToPlan === plan.product_id}
                       className="btn btn-block btn-lg btn-subscribe"
                     >
-                      {subscribingToPlan === plan.product_id ? t('Processing...') : t('Subscribe')}
+                      {subscribingToPlan === plan.product_id 
+                        ? t('Processing...') 
+                        : isSameCancelledPlan(plan.product_id) 
+                          ? t('Reactivate Subscription')
+                          : t('Subscribe')
+                      }
                     </button>
                   </div>
                 </div>
@@ -622,6 +704,33 @@ export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
           )}
         </div>
       </div>
+
+      {/* Reactivation confirmation modal */}
+      <Modal
+        title={t('Reactivate Subscription')}
+        open={showReactivationModal}
+        onOk={handleConfirmReactivation}
+        onCancel={handleCancelReactivation}
+        okText={t('Reactivate')}
+        cancelText={t('Cancel')}
+        okButtonProps={{
+          loading: subscribingToPlan === planToReactivate,
+        }}
+      >
+        <div style={{ marginBottom: '16px' }}>
+          <p>
+            {t('You previously had this subscription plan but cancelled it. It\'s still active until %s.', 
+              userStatus?.subscription?.end_date ? new Date(userStatus.subscription.end_date).toLocaleDateString() : 'N/A'
+            )}
+          </p>
+          <p>
+            <strong>{t('Good news!')}</strong> {t('Instead of creating a new subscription, we can reactivate your existing one right away.')}
+          </p>
+          <p>
+            {t('Would you like to reactivate your subscription to this plan?')}
+          </p>
+        </div>
+      </Modal>
     </StyledPlansPage>
   );
 } 
