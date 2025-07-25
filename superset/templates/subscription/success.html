@@ -1,6 +1,8 @@
 {% extends "appbuilder/base.html" %}
+{% from 'superset/partials/asset_bundle.html' import js_bundle with context %}
 
 {% block content %}
+<div id="app-menu"></div>
 <div class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
@@ -51,4 +53,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block tail_js %}
+  {{ super() }}
+  {{ js_bundle(assets_prefix, 'menu') }}
 {% endblock %}

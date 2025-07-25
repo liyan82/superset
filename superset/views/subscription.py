@@ -26,7 +26,7 @@ from superset.utils.payment import PaymentProcessor
 
 class SubscriptionView(BaseView):
     route_base = "/subscription"
-    default_view = "index"  # Set the default view to the index method
+    default_view = "plans"  # Set the default view to the index method
     payment_processor: PaymentProcessor
     calculate_tax: bool = False
 
@@ -212,7 +212,6 @@ class SubscriptionView(BaseView):
             plan.feature_list = self._get_db_features_list(plan)
         return active_plans
 
-    @expose("/")
     @expose("/index")
     def index(self) -> Response:
         """Smart entry point that either shows plans or redirects to manage page"""
@@ -222,9 +221,13 @@ class SubscriptionView(BaseView):
         user = self._get_user()
         self.log_subscription(f"Retrieved user with ID: {user.id}", level="info")
 
+        # Check if this is a JSON request (from React)
+        is_json_request = request.headers.get('Accept') == 'application/json' or request.args.get('format') == 'json'
+        
         if user.has_active_subscription:
             self.log_subscription(f"User {user.id} has active subscription, redirecting to manage page", level="info")
-            # Redirect to manage page if they're already subscribed
+            if is_json_request:
+                return jsonify({"redirect": "/subscription/manage"})
             return redirect(url_for(".manage"))
         elif (
             not user.has_active_subscription
@@ -236,6 +239,30 @@ class SubscriptionView(BaseView):
                 f"{user.current_subscription.end_date.strftime('%Y-%m-%d')}",
                 level="info",
             )
+            
+            active_db_plans = self._sync_and_get_active_plans()
+            self.log_subscription(f"Retrieved {len(active_db_plans)} active plans from DB", level="info")
+            
+            if is_json_request:
+                plans_data = []
+                for plan in active_db_plans:
+                    plan_dict = {
+                        "id": plan.id,
+                        "product_id": plan.product_id,
+                        "name": plan.name,
+                        "description": plan.description,
+                        "price": float(plan.price),
+                        "billing_cycle": plan.billing_cycle,
+                        "features": plan.feature_list,
+                        "is_active": plan.is_active
+                    }
+                    plans_data.append(plan_dict)
+                return jsonify({
+                    "plans": plans_data,
+                    "message": f"Your subscription has been cancelled and will expire on {user.current_subscription.end_date.strftime('%Y-%m-%d')}. Please subscribe to a new plan below.",
+                    "message_type": "info"
+                })
+            
             flash(
                 _(
                     "Your subscription has been cancelled and will expire on "
@@ -244,54 +271,88 @@ class SubscriptionView(BaseView):
                 ),
                 "info",
             )
-            active_db_plans = self._sync_and_get_active_plans()
-            self.log_subscription(f"Retrieved {len(active_db_plans)} active plans from DB", level="info")
-            self.log_subscription(f"Plans to render from DB: {active_db_plans}", level="info")
-
             return self.render_template("subscription/plans.html", plans=active_db_plans, user=user)
         elif user.current_subscription and user.current_subscription.status == "incomplete":
             self.log_subscription(
                 f"User {user.id} has incomplete subscription, redirecting to manage page to pay the first invoice",
                 level="info",
             )
+            if is_json_request:
+                return jsonify({"redirect": "/subscription/manage"})
             return redirect(url_for(".manage"))
         else:
             self.log_subscription(f"User {user.id} has no active subscription, showing plans page", level="info")
+            
+            active_db_plans = self._sync_and_get_active_plans()
+            self.log_subscription(f"Retrieved {len(active_db_plans)} active plans from DB", level="info")
+            
+            if is_json_request:
+                plans_data = []
+                for plan in active_db_plans:
+                    plan_dict = {
+                        "id": plan.id,
+                        "product_id": plan.product_id,
+                        "name": plan.name,
+                        "description": plan.description,
+                        "price": float(plan.price),
+                        "billing_cycle": plan.billing_cycle,
+                        "features": plan.feature_list,
+                        "is_active": plan.is_active
+                    }
+                    plans_data.append(plan_dict)
+                return jsonify({
+                    "plans": plans_data,
+                    "message": "You don't have an active subscription. Choose a plan below to subscribe.",
+                    "message_type": "info"
+                })
+            
             flash(
                 _("You don't have an active subscription. Choose a plan below to subscribe."),
             )
-            active_db_plans = self._sync_and_get_active_plans()
-            self.log_subscription(f"Retrieved {len(active_db_plans)} active plans from DB", level="info")
-            self.log_subscription(f"Plans to render from DB: {active_db_plans}", level="info")
 
             self.log_subscription("=== Completed index method successfully ===", level="info")
             return self.render_template("subscription/plans.html", plans=active_db_plans, user=user)
 
+    @expose("/")
+    def root(self) -> Response:
+        """Root subscription route - redirect to plans"""
+        return redirect(url_for(".index"))
+
     @expose("/plans")
     def plans(self) -> Response:
-        """Show available subscription plans"""
-        self.log_subscription("=== Starting plans method ===", level="info")
+        """Legacy plans endpoint - now only serves JSON for API compatibility"""
+        self.log_subscription("=== Legacy plans method called ===", level="info")
 
         # Get a fresh User instance with the mixin applied
         user = self._get_user()
         self.log_subscription(f"Retrieved user with ID: {user.id}", level="info")
 
+        # Always return JSON now - no more template rendering
         if user.has_active_subscription:
-            self.log_subscription(f"User {user.id} has active subscription, redirecting to manage page", level="info")
-            flash(_("You already have an active subscription. Manage it below."), "info")
-            return redirect(url_for(".manage"))
-
-        plans = self.payment_processor.get_stripe_plans()
-        self.log_subscription(f"Retrieved {len(plans) if plans else 0} plans from Stripe", level="info")
-        self.log_subscription(f"Plans from Stripe: {plans}", level="info")
-
-        if not plans:
-            self.log_subscription("No plans retrieved from Stripe, redirecting to index", level="warning")
-            flash(_("Error loading subscription plans. Please try again later."), "error")
-            return redirect(url_for(".index"))
-
-        self.log_subscription("=== Completed plans method successfully ===", level="info")
-        return self.render_template("subscription/plans.html", plans=plans, user=user)
+            return jsonify({"error": "User already has active subscription", "redirect": "/subscription/manage"})
+        
+        active_db_plans = self._sync_and_get_active_plans()
+        plans_data = []
+        
+        for plan in active_db_plans:
+            plan_dict = {
+                "id": plan.id,
+                "product_id": plan.product_id,
+                "name": plan.name,
+                "description": plan.description,
+                "price": float(plan.price),
+                "billing_cycle": plan.billing_cycle,
+                "features": plan.feature_list,
+                "is_active": plan.is_active
+            }
+            plans_data.append(plan_dict)
+        
+        self.log_subscription(f"Returning {len(plans_data)} plans as JSON", level="info")
+        return jsonify({
+            "plans": plans_data,
+            "message": "You don't have an active subscription. Choose a plan below to subscribe.",
+            "message_type": "info"
+        })
 
     @expose("/subscribe/<plan_id>", methods=["GET", "POST"])
     @has_access
@@ -629,7 +690,7 @@ class SubscriptionView(BaseView):
                 )
                 return jsonify(
                     {
-                        "redirect_url": "/subscription/index",
+                        "redirect_url": "/subscription/plans",
                     }
                 )
         except StripeError as e:
@@ -836,6 +897,201 @@ class SubscriptionView(BaseView):
             flash(_("Your subscription has been cancelled"), "success")
 
         return redirect(url_for(".manage"))
+
+    # New React-compatible API endpoints
+    @expose("/api/status")
+    def api_status(self) -> Response:
+        """API endpoint to get user subscription status only"""
+        self.log_subscription("=== API Status endpoint called ===", level="info")
+        try:
+            # Check if user is logged in first
+            if not hasattr(g, 'user') or not g.user:
+                self.log_subscription("No user found in session for API status", level="info")
+                return jsonify({
+                    "status": "none",
+                    "subscription": None,
+                    "has_active_subscription": False
+                })
+                
+            user = self._get_user()
+            self.log_subscription(f"Retrieved user for API status: {user.id if user else 'None'}", level="info")
+            subscription = user.current_subscription
+            
+            if not subscription:
+                return jsonify({
+                    "status": "none",
+                    "subscription": None,
+                    "has_active_subscription": False
+                })
+            
+            return jsonify({
+                "status": subscription.status,
+                "subscription": {
+                    "id": subscription.id,
+                    "status": subscription.status,
+                    "start_date": subscription.start_date.isoformat() if subscription.start_date else None,
+                    "end_date": subscription.end_date.isoformat() if subscription.end_date else None,
+                    "is_auto_renew": subscription.is_auto_renew,
+                    "plan": {
+                        "id": subscription.plan.id,
+                        "name": subscription.plan.name,
+                        "product_id": subscription.plan.product_id,
+                        "price": float(subscription.plan.price),
+                        "billing_cycle": subscription.plan.billing_cycle
+                    } if subscription.plan else None
+                },
+                "has_active_subscription": user.has_active_subscription
+            })
+        except Exception as e:
+            self.log_subscription(f"Error in api_status: {str(e)}", level="error")
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    @expose("/api/plans")
+    def api_plans(self) -> Response:
+        """API endpoint to get available subscription plans only"""
+        self.log_subscription("=== API Plans endpoint called ===", level="info")
+        try:
+            # Plans should be available to everyone, logged in or not
+            active_plans = self._sync_and_get_active_plans()
+            self.log_subscription(f"Retrieved {len(active_plans)} active plans for API", level="info")
+            plans_data = []
+            
+            for plan in active_plans:
+                plan_dict = {
+                    "id": plan.id,
+                    "product_id": plan.product_id,
+                    "name": plan.name,
+                    "description": plan.description,
+                    "price": float(plan.price),
+                    "billing_cycle": plan.billing_cycle,
+                    "features": plan.feature_list,
+                    "is_active": plan.is_active
+                }
+                plans_data.append(plan_dict)
+            
+            return jsonify({"plans": plans_data})
+        except Exception as e:
+            self.log_subscription(f"Error in api_plans: {str(e)}", level="error")
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    @expose("/api/details")
+    @has_access
+    def api_details(self) -> Response:
+        """API endpoint to get full subscription details including payments"""
+        try:
+            user = self._get_user()
+            subscription = user.current_subscription
+            
+            if not subscription:
+                return jsonify({
+                    "subscription": None,
+                    "payments": [],
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "username": user.username
+                    }
+                })
+            
+            # Get payments
+            payments_data = []
+            if hasattr(subscription, 'payments') and subscription.payments:
+                for payment in subscription.payments:
+                    payments_data.append({
+                        "id": payment.id,
+                        "amount": float(payment.amount),
+                        "status": payment.status,
+                        "payment_date": payment.payment_date.isoformat() if payment.payment_date else None,
+                        "payment_method": payment.payment_method,
+                        "transaction_id": payment.transaction_id
+                    })
+            
+            return jsonify({
+                "subscription": {
+                    "id": subscription.id,
+                    "status": subscription.status,
+                    "start_date": subscription.start_date.isoformat() if subscription.start_date else None,
+                    "end_date": subscription.end_date.isoformat() if subscription.end_date else None,
+                    "is_auto_renew": subscription.is_auto_renew,
+                    "external_subscription_id": subscription.external_subscription_id,
+                    "plan": {
+                        "id": subscription.plan.id,
+                        "name": subscription.plan.name,
+                        "product_id": subscription.plan.product_id,
+                        "description": subscription.plan.description,
+                        "price": float(subscription.plan.price),
+                        "billing_cycle": subscription.plan.billing_cycle,
+                        "features": self._get_db_features_list(subscription.plan)
+                    } if subscription.plan else None
+                },
+                "payments": payments_data,
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "username": user.username
+                },
+                "is_admin": self.is_admin_user(user)
+            })
+        except Exception as e:
+            self.log_subscription(f"Error in api_details: {str(e)}", level="error")
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    @expose("/api/cancel", methods=["POST"])
+    @has_access
+    def api_cancel(self) -> Response:
+        """API endpoint to cancel subscription"""
+        try:
+            data = request.get_json()
+            subscription_id = data.get("subscription_id") if data else None
+            
+            if not subscription_id:
+                return make_response(jsonify({"error": "Subscription ID is required"}), 400)
+            
+            user = self._get_user()
+            subscription = user.current_subscription
+            
+            if not subscription or str(subscription.id) != str(subscription_id):
+                return make_response(jsonify({"error": "Subscription not found"}), 404)
+            
+            # Cancel in Stripe if we have external subscription ID
+            if hasattr(subscription, "external_subscription_id") and subscription.external_subscription_id:
+                success = self.payment_processor.cancel_subscription(subscription.external_subscription_id)
+                if not success:
+                    return make_response(jsonify({"error": "Error cancelling subscription with payment provider"}), 500)
+            
+            # Update local subscription
+            subscription.status = "cancelled"
+            subscription.is_auto_renew = False
+            self.appbuilder.session.commit()
+            
+            return jsonify({
+                "success": True,
+                "message": "Your subscription has been cancelled"
+            })
+            
+        except Exception as e:
+            self.log_subscription(f"Error in api_cancel: {str(e)}", level="error")
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    @expose("/api/stripe-plan/<plan_id>")
+    def api_stripe_plan(self, plan_id: str) -> Response:
+        """API endpoint to get Stripe plan details"""
+        self.log_subscription(f"=== API Stripe plan endpoint called for plan: {plan_id} ===", level="info")
+        try:
+            plan = self.payment_processor.get_stripe_plan(plan_id)
+            if not plan:
+                return make_response(jsonify({"error": "Plan not found"}), 404)
+            
+            return jsonify(plan)
+        except Exception as e:
+            self.log_subscription(f"Error in api_stripe_plan: {str(e)}", level="error")
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    @expose("/api/test")
+    def api_test(self) -> Response:
+        """Simple test endpoint to verify API routing is working"""
+        self.log_subscription("=== API Test endpoint called ===", level="info")
+        return jsonify({"message": "API routing is working!", "timestamp": datetime.datetime.now().isoformat()})
 
     # Helper methods
     def calc_subscription_period(self, plan: SubscriptionPlan | None) -> datetime.timedelta:

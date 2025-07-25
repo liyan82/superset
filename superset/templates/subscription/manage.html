@@ -1,6 +1,8 @@
 {% extends "appbuilder/base.html" %}
+{% from 'superset/partials/asset_bundle.html' import js_bundle with context %}
 
 {% block content %}
+<div id="app-menu"></div>
 <div class="container">
     <h1>Manage Your Subscription</h1>
     
@@ -194,4 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+{% endblock %}
+
+{% block tail_js %}
+  {{ super() }}
+  {{ js_bundle(assets_prefix, 'menu') }}
 {% endblock %}

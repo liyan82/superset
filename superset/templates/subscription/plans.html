@@ -1,4 +1,5 @@
 {% extends "appbuilder/base.html" %}
+{% from 'superset/partials/asset_bundle.html' import js_bundle with context %}
 
 {% block head_css %}
 {{ super() }}
@@ -114,6 +115,7 @@
 
 
 {% block content %}
+<div id="app-menu"></div>
 <div class="container subscription-plans">
     <div class="text-center">
         <h1>Subscription Plans</h1>
@@ -162,4 +164,9 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block tail_js %}
+  {{ super() }}
+  {{ js_bundle(assets_prefix, 'menu') }}
 {% endblock %}

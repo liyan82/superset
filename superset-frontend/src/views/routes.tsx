@@ -157,6 +157,23 @@ const Register = lazy(
 const GroupsList: LazyExoticComponent<any> = lazy(
   () => import(/* webpackChunkName: "GroupsList" */ 'src/pages/GroupsList'),
 );
+
+const SubscriptionPlans = lazy(
+  () => import(/* webpackChunkName: "SubscriptionPlans" */ 'src/pages/SubscriptionPlans'),
+);
+
+const SubscriptionManage = lazy(
+  () => import(/* webpackChunkName: "SubscriptionManage" */ 'src/pages/SubscriptionManage'),
+);
+
+const SubscriptionPayment = lazy(
+  () => import(/* webpackChunkName: "SubscriptionPayment" */ 'src/pages/SubscriptionPayment'),
+);
+
+const SubscriptionSuccess = lazy(
+  () => import(/* webpackChunkName: "SubscriptionSuccess" */ 'src/pages/SubscriptionSuccess'),
+);
+
 type Routes = {
   path: string;
   Component: ComponentType;
@@ -275,6 +292,26 @@ export const routes: Routes = [
   {
     path: '/actionlog/list',
     Component: ActionLogList,
+  },
+  {
+    path: '/subscription/index',
+    Component: SubscriptionPlans,
+  },
+  {
+    path: '/subscription/plans',
+    Component: SubscriptionPlans,
+  },
+  {
+    path: '/subscription/manage',
+    Component: SubscriptionManage,
+  },
+  {
+    path: '/subscription/payment/:planId',
+    Component: SubscriptionPayment,
+  },
+  {
+    path: '/subscription/subscription-success',
+    Component: SubscriptionSuccess,
   },
 ];
 

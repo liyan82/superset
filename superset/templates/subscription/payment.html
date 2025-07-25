@@ -1,7 +1,9 @@
 <!-- /Users/yanli/Code/superset/superset/templates/subscription/payment.html -->
 {% extends "appbuilder/base.html" %}
+{% from 'superset/partials/asset_bundle.html' import js_bundle with context %}
 
 {% block content %}
+<div id="app-menu"></div>
 <style>
   body {
     background-color: #f5f7fa; /* Softer background */
@@ -189,4 +191,9 @@
 <!-- Load external scripts with proper CSP compliance -->
 <script src="https://js.stripe.com/v3/"></script>
 <script src="{{ url_for('static', filename='assets/js/stripe-checkout.js') }}"></script>
+{% endblock %}
+
+{% block tail_js %}
+  {{ super() }}
+  {{ js_bundle(assets_prefix, 'menu') }}
 {% endblock %}
