@@ -494,4 +494,148 @@ This provided visibility into the entire cancellation flow from request receipt 
 
 ### Key Takeaway
 
-When React event handlers (onClick, onSubmit, etc.) are not working in modal components, the issue is often **Modal component compatibility** rather than business logic problems. The `@superset-ui/core` Modal component's `footer` prop does not properly bind React event handlers, while Ant Design's Modal has robust footer support. **Always test event handler functionality when switching between UI component libraries**, especially in modal dialogs where event handling can be complex. Additionally, when frontend interactions show no response, add debugging to both the UI event handlers AND the backend endpoints to identify where the communication breakdown occurs. 
+When React event handlers (onClick, onSubmit, etc.) are not working in modal components, the issue is often **Modal component compatibility** rather than business logic problems. The `@superset-ui/core` Modal component's `footer` prop does not properly bind React event handlers, while Ant Design's Modal has robust footer support. **Always test event handler functionality when switching between UI component libraries**, especially in modal dialogs where event handling can be complex. Additionally, when frontend interactions show no response, add debugging to both the UI event handlers AND the backend endpoints to identify where the communication breakdown occurs.
+
+## Issue: Plan Switching for Cancelled Subscriptions - Fair Billing Implementation
+
+**Date:** 2025-07-25
+
+### The Problem
+
+Users with cancelled but unexpired subscriptions faced unfair scenarios when trying to switch to different plans:
+
+1. **Immediate Payment Required**: Users had to enter credit card details to switch plans, even though they had remaining time on their cancelled subscription
+2. **Payment Page Redirect Loop**: Clicking on a different plan would redirect to payment page, then immediately redirect back to plans page before Stripe checkout could load
+3. **No Credit for Remaining Time**: Users would lose the value of their remaining subscription time when switching plans
+4. **Poor UX Flow**: The system didn't distinguish between same-plan reactivation vs. different-plan switching
+
+The root issue was in the `create-payment-intent` endpoint logic that tried to defer subscription start dates, causing Stripe to create subscriptions without immediate payment intents, leading to redirect loops.
+
+### The Goal
+
+Implement a fair plan switching system where users with cancelled but unexpired subscriptions can:
+- Switch to different plans immediately without entering payment details
+- Get instant access to new plan features
+- Have billing deferred until their current subscription expires (no double payment)
+- Understand clearly what happens and when billing starts
+
+### The Solution Journey
+
+#### Attempt 1: Database Schema Approach (Abandoned)
+
+Initially tried to solve this by adding a `billing_start_date` field to the `UserSubscription` model and modifying the `create-payment-intent` endpoint to handle deferred billing logic:
+
+```python
+# Added to UserSubscription model
+billing_start_date = Column(DateTime, nullable=True)
+
+# Complex logic in create-payment-intent
+if different_plan:
+    sub_start_date = datetime.now()  # Features start now
+    billing_start_date = current_subscription.end_date  # Billing later
+```
+
+**Problems with this approach:**
+- Required database schema changes
+- Made the existing payment flow more complex
+- Still required users to go through payment page
+- Credit card details still needed for "trial" setup
+
+#### Attempt 2: Stripe-Only Trial Period Approach (Final Solution)
+
+Realized the database changes were unnecessary. Instead, implemented a clean separation using Stripe's built-in trial period functionality:
+
+1. **New Dedicated API Endpoint** (`/subscription/api/switch-plan`):
+   - POST endpoint that handles plan switching directly
+   - Bypasses payment page entirely
+   - No credit card required
+
+2. **Stripe Trial Period Integration**:
+   ```python
+   # Calculate trial period until old subscription expires
+   trial_days = (current_subscription.end_date - datetime.now()).days
+   
+   # Create subscription with trial (no payment method needed)
+   stripe_subscription = self.payment_processor.create_stripe_subscription_with_trial(
+       stripe_customer, new_plan, trial_days
+   )
+   ```
+
+3. **Enhanced PaymentProcessor**:
+   ```python
+   def create_stripe_subscription_with_trial(self, customer, plan, trial_days):
+       return stripe.Subscription.create(
+           customer=customer.id,
+           items=[{"price": plan.stripe_price_id}],
+           trial_period_days=trial_days,  # Key: No payment required during trial
+           collection_method="charge_automatically",
+       )
+   ```
+
+### The Final Implementation
+
+**Backend Changes:**
+
+1. **Direct Plan Switch API** (`/subscription/api/switch-plan`):
+   - Validates user has cancelled but unexpired subscription
+   - Creates new subscription with immediate `status="active"`
+   - Uses Stripe trials to defer billing until old subscription expires  
+   - Marks old subscription as `status="replaced"`
+   - Returns success with billing start date
+
+2. **Payment History Fix**:
+   ```python
+   # Before: Only current subscription payments
+   if hasattr(subscription, 'payments') and subscription.payments:
+       for payment in subscription.payments:
+   
+   # After: ALL user payments across all subscriptions
+   all_user_payments = self.check_user_payments(user.id)
+   for payment in all_user_payments:
+   ```
+
+**Frontend Changes:**
+
+1. **Smart Button Labels**:
+   - Same cancelled plan → "Reactivate Subscription"
+   - Different cancelled plan → "Switch Plan"  
+   - Regular plans → "Subscribe"
+
+2. **Two Modal Flows**:
+   - **Reactivation Modal**: Explains same plan reactivation
+   - **Plan Switch Modal**: Explains immediate access + deferred billing
+
+3. **Direct API Integration**:
+   ```javascript
+   // Bypasses payment page completely
+   const response = await SupersetClient.post({
+     endpoint: '/subscription/api/switch-plan',
+     jsonPayload: { plan_id: planToSwitch }
+   });
+   ```
+
+### Issues Encountered and Resolved
+
+1. **Authentication 302 Redirect**: 
+   - **Problem**: `@has_access` decorator caused 302 redirects to login page
+   - **Solution**: Removed decorator, added manual auth check like other API endpoints
+
+2. **Payment History Empty**:
+   - **Problem**: Only showed payments for current subscription (new subscriptions have no payments yet)
+   - **Solution**: Changed to show ALL user payments across all subscriptions with `subscription_id` field
+
+### Key Takeaways
+
+1. **Avoid Database Changes When Possible**: The initial instinct to add database fields was unnecessary. Stripe's existing trial functionality provided a cleaner solution.
+
+2. **Separate Concerns Clearly**: Instead of making the existing payment flow more complex, created a dedicated API endpoint for plan switching. This keeps regular subscriptions simple while handling the special case cleanly.
+
+3. **Think About User Fairness**: The original approach of requiring credit cards for plan switching was technically correct but unfair to users. Always consider the user's perspective on billing and value.
+
+4. **Use External Service Features**: Stripe's trial periods are designed exactly for scenarios like this. Leveraging built-in features is often better than custom database logic.
+
+5. **Payment History Should Be User-Centric**: When users switch plans, they still want to see their complete payment history, not just payments for the current subscription.
+
+6. **API Authentication Patterns**: In Superset, many API endpoints use manual authentication checks rather than `@has_access` decorators to avoid redirect issues in JSON API contexts.
+
+**Most Important Lesson**: When facing complex billing scenarios, step back and ask "What would be fair to the user?" Then look for the simplest technical solution that achieves that fairness, rather than immediately jumping to complex database schema changes. 
