@@ -638,4 +638,131 @@ Realized the database changes were unnecessary. Instead, implemented a clean sep
 
 6. **API Authentication Patterns**: In Superset, many API endpoints use manual authentication checks rather than `@has_access` decorators to avoid redirect issues in JSON API contexts.
 
-**Most Important Lesson**: When facing complex billing scenarios, step back and ask "What would be fair to the user?" Then look for the simplest technical solution that achieves that fairness, rather than immediately jumping to complex database schema changes. 
+**Most Important Lesson**: When facing complex billing scenarios, step back and ask "What would be fair to the user?" Then look for the simplest technical solution that achieves that fairness, rather than immediately jumping to complex database schema changes.
+
+## Issue: Table Chart Pagination Buttons Not Working in Dashboard
+
+**Date:** 2025-01-26
+
+### The Problem
+
+Table charts with server pagination in dashboards had non-functional pagination buttons. When users clicked on page numbers (2, 3, etc.), the table data would not refresh and remained on the first page. The pagination UI appeared correctly, but clicking had no effect - no API calls were made and no data updates occurred.
+
+### The Goal
+
+To fix the pagination functionality so that clicking page numbers would trigger new API requests with correct `row_limit` and `row_offset` parameters, allowing users to navigate through paginated table data.
+
+### The Solution Journey
+
+#### Step 1: Tracing the Pagination Flow
+
+The pagination system follows this flow:
+1. **Click Handler**: `SimplePagination.tsx` calls `onPageChange(item)` 
+2. **State Update**: `DataTable.tsx` calls `onServerPaginationChange(pageNumber, serverPageSize)`
+3. **DataMask Update**: `TableChart.tsx` calls `updateTableOwnState(setDataMask, modifiedOwnState)`
+4. **Query Building**: `buildQuery.ts` uses `ownState` to set pagination parameters
+5. **Dashboard Refresh**: Dashboard component should detect `ownState` changes and trigger `refreshCharts()`
+
+#### Step 2: Initial Debugging - Following the Data Flow
+
+Added logging to trace where the pagination data was getting lost:
+
+```javascript
+// In TableChart.tsx - WORKING
+console.log('modifiedOwnState', {currentPage: 1, pageSize: 100});
+
+// In buildQuery.ts - NOT CALLED
+console.log('buildQuery called with ownState:', ownState);
+```
+
+The `buildQuery` function was never called when pagination buttons were clicked, indicating the issue was earlier in the chain.
+
+#### Step 3: Investigating the Dashboard Update Logic
+
+Found that the Dashboard component has logic to detect `ownState` changes and trigger chart refreshes:
+
+```javascript
+// In Dashboard.jsx
+if (!areObjectsEqual(ownDataCharts, appliedOwnDataCharts, { ignoreUndefined: true })) {
+  this.applyFilters(); // This calls refreshCharts() → triggerQuery()
+}
+```
+
+However, debugging showed both `ownDataCharts` and `appliedOwnDataCharts` were always empty objects `{}`, so no changes were detected.
+
+#### Step 4: Discovering the Root Cause
+
+The issue was in the `getRelevantDataMask` function in `/src/dashboard/util/activeAllDashboardFilters.ts`:
+
+```typescript
+// BROKEN: Looking for a single key named 'ownState'
+export const getRelevantDataMask = (
+  dataMask: DataMaskStateWithId,
+  filterId: string,
+): DataMaskStateWithId =>
+  dataMask[filterId] ? { [filterId]: dataMask[filterId] } : {};
+```
+
+When called with `getRelevantDataMask(dataMask, 'ownState')`, it looked for `dataMask['ownState']` which doesn't exist. Chart data is stored as `dataMask[chartId].ownState`, not `dataMask.ownState`.
+
+### The Final Fix
+
+Updated `getRelevantDataMask` to properly iterate through all charts and find those with the specified property:
+
+```typescript
+export const getRelevantDataMask = (
+  dataMask: DataMaskStateWithId,
+  property: string,
+): DataMaskStateWithId => {
+  const result: DataMaskStateWithId = {};
+  Object.keys(dataMask).forEach(chartId => {
+    const chartData = dataMask[chartId];
+    if (chartData && (chartData as any)[property]) {
+      result[chartId] = chartData;
+    }
+  });
+  return result;
+};
+```
+
+**Result After Fix:**
+```javascript
+// Before fix:
+ownDataCharts {} // Always empty
+appliedOwnDataCharts {} // Always empty  
+areObjectsEqual true // No change detected
+
+// After fix:
+ownDataCharts {415: {ownState: {currentPage: 1, pageSize: 100}}}
+appliedOwnDataCharts {415: {ownState: {currentPage: 0, pageSize: 100}}}
+areObjectsEqual false // Change detected! ✅
+```
+
+### The Complete Data Flow (After Fix)
+
+1. **User clicks page 2** → `onPageChange(1)` called
+2. **TableChart updates state** → `setDataMask({ownState: {currentPage: 1, pageSize: 100}})`
+3. **Dashboard detects change** → `getRelevantDataMask` now returns `{415: {...}}`
+4. **Comparison triggers refresh** → `areObjectsEqual` returns `false`
+5. **Chart re-queries** → `refreshCharts([415])` → `triggerQuery(true, 415)`
+6. **buildQuery uses pagination** → `row_limit: 100, row_offset: 100`
+7. **API call made** → `/api/v1/chart/data` with pagination parameters
+8. **Table updates** → Shows page 2 data
+
+### Additional Issue Found
+
+During implementation, encountered a TypeScript error:
+```
+Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'DataMaskWithId'
+```
+
+**Solution:** Used proper type casting with `(chartData as any)[property]` to handle dynamic property access safely.
+
+### Key Takeaway
+
+This bug demonstrates the importance of **end-to-end data flow tracing** in complex systems. The pagination buttons themselves worked perfectly, and the API endpoints were ready to handle pagination parameters. The issue was in a single utility function that was conceptually treating the second parameter incorrectly:
+
+- **Wrong assumption**: `getRelevantDataMask(dataMask, 'ownState')` should find `dataMask.ownState`
+- **Correct behavior**: It should find all `chartId` where `dataMask[chartId].ownState` exists
+
+**Debugging Strategy:** When UI interactions have no effect, add logging at each step of the data flow to identify exactly where the chain breaks. In this case, the break was in data selection logic, not business logic or API calls. The fix was a one-function change, but finding it required systematic tracing through the entire pagination system from frontend clicks to backend queries. 
