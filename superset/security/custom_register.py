@@ -92,7 +92,7 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
             }
         }
         return self.render_template(
-            "superset/basic.html",
+            "superset/spa.html",
             entry="registration",
             bootstrap_data=json.dumps(payload, default=superset_json.pessimistic_json_iso_dttm_ser),
         )
@@ -237,7 +237,7 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
         return cast(
             Response,
             self.render_template(
-                "superset/basic.html",
+                "superset/spa.html",
                 entry="checkEmail",
                 bootstrap_data=json.dumps(payload, default=superset_json.pessimistic_json_iso_dttm_ser),
             ),
@@ -291,7 +291,7 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
         return cast(
             Response,
             self.render_template(
-                "superset/basic.html",
+                "superset/spa.html",
                 entry="activationSuccess",
                 bootstrap_data=json.dumps(payload, default=superset_json.pessimistic_json_iso_dttm_ser),
             ),
