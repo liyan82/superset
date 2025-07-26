@@ -21,9 +21,17 @@ import { ActiveFilters, ChartConfiguration } from '../types';
 
 export const getRelevantDataMask = (
   dataMask: DataMaskStateWithId,
-  filterId: string,
-): DataMaskStateWithId =>
-  dataMask[filterId] ? { [filterId]: dataMask[filterId] } : {};
+  property: string,
+): DataMaskStateWithId => {
+  const result: DataMaskStateWithId = {};
+  Object.keys(dataMask).forEach(chartId => {
+    const chartData = dataMask[chartId];
+    if (chartData && (chartData as any)[property]) {
+      result[chartId] = chartData;
+    }
+  });
+  return result;
+};
 
 interface LayerInfo {
   layerMap: { [chartId: number]: number[] };
