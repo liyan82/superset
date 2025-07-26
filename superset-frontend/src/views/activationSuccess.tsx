@@ -17,7 +17,6 @@
  * under the License.
  */
 import ReactDOM from 'react-dom';
-import { logging } from '@superset-ui/core';
 import ActivationSuccess from 'src/pages/ActivationSuccess';
 import setupClient from 'src/setup/setupClient';
 import setupColors from 'src/setup/setupColors';

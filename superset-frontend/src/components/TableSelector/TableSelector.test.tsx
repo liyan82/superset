@@ -36,6 +36,8 @@ const createProps = (props = {}) => ({
     id: 1,
     database_name: 'main',
     backend: 'sqlite',
+    label: 'main',
+    value: 1,
   },
   schema: 'test_schema',
   handleError: jest.fn(),

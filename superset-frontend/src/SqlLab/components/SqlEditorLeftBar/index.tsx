@@ -213,7 +213,11 @@ const SqlEditorLeftBar = ({
       <TableSelectorMultiple
         onEmptyResults={onEmptyResults}
         emptyState={<EmptyState />}
-        database={userSelectedDb}
+        database={userSelectedDb ? {
+          ...userSelectedDb,
+          label: userSelectedDb.database_name,
+          value: userSelectedDb.id,
+        } : null}
         getDbList={handleDbList}
         handleError={handleError}
         onDbChange={onDbChange}

@@ -19,11 +19,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { css, t, styled, useTheme } from '@superset-ui/core';
+import { t, styled } from '@superset-ui/core';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
-import getBootstrapData from 'src/utils/getBootstrapData';
 import { Modal } from 'antd';
 
 // Unified styled component that replicates the exact styling from plans.html template
@@ -307,11 +306,8 @@ interface SubscriptionPlansProps {
 }
 
 export default function SubscriptionPlans({ user }: SubscriptionPlansProps) {
-  const theme = useTheme();
   const history = useHistory();
   const { addDangerToast, addSuccessToast } = useToasts();
-  const bootstrapData = getBootstrapData();
-  const currentUser = user || bootstrapData?.user;
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [userStatus, setUserStatus] = useState<SubscriptionStatus | null>(null);

@@ -765,4 +765,187 @@ This bug demonstrates the importance of **end-to-end data flow tracing** in comp
 - **Wrong assumption**: `getRelevantDataMask(dataMask, 'ownState')` should find `dataMask.ownState`
 - **Correct behavior**: It should find all `chartId` where `dataMask[chartId].ownState` exists
 
-**Debugging Strategy:** When UI interactions have no effect, add logging at each step of the data flow to identify exactly where the chain breaks. In this case, the break was in data selection logic, not business logic or API calls. The fix was a one-function change, but finding it required systematic tracing through the entire pagination system from frontend clicks to backend queries. 
+**Debugging Strategy:** When UI interactions have no effect, add logging at each step of the data flow to identify exactly where the chain breaks. In this case, the break was in data selection logic, not business logic or API calls. The fix was a one-function change, but finding it required systematic tracing through the entire pagination system from frontend clicks to backend queries.
+
+## Issue: TypeScript Build Errors Preventing docker-compose-non-dev.yml Builds
+
+**Date:** 2025-07-26
+
+### The Problem
+
+The `docker-compose-non-dev.yml` build was failing with 17 TypeScript compilation errors, while `docker-compose.yml` (dev mode) worked fine. The difference was that the non-dev compose file runs production builds (`DEV_MODE: false`, `target: lean`) which enables strict TypeScript checking, exposing errors that were ignored in development mode.
+
+```
+ERROR in ./src/components/TableSelector/TableSelector.test.tsx:91:11
+TS2322: Type '{ id: number; database_name: string; backend: string; }' is not assignable to type 'TableSelectorProps'.
+  Types of property 'database' are incompatible.
+    Type '{ id: number; database_name: string; backend: string; }' is missing the following properties from type 'DatabaseValue': label, value
+```
+
+### The Goal
+
+To fix all TypeScript compilation errors so that `docker-compose-non-dev.yml` could build successfully without breaking the existing development workflow.
+
+### The Solution Journey
+
+#### Step 1: Understanding the Build Difference
+
+The key difference between the two docker-compose files:
+
+- **docker-compose.yml**: Uses `DEV_MODE: "true"` (line 38) which skips the production frontend build
+- **docker-compose-non-dev.yml**: Uses `target: lean` (line 31) without dev mode, forcing `npm run build` with strict TypeScript checking
+
+#### Step 2: Categorizing the 17 TypeScript Errors
+
+The errors fell into three main categories:
+
+1. **DatabaseValue Type Mismatches (6 errors)**: Test files and fixtures using `DatabaseObject` format instead of expected `DatabaseValue` format
+2. **Unused Imports/Variables (10 errors)**: React imports, theme hooks, and bootstrap data variables that were declared but never used  
+3. **Type Conversion Issues (1 error)**: SqlEditorLeftBar passing wrong database object format to TableSelector
+
+#### Step 3: Understanding DatabaseObject vs DatabaseValue
+
+The key insight was the distinction between two similar but different types:
+
+```typescript
+// DatabaseObject: Raw backend data model  
+interface DatabaseObject {
+  id: number;
+  database_name: string;
+  backend?: string;
+}
+
+// DatabaseValue: Frontend UI model for selectors
+interface DatabaseValue {
+  id: number;           // Concatenated string for React keys
+  database_name: string;
+  backend?: string;
+  label: ReactNode;     // For UI display  
+  value: number;        // Original database ID for API calls
+}
+```
+
+### The Final Fix
+
+**1. TableSelector Test Files:**
+```typescript
+// Before (failing):
+const createProps = () => ({
+  database: {
+    id: 1,
+    database_name: 'main',
+    backend: 'sqlite',
+  },
+  // ...
+});
+
+// After (working):
+const createProps = () => ({
+  database: {
+    id: 1,
+    database_name: 'main', 
+    backend: 'sqlite',
+    label: 'main',      // Added required property
+    value: 1,           // Added required property
+  },
+  // ...
+});
+```
+
+**2. SqlEditorLeftBar Type Conversion:**
+```typescript
+// Before (failing):
+<TableSelectorMultiple database={userSelectedDb} />
+
+// After (working):
+<TableSelectorMultiple 
+  database={userSelectedDb ? {
+    ...userSelectedDb,
+    label: userSelectedDb.database_name,
+    value: userSelectedDb.id,
+  } : null} 
+/>
+```
+
+**3. Unused Import/Variable Cleanup:**
+```typescript
+// Before (failing):
+import React, { useState } from 'react';
+const currentUser = user || bootstrapData?.user;
+const theme = useTheme();
+
+// After (working):
+import { useState } from 'react';
+// Removed unused variables
+```
+
+**4. Fixed Dataset Fixtures:**
+```typescript
+// Before (failing):
+export const exampleDataset: DatasetObject[] = [{
+  db: {
+    id: 1,
+    database_name: 'test_database',
+    owners: [1],
+    backend: 'test_backend',
+  },
+  // ...
+}];
+
+// After (working):
+export const exampleDataset: DatasetObject[] = [{
+  db: {
+    id: 1,
+    database_name: 'test_database',
+    owners: [1],
+    backend: 'test_backend',
+    label: 'test_database',  // Added for DatabaseValue compatibility
+    value: 1,                // Added for DatabaseValue compatibility
+  },
+  // ...
+}];
+```
+
+### Files Modified
+
+- `src/components/TableSelector/TableSelector.test.tsx` - Fixed DatabaseValue properties in test props
+- `src/features/datasets/AddDataset/DatasetPanel/fixtures.ts` - Added label/value to database objects
+- `src/SqlLab/components/SqlEditorLeftBar/index.tsx` - Added DatabaseObject to DatabaseValue conversion
+- `src/custom-pages/Login/index.tsx` - Removed unused React import
+- `src/pages/SubscriptionManage/index.tsx` - Removed unused variables and imports
+- `src/pages/SubscriptionPayment/index.tsx` - Removed unused useTheme import
+- `src/pages/SubscriptionPlans/index.tsx` - Removed unused imports and variables
+- `src/pages/SubscriptionSuccess/index.tsx` - Removed unused imports and variables  
+- `src/views/activationSuccess.tsx` - Removed unused logging import
+
+### Build Result
+
+**Before fix:**
+```
+ERROR in ./src/components/TableSelector/TableSelector.test.tsx:91:11
+... (17 TypeScript errors)
+webpack 5.99.9 compiled with 17 errors in 186968 ms
+```
+
+**After fix:**
+```
+896 assets
+13222 modules
+
+WARNING in asset size limit: The following asset(s) exceed the recommended size limit...
+webpack 5.99.9 compiled with 2 warnings in 24277 ms
+```
+
+The build now succeeds with only performance warnings (normal for production builds).
+
+### Key Takeaway
+
+When development and production Docker builds have different outcomes, the issue is often **strict compilation settings** enabled only in production mode. The key debugging steps are:
+
+1. **Identify the build mode differences** - Compare docker-compose files for DEV_MODE settings
+2. **Run the production build locally** - Execute `npm run build` to reproduce the exact same errors
+3. **Categorize the errors systematically** - Group similar errors to find patterns (type mismatches, unused code, etc.)
+4. **Understand the type system** - In this case, distinguishing between DatabaseObject (backend) and DatabaseValue (frontend UI) was crucial
+5. **Fix incrementally and test** - Make changes in small batches and re-run the build to verify progress
+
+**Most Important Lesson:** TypeScript strict mode catches real issues that could cause runtime problems. While unused imports seem harmless, type mismatches like the DatabaseValue issue could lead to API call failures or component crashes. Production builds serve as a valuable quality check that shouldn't be bypassed by loosening TypeScript settings. 

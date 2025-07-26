@@ -18,12 +18,11 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { css, t, styled, useTheme } from '@superset-ui/core';
+import { css, t, styled } from '@superset-ui/core';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
-import getBootstrapData from 'src/utils/getBootstrapData';
 
 const StyledContainer = styled.div`
   ${({ theme }) => css`
@@ -195,10 +194,7 @@ interface SubscriptionSuccessProps {
 }
 
 export default function SubscriptionSuccess({ user }: SubscriptionSuccessProps) {
-  const theme = useTheme();
   const { addDangerToast } = useToasts();
-  const bootstrapData = getBootstrapData();
-  const currentUser = user || bootstrapData?.user;
   const [subscription, setSubscription] = useState<SubscriptionDetails | null>(null);
   const [loading, setLoading] = useState(true);
 

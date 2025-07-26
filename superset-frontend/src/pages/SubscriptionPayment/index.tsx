@@ -19,7 +19,7 @@
 
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
-import { css, t, styled, useTheme } from '@superset-ui/core';
+import { css, t, styled } from '@superset-ui/core';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
@@ -337,7 +337,6 @@ export default function SubscriptionPayment({ user }: SubscriptionPaymentProps) 
   const history = useHistory();
   const bootstrapData = getBootstrapData();
   const currentUser = user || bootstrapData?.user;
-  const theme = useTheme();
   const { addDangerToast, addSuccessToast } = useToasts();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);

@@ -2,7 +2,7 @@
  * Custom Login Page
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { SupersetClient, styled, t, css } from '@superset-ui/core';
 import {
   Button,

@@ -25,7 +25,6 @@ import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
 import { Modal } from 'antd';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
-import getBootstrapData from 'src/utils/getBootstrapData';
 
 const StyledPageWrapper = styled.div`
   min-height: 100vh;
@@ -320,8 +319,6 @@ interface SubscriptionManageProps {
 export default function SubscriptionManage({ user }: SubscriptionManageProps) {
   const history = useHistory();
   const { addDangerToast, addSuccessToast } = useToasts();
-  const bootstrapData = getBootstrapData();
-  const currentUser = user || bootstrapData?.user;
   const [details, setDetails] = useState<SubscriptionDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
