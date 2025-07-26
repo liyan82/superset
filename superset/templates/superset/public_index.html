@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SZZLY9BGNG"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-SZZLY9BGNG');
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Patent 1024 - Advanced Patent Data Analytics</title>
@@ -67,7 +76,6 @@
     .hero {
       padding: 6rem 0 8rem;
       background-color: var(--p4-light-gray);
-      text-align: center;
       position: relative;
       overflow: hidden;
     }
@@ -78,14 +86,176 @@
         background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg font-family='monospace' font-size='10' fill='%23283E53' fill-opacity='0.03'%3E%3Ctext x='0' y='15'%3E1010%3C/text%3E%3Ctext x='40' y='15'%3E0101%3C/text%3E%3Ctext x='0' y='35'%3E0101%3C/text%3E%3Ctext x='40' y='35'%3E1010%3C/text%3E%3Ctext x='0' y='55'%3E1010%3C/text%3E%3Ctext x='40' y='55'%3E0101%3C/text%3E%3Ctext x='0' y='75'%3E0101%3C/text%3E%3Ctext x='40' y='75'%3E1010%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         z-index: 1;
     }
-    .hero-content { max-width: 800px; margin: 0 auto; position: relative; z-index: 2; }
+    .hero-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+    .hero-content { text-align: left; }
     .hero h1 { font-size: 3.8rem; line-height: 1.1; font-weight: 800; margin-bottom: 1.5rem; color: var(--p4-dark-blue); }
-    .hero p { font-size: 1.25rem; color: var(--p4-blue); margin-bottom: 2.5rem; max-width: 90%; margin-left: auto; margin-right: auto; }
-    .hero-buttons { display: flex; gap: 1.5rem; justify-content: center; }
+    .hero p { font-size: 1.25rem; color: var(--p4-blue); margin-bottom: 2.5rem; }
+    .hero-buttons { display: flex; gap: 1.5rem; justify-content: flex-start; }
+    
+    .rankings-showcase {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .rankings-showcase h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--p4-dark-blue);
+      text-align: center;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    
+    .rankings-showcase h2::after {
+      content: '';
+      position: absolute;
+      bottom: -0.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--p4-accent), var(--p4-dark-blue));
+      border-radius: 2px;
+    }
+    
+    .ranking-card {
+      position: relative;
+      background: linear-gradient(135deg, var(--white) 0%, #f8fbff 100%);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid rgba(40, 62, 83, 0.1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    
+    .ranking-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 168, 232, 0.1), transparent);
+      transition: left 0.6s ease;
+    }
+    
+    .ranking-card:hover::before {
+      left: 100%;
+    }
+    
+    .ranking-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(40, 62, 83, 0.15);
+      border-color: var(--p4-accent);
+    }
+    
+    .ranking-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .ranking-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .ranking-icon::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transform: rotate(45deg);
+      transition: all 0.6s ease;
+      opacity: 0;
+    }
+    
+    .ranking-card:hover .ranking-icon::before {
+      opacity: 1;
+      animation: shimmer 1.5s ease-in-out;
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      50% { transform: translateX(0) translateY(0) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    
+    .ranking-title {
+      flex: 1;
+    }
+    
+    .ranking-title h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--p4-dark-blue);
+      margin: 0;
+      line-height: 1.3;
+    }
+    
+    .ranking-subtitle {
+      font-size: 0.85rem;
+      color: var(--p4-blue);
+      margin-top: 0.25rem;
+    }
+    
+
+    
+    .ranking-badge {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: var(--p4-dark-blue);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+    }
+    
+    /* Responsive design */
+    @media (max-width: 1024px) {
+      .hero-container {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        text-align: center;
+      }
+      .hero-content {
+        text-align: center;
+      }
+      .hero-buttons {
+        justify-content: center;
+      }
+    }
     .features { padding: 6rem 0; background-color: var(--white); }
-    .section-header { text-align: center; margin-bottom: 4rem; }
-    .section-header h2 { font-size: 2.8rem; font-weight: 700; margin-bottom: 1rem; color: var(--p4-dark-blue); }
-    .section-header p { font-size: 1.2rem; color: var(--p4-blue); max-width: 700px; margin: 0 auto; }
+    .section-header { text-align: center; margin-bottom: 3rem; }
+    .section-header h2 { font-size: 2.4rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--p4-dark-blue); }
+    .section-header p { font-size: 1.1rem; color: var(--p4-blue); max-width: 600px; margin: 0 auto; }
     .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem; }
     .feature-card { background-color: var(--white); border-radius: 12px; padding: 2.5rem; transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #e7e7e7; text-align: center; }
     .feature-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(40, 62, 83, 0.1); }
@@ -115,6 +285,8 @@
     .footer-links a { color: var(--p4-blue); transition: color 0.3s ease; }
     .footer-links a:hover { color: var(--p4-dark-blue); text-decoration: underline; }
     .copyright { text-align: center; padding-top: 3rem; border-top: 1px solid #dce4e8; color: var(--p4-blue); font-size: 0.9rem; }
+    .copyright a { color: var(--p4-dark-blue); text-decoration: underline; cursor: pointer; }
+    .copyright a:hover { color: var(--p4-accent); }
     @media (max-width: 992px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 768px) {
       .hero h1 { font-size: 2.8rem; }
@@ -122,6 +294,37 @@
       nav ul { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
       .nav-buttons { display: none; }
       .footer-grid { grid-template-columns: 1fr; text-align: center; }
+      
+      .hero-container {
+        gap: 2rem;
+      }
+      
+      .rankings-showcase h2 {
+        font-size: 1.5rem;
+      }
+      
+      .ranking-card {
+        padding: 1.25rem;
+      }
+      
+      .ranking-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+      }
+      
+      .ranking-title h3 {
+        font-size: 1rem;
+      }
+      
+      .ranking-subtitle {
+        font-size: 0.8rem;
+      }
+      
+      .ranking-badge {
+        font-size: 0.65rem;
+        padding: 0.4rem 0.8rem;
+      }
     }
     .feature-card.active {
       transform: translateY(-8px);
@@ -150,6 +353,317 @@
       display: block;
     }
     
+    /* New Interactive Features Showcase */
+    .features-showcase {
+      margin-bottom: 4rem;
+    }
+    
+    .question-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .question-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 1.5rem;
+      background: var(--white);
+      border: 2px solid #e7e7e7;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 140px;
+    }
+    
+    .question-tab:hover {
+      border-color: var(--p4-dark-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(40, 62, 83, 0.1);
+    }
+    
+    .question-tab.active {
+      background: var(--p4-dark-blue);
+      color: var(--white);
+      border-color: var(--p4-dark-blue);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(40, 62, 83, 0.2);
+    }
+    
+    .featured-tab {
+      position: relative;
+      border: 2px solid var(--p4-accent) !important;
+      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue)) !important;
+      color: var(--white) !important;
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 15px 30px rgba(0, 168, 232, 0.3);
+    }
+    
+    .featured-tab:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 18px 35px rgba(0, 168, 232, 0.4);
+    }
+    
+    .featured-badge {
+      position: absolute;
+      top: -8px;
+      right: -5px;
+      background: #ff6b35;
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .tab-icon {
+      font-size: 1.5rem;
+      filter: grayscale(1);
+      transition: filter 0.3s ease;
+    }
+    
+    .question-tab.active .tab-icon {
+      filter: grayscale(0);
+    }
+    
+    .tab-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .question-panels {
+      position: relative;
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(40, 62, 83, 0.1);
+      overflow: hidden;
+      min-height: 400px;
+    }
+    
+    .question-panel {
+      display: none;
+      padding: 2rem;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    .question-panel.active {
+      display: block;
+    }
+    
+    .panel-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    
+    .panel-text h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--p4-dark-blue);
+      margin-bottom: 0.5rem;
+    }
+    
+    .panel-description {
+      color: var(--p4-blue);
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+    }
+    
+    .question-examples {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .question-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem 1rem;
+      background: var(--p4-light-gray);
+      border-radius: 8px;
+      border-left: 4px solid var(--p4-dark-blue);
+      transition: all 0.3s ease;
+    }
+    
+    .question-item:hover {
+      background: #e8f0f8;
+      transform: translateX(4px);
+    }
+    
+    .question-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    
+    .question-item span:last-child {
+      font-weight: 500;
+      color: var(--p4-dark-blue);
+    }
+    
+    .panel-visual {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(40, 62, 83, 0.1);
+      transition: transform 0.3s ease;
+    }
+    
+    .panel-visual:hover {
+      transform: scale(1.02);
+    }
+    
+    .panel-visual img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 768px) {
+      .panel-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      
+      .question-tabs {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+      }
+      
+      .question-tab {
+        min-width: auto;
+        padding: 0.8rem 1rem;
+      }
+      
+      .featured-tab {
+        transform: translateY(-2px) scale(1.02);
+      }
+      
+      .featured-tab:hover {
+        transform: translateY(-3px) scale(1.02);
+      }
+      
+      .featured-badge {
+        font-size: 0.6rem;
+        padding: 1px 4px;
+        top: -6px;
+        right: -3px;
+      }
+      
+      .tab-text {
+        font-size: 0.8rem;
+      }
+    }
+    
+    /* Image Lightbox Styles */
+    .image-lightbox {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0s 0.3s;
+      cursor: pointer;
+    }
+    
+    .image-lightbox.active {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.3s ease;
+    }
+    
+    .lightbox-content {
+      position: relative;
+      max-width: 95%;
+      max-height: 95%;
+      transform: scale(0.8);
+      transition: transform 0.3s ease;
+    }
+    
+    .image-lightbox.active .lightbox-content {
+      transform: scale(1);
+    }
+    
+    .lightbox-image {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 8px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+      transition: background 0.3s ease;
+    }
+    
+    .lightbox-close:hover {
+      background: rgba(255, 255, 255, 1);
+    }
+    
+    .panel-visual img {
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+    }
+    
+    .panel-visual img:hover {
+      opacity: 0.9;
+    }
+    
+    @media (max-width: 768px) {
+      .lightbox-close {
+        top: 10px;
+        right: 10px;
+        width: 35px;
+        height: 35px;
+        font-size: 1.2rem;
+      }
+      
+      .lightbox-content {
+        max-width: 98%;
+        max-height: 98%;
+      }
+    }
+
     /* Pricing Modal Styles */
     .modal-overlay {
       position: fixed;
@@ -173,10 +687,10 @@
     }
     .modal-content {
       background: var(--white);
-      padding: 2rem 3rem 3rem;
+      padding: 1.5rem 2rem 2rem;
       border-radius: 16px;
-      max-width: 1100px;
-      width: 95%;
+      max-width: 800px;
+      width: 90%;
       position: relative;
       transform: translateY(20px) scale(0.98);
       transition: transform 0.3s ease;
@@ -199,26 +713,194 @@
       transition: color 0.2s ease;
     }
     .close-modal:hover { color: var(--p4-dark-gray); }
-    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; justify-items: center; }
     .pricing-card {
       background-color: var(--p4-light-gray);
       border-radius: 12px;
-      padding: 2rem;
+      padding: 1.5rem;
       text-align: center;
       border: 1px solid #e7e7e7;
       display: flex;
       flex-direction: column;
+      max-width: 350px;
+      width: 100%;
     }
     .pricing-card h3 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
     .pricing-card .plan-desc { color: var(--p4-blue); margin-bottom: 1.5rem; font-size: 0.9rem; }
     .pricing-price { font-size: 3rem; font-weight: 700; margin-bottom: 0.25rem; color: var(--p4-dark-blue); }
     .pricing-price span { font-size: 1rem; font-weight: 400; color: var(--p4-blue); }
     .yearly-price { font-size: 1rem; color: var(--p4-accent); margin-bottom: 1.5rem; font-weight: 600; }
-    .pricing-features { list-style: none; margin-bottom: 2rem; text-align: left; flex-grow: 1; }
-    .pricing-features li { padding: 0.6rem 0; border-bottom: 1px solid #dce4e8; font-size: 0.95rem; }
+    .pricing-features { list-style: none; margin-bottom: 1.5rem; text-align: left; flex-grow: 1; }
+    .pricing-features li { padding: 0.5rem 0; border-bottom: 1px solid #dce4e8; font-size: 0.9rem; }
     .pricing-features li::before { content: '✓'; color: var(--p4-dark-blue); margin-right: 10px; font-weight: 600; }
     .pricing-card.featured { border: 2px solid var(--p4-dark-blue); transform: scale(1.05); }
     @media (max-width: 992px) { .pricing-grid { grid-template-columns: 1fr; } .pricing-card.featured { transform: scale(1); } }
+    
+    /* Privacy Policy Modal Styles */
+    .privacy-modal-content {
+      max-width: 800px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2rem 3rem 3rem;
+    }
+    .privacy-content {
+      text-align: left;
+    }
+    .privacy-content section {
+      margin-bottom: 2rem;
+    }
+    .privacy-content h3 {
+      color: var(--p4-dark-blue);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--p4-light-gray);
+      padding-bottom: 0.5rem;
+    }
+    .privacy-content p {
+      color: var(--p4-blue);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .privacy-content ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .privacy-content li {
+      color: var(--p4-blue);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+    .privacy-content a {
+      color: var(--p4-dark-blue);
+      text-decoration: underline;
+    }
+    .privacy-content a:hover {
+      color: var(--p4-accent);
+    }
+    @media (max-width: 768px) {
+      .privacy-modal-content {
+        padding: 1.5rem 1.5rem 2rem;
+        max-height: 90vh;
+      }
+      .privacy-content h3 {
+        font-size: 1.2rem;
+      }
+    }
+    
+    /* Terms of Service Modal Styles */
+    .terms-modal-content {
+      max-width: 800px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2rem 3rem 3rem;
+    }
+    .terms-content {
+      text-align: left;
+    }
+    .terms-content section {
+      margin-bottom: 2rem;
+    }
+    .terms-content h3 {
+      color: var(--p4-dark-blue);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--p4-light-gray);
+      padding-bottom: 0.5rem;
+    }
+    .terms-content p {
+      color: var(--p4-blue);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .terms-content ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .terms-content li {
+      color: var(--p4-blue);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+    .terms-content a {
+      color: var(--p4-dark-blue);
+      text-decoration: underline;
+    }
+    .terms-content a:hover {
+      color: var(--p4-accent);
+    }
+    @media (max-width: 768px) {
+      .terms-modal-content {
+        padding: 1.5rem 1.5rem 2rem;
+        max-height: 90vh;
+      }
+      .terms-content h3 {
+        font-size: 1.2rem;
+      }
+    }
+    
+    /* Disclaimer Floating Text */
+    .disclaimer-popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--white);
+      border: 1px solid var(--p4-dark-blue);
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(40, 62, 83, 0.2);
+      z-index: 1500;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, visibility 0s 0.3s, transform 0.3s ease;
+    }
+    .disclaimer-popup.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .disclaimer-popup h4 {
+      color: var(--p4-dark-blue);
+      margin-bottom: 0.8rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .disclaimer-popup p {
+      color: var(--p4-blue);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    .disclaimer-popup .close-disclaimer {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--p4-blue);
+      cursor: pointer;
+      line-height: 1;
+    }
+    .disclaimer-popup .close-disclaimer:hover {
+      color: var(--p4-dark-blue);
+    }
+    @media (max-width: 768px) {
+      .disclaimer-popup {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -238,7 +920,7 @@
         </nav>
         <div class="nav-buttons">
           <a href="/login/" class="btn btn-outline">Log In</a>
-          <a href="/register/form" class="btn btn-primary">Start Free Trial</a>
+          <a href="/register/form" class="btn btn-primary">Get Started FREE</a>
         </div>
       </div>
     </div>
@@ -247,12 +929,161 @@
   <main>
     <!-- Hero Section -->
     <section class="hero" id="home">
-      <div class="hero-content">
-        <h1>Dangerously Addictive Patent Insights</h1>
-        <p>Uncover the data that makes your competitive strategy pulse with possibility. Start your free 7-day trial—no credit card required.</p>
-        <div class="hero-buttons">
-          <a href="/register/form" class="btn btn-primary btn-lg">Start 7-Day Free Trial</a>
-          <a href="#features" class="btn btn-outline btn-lg">Explore Features</a>
+      <div class="container">
+        <div class="hero-container">
+          <div class="hero-content">
+            <h1>Dangerously Addictive Patent Insights</h1>
+            <p>Uncover the data that makes your competitive strategy pulse with possibility.</p>
+            <p><b>Currently FREE while in beta. NO credit card required.</b></p>
+            <div class="hero-buttons">
+              <a href="/register/form" class="btn btn-primary btn-lg">Get Started FREE</a>
+              <a href="#features" class="btn btn-outline btn-lg">Explore Features</a>
+            </div>
+          </div>
+          
+          <div class="rankings-showcase">
+            <h2>🏆 Live Rankings</h2>
+            
+            <a href="/rankings/attorneys" class="ranking-card">
+              <div class="ranking-header">
+                <div class="ranking-icon">
+                  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Professional Person in Suit -->
+                    <g fill="currentColor">
+                      <!-- Head -->
+                      <circle cx="50" cy="30" r="15"/>
+                      
+                      <!-- Neck -->
+                      <rect x="46" y="42" width="8" height="6"/>
+                      
+                      <!-- Suit jacket body -->
+                      <path d="M25 48 Q25 45 28 45 L72 45 Q75 45 75 48 L75 85 Q75 88 72 88 L28 88 Q25 88 25 85 Z"/>
+                      
+                      <!-- Shirt -->
+                      <path d="M35 48 L65 48 L65 85 L35 85 Z" fill="rgba(255,255,255,0.9)"/>
+                      
+                      <!-- Suit lapels -->
+                      <path d="M25 48 L35 48 L45 58 L35 68 L25 58 Z" fill="currentColor"/>
+                      <path d="M75 48 L65 48 L55 58 L65 68 L75 58 Z" fill="currentColor"/>
+                      
+                      <!-- Tie -->
+                      <path d="M45 48 L55 48 L52 75 L48 75 Z" fill="rgba(0,0,0,0.3)"/>
+                      
+                      <!-- Suit buttons -->
+                      <circle cx="50" cy="55" r="1.5" fill="rgba(0,0,0,0.4)"/>
+                      <circle cx="50" cy="62" r="1.5" fill="rgba(0,0,0,0.4)"/>
+                      
+                      <!-- Arms -->
+                      <ellipse cx="20" cy="60" rx="8" ry="20" fill="currentColor"/>
+                      <ellipse cx="80" cy="60" rx="8" ry="20" fill="currentColor"/>
+                      
+                      <!-- Hands -->
+                      <circle cx="20" cy="78" r="4" fill="currentColor"/>
+                      <circle cx="80" cy="78" r="4" fill="currentColor"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="ranking-title">
+                  <h3>Top Practitioners</h3>
+                  <div class="ranking-subtitle">Weighted Composite Score Ranking (2020-2024)</div>
+                </div>
+                <div class="ranking-badge">Top 1024</div>
+              </div>
+            </a>
+            
+            <a href="/rankings/firms" class="ranking-card">
+              <div class="ranking-header">
+                <div class="ranking-icon">
+                  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Law Firm Building -->
+                    <g fill="currentColor">
+                      <!-- Building base -->
+                      <rect x="20" y="50" width="60" height="45" rx="3"/>
+                      
+                      <!-- Building top section -->
+                      <rect x="25" y="30" width="50" height="25" rx="2"/>
+                      
+                      <!-- Pillars -->
+                      <rect x="28" y="50" width="4" height="40"/>
+                      <rect x="38" y="50" width="4" height="40"/>
+                      <rect x="48" y="50" width="4" height="40"/>
+                      <rect x="58" y="50" width="4" height="40"/>
+                      <rect x="68" y="50" width="4" height="40"/>
+                      
+                      <!-- Windows -->
+                      <rect x="30" y="35" width="6" height="8" fill="rgba(255,255,255,0.3)"/>
+                      <rect x="40" y="35" width="6" height="8" fill="rgba(255,255,255,0.3)"/>
+                      <rect x="54" y="35" width="6" height="8" fill="rgba(255,255,255,0.3)"/>
+                      <rect x="64" y="35" width="6" height="8" fill="rgba(255,255,255,0.3)"/>
+                      
+                      <!-- Steps -->
+                      <rect x="15" y="88" width="70" height="3"/>
+                      <rect x="18" y="85" width="64" height="3"/>
+                      
+                      <!-- Roof detail -->
+                      <polygon points="20,30 50,15 80,30 75,30 50,20 25,30" fill="currentColor"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="ranking-title">
+                  <h3>Leading Law Firms</h3>
+                  <div class="ranking-subtitle">Most Patents Granted (2022-2024)</div>
+                </div>
+                <div class="ranking-badge">Top 1024</div>
+              </div>
+            </a>
+            
+            <a href="/rankings/companies" class="ranking-card">
+              <div class="ranking-header">
+                <div class="ranking-icon">
+                  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Innovation/Patent Factory -->
+                    <g fill="currentColor">
+                      <!-- Factory building -->
+                      <rect x="15" y="60" width="70" height="35" rx="3"/>
+                      
+                      <!-- Smokestacks -->
+                      <rect x="25" y="35" width="8" height="30"/>
+                      <rect x="40" y="30" width="8" height="35"/>
+                      <rect x="55" y="25" width="8" height="40"/>
+                      
+                      <!-- Innovation smoke (ideas) -->
+                      <circle cx="29" cy="25" r="3" fill="rgba(255,255,255,0.6)"/>
+                      <circle cx="32" cy="20" r="2" fill="rgba(255,255,255,0.5)"/>
+                      <circle cx="44" cy="20" r="4" fill="rgba(255,255,255,0.6)"/>
+                      <circle cx="48" cy="15" r="2.5" fill="rgba(255,255,255,0.5)"/>
+                      <circle cx="59" cy="15" r="5" fill="rgba(255,255,255,0.6)"/>
+                      <circle cx="63" cy="10" r="3" fill="rgba(255,255,255,0.5)"/>
+                      
+                      <!-- Gear/Innovation symbols -->
+                      <g transform="translate(25,70)">
+                        <circle cx="0" cy="0" r="8" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+                        <polygon points="-6,-6 6,-6 6,6 -6,6" fill="rgba(255,255,255,0.3)"/>
+                        <circle cx="0" cy="0" r="3" fill="rgba(255,255,255,0.8)"/>
+                      </g>
+                      
+                      <g transform="translate(75,70)">
+                        <circle cx="0" cy="0" r="6" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+                        <polygon points="-4,-4 4,-4 4,4 -4,4" fill="rgba(255,255,255,0.3)"/>
+                        <circle cx="0" cy="0" r="2" fill="rgba(255,255,255,0.8)"/>
+                      </g>
+                      
+                      <!-- Patent documents coming out -->
+                      <rect x="45" y="75" width="10" height="12" fill="rgba(255,255,255,0.9)" rx="1"/>
+                      <line x1="47" y1="77" x2="53" y2="77" stroke="currentColor" stroke-width="0.5"/>
+                      <line x1="47" y1="79" x2="53" y2="79" stroke="currentColor" stroke-width="0.5"/>
+                      <line x1="47" y1="81" x2="53" y2="81" stroke="currentColor" stroke-width="0.5"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="ranking-title">
+                  <h3>Top Applicants</h3>
+                  <div class="ranking-subtitle">Most Patents Granted (2022-2024)</div>
+                </div>
+                <div class="ranking-badge">Top 1024</div>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -261,28 +1092,205 @@
     <section class="features" id="features">
       <div class="container">
         <div class="section-header">
-          <h2>Analytics, Reimagined for IP</h2>
-          <p>From broad market trends to specific technological details, our platform provides the clarity you need.</p>
+          <h2>Your Questions, Answered Instantly</h2>
+          <p>Don't just analyze data—unlock insights. Our system answers your most creative questions with just a few clicks on interactive charts.</p>
         </div>
+        
+        <div class="features-showcase">
+          <div class="question-tabs">
+            <button class="question-tab active featured-tab" data-target="attorneys">
+              <span class="featured-badge">FEATURED</span>
+              <span class="tab-icon">⚖️</span>
+              <span class="tab-text">Attorney Analytics</span>
+            </button>
+            <button class="question-tab" data-target="portfolio">
+              <span class="tab-icon">📊</span>
+              <span class="tab-text">Portfolio Intelligence</span>
+            </button>
+            <button class="question-tab" data-target="applications">
+              <span class="tab-icon">🔍</span>
+              <span class="tab-text">Application Deep Dive</span>
+            </button>
+            <button class="question-tab" data-target="examiners">
+              <span class="tab-icon">👥</span>
+              <span class="tab-text">Examiner Profiles</span>
+            </button>
+            <button class="question-tab featured-tab" data-target="demographics">
+              <span class="featured-badge">FEATURED</span>
+              <span class="tab-icon">📊</span>
+              <span class="tab-text">Law Firm Demographics</span>
+            </button>
+          </div>
+          
+          <div class="question-panels">
+            <div class="question-panel active" id="attorneys">
+              <div class="panel-content">
+                <div class="panel-text">
+                  <h3>Attorney Analytics</h3>
+                  <p class="panel-description">Analyze attorney performance and prosecution strategies - Our flagship feature</p>
+                  <div class="question-examples">
+                    <div class="question-item">
+                      <span class="question-icon">✍️</span>
+                      <span>Who actually signed applications vs. being on POA?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">📝</span>
+                      <span>Which attorneys signed amendments and remarks?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">⏱️</span>
+                      <span>How long do attorneys take to get patents granted?</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel-visual">
+                  <img src="/static/assets/images/attorneys_profile.png" alt="Attorney Profile Analytics" loading="lazy">
+                </div>
+              </div>
+            </div>
+            
+            <div class="question-panel" id="portfolio">
+              <div class="panel-content">
+                <div class="panel-text">
+                  <h3>Portfolio Intelligence</h3>
+                  <p class="panel-description">Uncover comprehensive portfolio insights with interactive exploration</p>
+                  <div class="question-examples">
+                    <div class="question-item">
+                      <span class="question-icon">💡</span>
+                      <span>What is Apple's patent portfolio and granting rate?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">🎯</span>
+                      <span>Which CPC categories does Apple focus on?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">📈</span>
+                      <span>How are patents distributed across categories?</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel-visual">
+                  <img src="/static/assets/images/apple_patents.png" alt="Apple Patents Dashboard" loading="lazy">
+                </div>
+              </div>
+            </div>
+            
+            <div class="question-panel" id="applications">
+              <div class="panel-content">
+                <div class="panel-text">
+                  <h3>Application Deep Dive</h3>
+                  <p class="panel-description">Drill down into specific applications and representation patterns</p>
+                  <div class="question-examples">
+                    <div class="question-item">
+                      <span class="question-icon">📋</span>
+                      <span>What are Apple's specific patent applications?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">🏢</span>
+                      <span>How do law firms rank in Apple's representation?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">⚖️</span>
+                      <span>How are examiners distributed across applications?</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel-visual">
+                  <img src="/static/assets/images/apple_law_firm_apps.png" alt="Law Firm Applications" loading="lazy">
+                </div>
+              </div>
+            </div>
+            
+            <div class="question-panel" id="examiners">
+              <div class="panel-content">
+                <div class="panel-text">
+                  <h3>Examiner Profiles</h3>
+                  <p class="panel-description">Understand examiner patterns and performance metrics</p>
+                  <div class="question-examples">
+                    <div class="question-item">
+                      <span class="question-icon">👨‍💼</span>
+                      <span>Who examined the most applications?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">📊</span>
+                      <span>What are their granting rates?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">🎯</span>
+                      <span>Which examiners specialize in specific technologies?</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel-visual">
+                  <img src="/static/assets/images/examiner_profile.png" alt="Examiner Profile Dashboard" loading="lazy">
+                </div>
+              </div>
+            </div>
+            
+            <div class="question-panel" id="demographics">
+              <div class="panel-content">
+                <div class="panel-text">
+                  <h3>Law Firm Demographics</h3>
+                  <p class="panel-description">Explore diversity and representation patterns within law firms</p>
+                  <div class="question-examples">
+                    <div class="question-item">
+                      <span class="question-icon">👥</span>
+                      <span>How are attorney genders distributed in specific law firms?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">🌍</span>
+                      <span>What is the ethnicity breakdown of firm attorneys?</span>
+                    </div>
+                    <div class="question-item">
+                      <span class="question-icon">📋</span>
+                      <span>Who are the attorneys on the firm's POA lists?</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel-visual">
+                  <img src="/static/assets/images/law_firm_demographic.png" alt="Law Firm Demographics" loading="lazy">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="features-grid">
-          <div class="feature-card" data-image-src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80">
-            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></div>
-            <h3>Visual Dashboards</h3>
-            <p>Go beyond spreadsheets. Explore patent data with interactive charts and visualizations that reveal hidden connections.</p>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10,9 9,9 8,9"/>
+              </svg>
+            </div>
+            <h3>Interactive Exploration</h3>
+            <p>Click through charts to uncover deeper insights. Every visualization is a gateway to more detailed analysis.</p>
           </div>
-          <div class="feature-card" data-image-src="https://images.unsplash.com/photo-1583508915901-b5f84c1dcde1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80">
-            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-            <h3>Intelligent Search</h3>
-            <p>Find what matters, faster. Our semantic search understands concepts, not just keywords, for unparalleled accuracy.</p>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h4"/>
+                <path d="M15 11h4a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-4"/>
+                <path d="M12 2v7"/>
+                <path d="M8 21l4-7 4 7"/>
+              </svg>
+            </div>
+            <h3>Real-Time Filtering</h3>
+            <p>Filter by companies, time periods, technologies, or any combination. Watch insights emerge instantly.</p>
           </div>
-          <div class="feature-card" data-image-src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80">
-            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-            <h3>Trend & Competitor Analysis</h3>
-            <p>Stay ahead of the curve. Monitor technology trends and track competitor IP activity in real-time.</p>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7v10c0 5.55 3.84 10 9 12 5.16-2 9-6.45 9-12V7z"/>
+                <polyline points="9,12 10.5,13.5 15,9"/>
+              </svg>
+            </div>
+            <h3>Reliable Data</h3>
+            <p>Built on comprehensive USPTO data with automated updates. Trust your insights are based on the latest information.</p>
           </div>
-        </div>
-        <div id="feature-showcase" class="feature-showcase">
-          <img id="feature-showcase-image" src="" alt="Feature showcase">
         </div>
       </div>
     </section>
@@ -291,65 +1299,317 @@
     <section class="cta" id="about">
       <div class="container">
         <h2>From Data to Decision, Instantly.</h2>
-        <p>Your journey to smarter patent strategy starts now. Sign up and get 7 days free to gain immediate access to our powerful analytics dashboard.</p>
-        <a href="/register/form" class="btn btn-lg btn-white">Start Your Free Trial</a>
+        <p>Your journey to smarter patent strategy starts now. Sign up and get immediate access to our powerful analytics dashboard. Currently free while we're in beta! 🎉</p>
+        <a href="/register/form" class="btn btn-lg btn-white">Get Started FREE</a>
       </div>
     </section>
   </main>
+
+  <!-- Image Lightbox -->
+  <div id="image-lightbox" class="image-lightbox">
+    <div class="lightbox-content">
+      <button id="lightbox-close-btn" class="lightbox-close">&times;</button>
+      <img id="lightbox-image" class="lightbox-image" src="" alt="Screenshot preview">
+    </div>
+  </div>
 
   <!-- Pricing Modal -->
   <div id="pricing-modal" class="modal-overlay">
     <div class="modal-content">
       <button id="close-modal-btn" class="close-modal">&times;</button>
       <div class="section-header">
-        <h2>Try Any Plan Free for 7 Days</h2>
-        <p>No credit card required. You only pay if you decide to subscribe after the trial.</p>
+        <h2>Currently FREE During Beta</h2>
+        <p>No credit card required. No hidden fees. Get full access to our patent analytics platform while we're in beta testing.</p>
       </div>
       <div class="pricing-grid">
-        <div class="pricing-card">
-          <h3>Starter</h3>
-          <p class="plan-desc">Essential Patent Analytics</p>
-          <div class="pricing-price">$59<span>/month</span></div>
-          <p class="yearly-price">or $600/year</p>
+        <div class="pricing-card featured">
+          <h3>Individual</h3>
+          <p class="plan-desc">Everything You Need for Patent Analytics</p>
+          <div class="pricing-price">FREE<span>/for now</span></div>
+          <p class="yearly-price">🎉 Currently free while we're in beta</p>
           <ul class="pricing-features">
             <li>Interactive charts & dashboards</li>
             <li>Access curated patent datasets</li>
             <li>Export charts & data (PDF/PNG/CSV)</li>
-            <li>Personal workspace with saved queries</li>
             <li>Guided data exploration</li>
-          </ul>
-          <a href="/register/form" class="btn btn-outline">Start Free Trial</a>
-        </div>
-        <div class="pricing-card featured">
-          <h3>Professional</h3>
-          <p class="plan-desc">Advanced Patent Intelligence</p>
-          <div class="pricing-price">$99<span>/month</span></div>
-          <p class="yearly-price">or $1000/year</p>
-          <ul class="pricing-features">
-            <li><strong>Everything in Starter, plus:</strong></li>
-            <li>Full SQL Lab access w/ cost estimation</li>
-            <li>Upload & manage custom datasets</li>
-            <li>Advanced sharing & team collaboration</li>
-            <li>Row-level security & API access</li>
             <li>Automated reports, caching, & CSS templates</li>
+            <li>Full access to all features ✨</li>
           </ul>
-          <a href="/register/form" class="btn btn-primary">Start Free Trial</a>
+          <a href="/register/form" class="btn btn-primary">Get Started (It's FREE!)</a>
         </div>
         <div class="pricing-card">
           <h3>Enterprise</h3>
-          <p class="plan-desc">For large organizations</p>
-          <div class="pricing-price">Contact Us</div>
+          <p class="plan-desc">Custom Data Integration & BI Design</p>
+          <div class="pricing-price">Let's Talk</div>
           <ul class="pricing-features">
             <li>Full-featured analytics suite</li>
             <li>Unlimited user accounts</li>
-            <li>Advanced predictive models</li>
-            <li>Custom integrations</li>
-            <li>Dedicated support & On-premise option</li>
+            <li>Custom data integration services</li>
+            <li>Tailored BI dashboard design</li>
+            <li>Purpose-built analytics solutions</li>
+            <li>White-label deployment options</li>
+            <li>Dedicated support & On-premise hosting</li>
+            <li>We'll actually charge you money 💰</li>
           </ul>
           <a href="mailto:sales@patent1024.com" class="btn btn-outline">Contact Sales</a>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div id="privacy-modal" class="modal-overlay">
+    <div class="modal-content privacy-modal-content">
+      <button id="close-privacy-btn" class="close-modal">&times;</button>
+      <div class="section-header">
+        <h2>Privacy Policy</h2>
+        <p>Last updated: May 2025</p>
+      </div>
+      <div class="privacy-content">
+        <section>
+          <h3>1. Information We Collect</h3>
+          <p>We collect information you provide directly to us, such as when you create an account, use our services, or contact us for support. This includes:</p>
+          <ul>
+            <li>Account information (name, email address, securely hashed passwords - we never store plain text passwords)</li>
+            <li>Usage data and analytics queries</li>
+            <li>Communication preferences and support requests</li>
+            <li>Payment information (processed securely through Stripe, our third-party payment provider)</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>2. How We Use Your Information</h3>
+          <p>We use the information we collect to:</p>
+          <ul>
+            <li>Provide, maintain, and improve our analytics services</li>
+            <li>Process transactions and send related information</li>
+            <li>Send technical notices, updates, and support messages</li>
+            <li>Respond to your comments and questions</li>
+            <li>Analyze usage patterns to enhance user experience</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>3. Information Sharing</h3>
+          <p>We do not sell, trade, or rent your personal information to third parties. We may share information in the following circumstances:</p>
+          <ul>
+            <li>With service providers who assist in our operations</li>
+            <li>To comply with legal obligations or respond to lawful requests</li>
+            <li>To protect our rights, privacy, safety, or property</li>
+            <li>In connection with a merger, acquisition, or sale of assets</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>4. Data Security</h3>
+          <p>We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. This includes:</p>
+          <ul>
+            <li>Encryption of data in transit and at rest</li>
+            <li>Regular security assessments and updates</li>
+            <li>Access controls and authentication mechanisms</li>
+            <li>Secure data storage and backup procedures</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>5. Cookies and Tracking</h3>
+          <p>We use cookies and similar tracking technologies to collect information about your browsing activities. This helps us:</p>
+          <ul>
+            <li>Remember your preferences and settings</li>
+            <li>Analyze site traffic and usage patterns</li>
+            <li>Improve our services and user experience</li>
+            <li>Provide personalized content and features</li>
+          </ul>
+          <p>You can control cookie settings through your browser preferences.</p>
+        </section>
+
+        <section>
+          <h3>6. Data Retention</h3>
+          <p>We retain personal information for as long as necessary to provide our services and fulfill the purposes outlined in this policy. We may retain certain information for longer periods as required by law or for legitimate business purposes.</p>
+        </section>
+
+        <section>
+          <h3>7. Your Rights</h3>
+          <p>Depending on your location, you may have the following rights regarding your personal information:</p>
+          <ul>
+            <li>Access, update, or delete your personal information</li>
+            <li>Object to or restrict certain processing activities</li>
+            <li>Data portability and withdrawal of consent</li>
+            <li>Lodge a complaint with supervisory authorities</li>
+          </ul>
+          <p>To exercise these rights, please contact us at <a href="mailto:support@patent1024.com">support@patent1024.com</a>.</p>
+        </section>
+
+        <section>
+          <h3>8. Third-Party Services</h3>
+          <p>Our service may contain links to third-party websites or integrate with third-party services. We are not responsible for the privacy practices of these third parties. We encourage you to review their privacy policies.</p>
+        </section>
+
+        <section>
+          <h3>9. Changes to This Policy</h3>
+          <p>We may update this privacy policy from time to time. We will notify you of any material changes by posting the new policy on our website and updating the "Last updated" date. Your continued use of our services constitutes acceptance of the updated policy.</p>
+        </section>
+
+        <section>
+          <h3>10. Contact Us</h3>
+          <p>If you have any questions about this privacy policy or our privacy practices, please contact us at:</p>
+          <p>
+            <strong>Email:</strong> <a href="mailto:support@patent1024.com">support@patent1024.com</a><br>
+            <strong>Address:</strong> Patent 1024, LLC<br>
+            <strong>Subject:</strong> Privacy Policy Inquiry
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terms of Service Modal -->
+  <div id="terms-modal" class="modal-overlay">
+    <div class="modal-content terms-modal-content">
+      <button id="close-terms-btn" class="close-modal">&times;</button>
+      <div class="section-header">
+        <h2>Terms of Service</h2>
+        <p>Last updated: May 2025</p>
+      </div>
+      <div class="terms-content">
+        <section>
+          <h3>1. Acceptance of Terms</h3>
+          <p>By accessing and using Patent 1024's services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+        </section>
+
+        <section>
+          <h3>2. Service Description</h3>
+          <p>Patent 1024 provides data analytics services focused on patent information from the United States Patent and Trademark Office (USPTO). Our platform includes:</p>
+          <ul>
+            <li>Interactive patent data visualization and analysis tools</li>
+            <li>Database access for patent research and intelligence</li>
+            <li>Export capabilities for charts, reports, and data</li>
+            <li>Collaboration features for team-based analysis</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>3. User Accounts</h3>
+          <p>To access certain features of our service, you must register for an account. You agree to:</p>
+          <ul>
+            <li>Provide accurate, current, and complete information during registration</li>
+            <li>Maintain the security of your password and account</li>
+            <li>Immediately notify us of any unauthorized use of your account</li>
+            <li>Accept responsibility for all activities that occur under your account</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>4. Subscription and Payment Terms</h3>
+          <p>Our service operates on a subscription basis with the following terms:</p>
+          <ul>
+            <li>All subscriptions include a 7-day free trial period</li>
+            <li>Payment is processed through Stripe, our secure payment provider</li>
+            <li>Subscriptions automatically renew unless cancelled before the renewal date</li>
+            <li>Refunds are provided within 30 days of initial subscription purchase</li>
+            <li>Enterprise pricing is available upon request and subject to custom agreements</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>5. Acceptable Use</h3>
+          <p>You agree not to use the service to:</p>
+          <ul>
+            <li>Violate any applicable laws or regulations</li>
+            <li>Infringe upon intellectual property rights of others</li>
+            <li>Transmit any harmful, offensive, or illegal content</li>
+            <li>Attempt to gain unauthorized access to our systems or other users' accounts</li>
+            <li>Use automated systems to access the service without permission</li>
+            <li>Resell or redistribute our services without authorization</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>6. Data and Intellectual Property</h3>
+          <p>Regarding data and intellectual property rights:</p>
+          <ul>
+            <li>USPTO data remains in the public domain and is not owned by Patent 1024</li>
+            <li>Our platform, software, and proprietary analytics tools are owned by Patent 1024</li>
+            <li>You retain ownership of any original analysis or reports you create</li>
+            <li>You grant us a limited license to process your data to provide our services</li>
+            <li>We may use aggregated, anonymized usage data to improve our services</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>7. Service Availability</h3>
+          <p>We strive to provide reliable service but cannot guarantee 100% uptime. We reserve the right to:</p>
+          <ul>
+            <li>Modify or discontinue services with reasonable notice</li>
+            <li>Perform maintenance that may temporarily affect service availability</li>
+            <li>Limit usage to prevent abuse or ensure fair access for all users</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>8. Limitation of Liability</h3>
+          <p>To the fullest extent permitted by law:</p>
+          <ul>
+            <li>Patent 1024 shall not be liable for any indirect, incidental, or consequential damages</li>
+            <li>Our total liability shall not exceed the amount paid by you in the past 12 months</li>
+            <li>We provide the service "as is" without warranties of any kind</li>
+            <li>You use the service at your own risk</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>9. Termination</h3>
+          <p>Either party may terminate this agreement:</p>
+          <ul>
+            <li>You may cancel your subscription at any time through your account settings</li>
+            <li>We may terminate your account for violation of these terms</li>
+            <li>Upon termination, you will lose access to the service and any stored data</li>
+            <li>Certain provisions of this agreement will survive termination</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>10. Dispute Resolution</h3>
+          <p>Any disputes arising from this agreement shall be resolved through:</p>
+          <ul>
+            <li>Initial good faith negotiation between the parties</li>
+            <li>Binding arbitration if negotiation fails</li>
+            <li>Governing law shall be the laws of the jurisdiction where Patent 1024 is incorporated</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>11. Changes to Terms</h3>
+          <p>We reserve the right to modify these terms at any time. We will notify users of material changes via email or through our service. Continued use of the service after changes constitutes acceptance of the modified terms.</p>
+        </section>
+
+        <section>
+          <h3>12. Data Disclaimer</h3>
+          <p>All data presented on this platform are collected from the United States Patent and Trademark Office (USPTO). We do not add any new data in addition to the USPTO's original data.</p>
+          <p>Please note that some recent data collection may fall behind the USPTO's recent updates. For purposes of accuracy and specific detailed information, always refer to the USPTO's original data sources.</p>
+          <p><strong>Data Analysis and AI-Generated Labels:</strong> We analyze existing data and identify connections within the dataset. Additionally, we enhance certain records with descriptive labels such as gender or ethnicity classifications. These labels are generated using artificial intelligence and are not 100% accurate. Please use these AI-generated labels with caution and consider them most reliable for statistical analysis rather than for determining specific individual characteristics.</p>
+        </section>
+
+        <section>
+          <h3>13. Contact Information</h3>
+          <p>If you have any questions about these terms of service, please contact us at:</p>
+          <p>
+            <strong>Email:</strong> <a href="mailto:support@patent1024.com">support@patent1024.com</a><br>
+            <strong>Address:</strong> Patent 1024, LLC<br>
+            <strong>Subject:</strong> Terms of Service Inquiry
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer Popup -->
+  <div id="disclaimer-popup" class="disclaimer-popup">
+    <button id="close-disclaimer-btn" class="close-disclaimer">&times;</button>
+    <h4>Data Disclaimer</h4>
+    <p>All data presented on this platform are collected from the United States Patent and Trademark Office (USPTO). We do not add any new data in addition to the USPTO's original data.</p>
+    <p>Please note that some recent data collection may fall behind the USPTO's recent updates. For purposes of accuracy and specific detailed information, always refer to the USPTO's original data sources.</p>
+    <p><strong>Data Analysis and AI-Generated Labels:</strong> We analyze existing data and identify connections within the dataset. Additionally, we enhance certain records with descriptive labels such as gender or ethnicity classifications. These labels are generated using artificial intelligence and are not 100% accurate. Please use these AI-generated labels with caution and consider them most reliable for statistical analysis rather than for determining specific individual characteristics.</p>
   </div>
 
   <!-- Footer -->
@@ -373,76 +1633,236 @@
           <ul class="footer-links">
             <li><a href="#">Documentation</a></li>
             <li><a href="#">Blog</a></li>
-            <li><a href="#">Support</a></li>
+            <li><a href="mailto:support@patent1024.com">Support</a></li>
           </ul>
         </div>
         <div class="footer-section">
           <h4>Company</h4>
           <ul class="footer-links">
             <li><a href="#about">About Us</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#privacy">Privacy Policy</a></li>
+            <li><a href="#terms">Terms of Service</a></li>
           </ul>
         </div>
       </div>
       <div class="copyright">
-        &copy; 2025 Patent 1024. All rights reserved.
+        &copy; 2025 Patent 1024, LLC. All rights reserved. | <a href="#" id="disclaimer-link">Data Disclaimer</a>
       </div>
     </div>
   </footer>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const pricingLink = document.querySelector('a[href="#pricing"]');
+    // Pricing modal functionality
+    const pricingLinks = document.querySelectorAll('a[href="#pricing"]');
     const pricingModal = document.getElementById('pricing-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
-    const featureCards = document.querySelectorAll('.feature-card');
-    const showcase = document.getElementById('feature-showcase');
-    const showcaseImage = document.getElementById('feature-showcase-image');
 
-    const openModal = (e) => {
+    const openPricingModal = (e) => {
       e.preventDefault();
       pricingModal.classList.add('active');
     };
 
-    const closeModal = () => {
+    const closePricingModal = () => {
       pricingModal.classList.remove('active');
     };
 
-    if (pricingLink && pricingModal) {
-      pricingLink.addEventListener('click', openModal);
+    if (pricingLinks.length > 0 && pricingModal) {
+      pricingLinks.forEach(link => {
+        link.addEventListener('click', openPricingModal);
+      });
     }
 
     if (closeModalBtn) {
-      closeModalBtn.addEventListener('click', closeModal);
+      closeModalBtn.addEventListener('click', closePricingModal);
     }
 
     pricingModal.addEventListener('click', (e) => {
       if (e.target === pricingModal) {
-        closeModal();
+        closePricingModal();
       }
     });
 
-    // Feature showcase logic
-    if (featureCards.length > 0 && showcase && showcaseImage) {
-      const activateFeature = (card) => {
-        // Remove active class from all cards
-        featureCards.forEach(c => c.classList.remove('active'));
-        // Add active class to the clicked card
-        card.classList.add('active');
+    // Privacy policy modal functionality
+    const privacyLinks = document.querySelectorAll('a[href="#privacy"]');
+    const privacyModal = document.getElementById('privacy-modal');
+    const closePrivacyBtn = document.getElementById('close-privacy-btn');
+
+    const openPrivacyModal = (e) => {
+      e.preventDefault();
+      privacyModal.classList.add('active');
+    };
+
+    const closePrivacyModal = () => {
+      privacyModal.classList.remove('active');
+    };
+
+    if (privacyLinks.length > 0 && privacyModal) {
+      privacyLinks.forEach(link => {
+        link.addEventListener('click', openPrivacyModal);
+      });
+    }
+
+    if (closePrivacyBtn) {
+      closePrivacyBtn.addEventListener('click', closePrivacyModal);
+    }
+
+    privacyModal.addEventListener('click', (e) => {
+      if (e.target === privacyModal) {
+        closePrivacyModal();
+      }
+    });
+
+    // Terms of service modal functionality
+    const termsLinks = document.querySelectorAll('a[href="#terms"]');
+    const termsModal = document.getElementById('terms-modal');
+    const closeTermsBtn = document.getElementById('close-terms-btn');
+
+    const openTermsModal = (e) => {
+      e.preventDefault();
+      termsModal.classList.add('active');
+    };
+
+    const closeTermsModal = () => {
+      termsModal.classList.remove('active');
+    };
+
+    if (termsLinks.length > 0 && termsModal) {
+      termsLinks.forEach(link => {
+        link.addEventListener('click', openTermsModal);
+      });
+    }
+
+    if (closeTermsBtn) {
+      closeTermsBtn.addEventListener('click', closeTermsModal);
+    }
+
+    termsModal.addEventListener('click', (e) => {
+      if (e.target === termsModal) {
+        closeTermsModal();
+      }
+    });
+
+        // Question tabs functionality
+    const questionTabs = document.querySelectorAll('.question-tab');
+    const questionPanels = document.querySelectorAll('.question-panel');
+
+    if (questionTabs.length > 0 && questionPanels.length > 0) {
+      const activateTab = (targetTab) => {
+        const targetId = targetTab.dataset.target;
         
-        const imgSrc = card.dataset.imageSrc;
-        showcaseImage.src = imgSrc;
-        showcase.classList.add('visible');
+        // Remove active class from all tabs and panels
+        questionTabs.forEach(tab => tab.classList.remove('active'));
+        questionPanels.forEach(panel => panel.classList.remove('active'));
+        
+        // Add active class to clicked tab and corresponding panel
+        targetTab.classList.add('active');
+        document.getElementById(targetId).classList.add('active');
       };
 
-      featureCards.forEach(card => {
-        card.addEventListener('click', () => activateFeature(card));
+      questionTabs.forEach(tab => {
+        tab.addEventListener('click', () => activateTab(tab));
+      });
+    }
+
+    // Image lightbox functionality
+    const lightbox = document.getElementById('image-lightbox');
+    const lightboxImage = document.getElementById('lightbox-image');
+    const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
+    const panelImages = document.querySelectorAll('.panel-visual img');
+
+    if (lightbox && lightboxImage && lightboxCloseBtn && panelImages.length > 0) {
+      const openLightbox = (imageSrc, imageAlt) => {
+        lightboxImage.src = imageSrc;
+        lightboxImage.alt = imageAlt;
+        lightbox.classList.add('active');
+        // Prevent body scroll when lightbox is open
+        document.body.style.overflow = 'hidden';
+      };
+
+      const closeLightbox = () => {
+        lightbox.classList.remove('active');
+        // Restore body scroll
+        document.body.style.overflow = '';
+      };
+
+      // Add click event to all panel images
+      panelImages.forEach(img => {
+        img.addEventListener('click', () => {
+          openLightbox(img.src, img.alt);
+        });
       });
 
-      // Activate the first feature by default
-      activateFeature(featureCards[0]);
+      // Close lightbox when close button is clicked
+      lightboxCloseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeLightbox();
+      });
+
+      // Close lightbox when clicking outside the image
+      lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) {
+          closeLightbox();
+        }
+      });
+
+      // Close lightbox with Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+          closeLightbox();
+        }
+      });
     }
+
+    // Disclaimer popup functionality
+    const disclaimerLink = document.getElementById('disclaimer-link');
+    const disclaimerPopup = document.getElementById('disclaimer-popup');
+    const closeDisclaimerBtn = document.getElementById('close-disclaimer-btn');
+
+    if (disclaimerLink && disclaimerPopup && closeDisclaimerBtn) {
+      const openDisclaimer = (e) => {
+        e.preventDefault();
+        disclaimerPopup.classList.add('active');
+      };
+
+      const closeDisclaimer = () => {
+        disclaimerPopup.classList.remove('active');
+      };
+
+      disclaimerLink.addEventListener('click', openDisclaimer);
+      closeDisclaimerBtn.addEventListener('click', closeDisclaimer);
+
+      // Close disclaimer when clicking outside
+      document.addEventListener('click', (e) => {
+        if (disclaimerPopup.classList.contains('active') && 
+            !disclaimerPopup.contains(e.target) && 
+            e.target !== disclaimerLink) {
+          closeDisclaimer();
+        }
+      });
+
+      // Close disclaimer with Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && disclaimerPopup.classList.contains('active')) {
+          closeDisclaimer();
+        }
+      });
+    }
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (pricingModal.classList.contains('active')) {
+          closePricingModal();
+        }
+        if (privacyModal.classList.contains('active')) {
+          closePrivacyModal();
+        }
+        if (termsModal.classList.contains('active')) {
+          closeTermsModal();
+        }
+      }
+    });
   });
 </script>
 
