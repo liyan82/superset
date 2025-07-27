@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SupersetClient } from '@superset-ui/core';
 
 export default function AIQuery() {
@@ -7,8 +7,41 @@ export default function AIQuery() {
   const [loading, setLoading] = useState(false);
   const [executionResults, setExecutionResults] = useState(null);
   const [showSQL, setShowSQL] = useState(false);
+  const [databaseConfig, setDatabaseConfig] = useState(null);
+  const [configLoading, setConfigLoading] = useState(true);
+
+  // Fetch database configuration on component mount
+  useEffect(() => {
+    const fetchDatabaseConfig = async () => {
+      try {
+        const response = await SupersetClient.get({
+          endpoint: '/ai-query/config',
+        });
+        setDatabaseConfig(response.json);
+      } catch (error) {
+        console.error('Failed to fetch database config:', error);
+        setDatabaseConfig({
+          success: false,
+          error: 'Failed to load database configuration'
+        });
+      } finally {
+        setConfigLoading(false);
+      }
+    };
+
+    fetchDatabaseConfig();
+  }, []);
 
   const handleGenerateAndExecuteQuery = async () => {
+    if (!databaseConfig || !databaseConfig.success) {
+      setExecutionResults({
+        success: false,
+        error: 'Database configuration not available. Please refresh the page.',
+        data: null,
+      });
+      return;
+    }
+
     setLoading(true);
     setExecutionResults(null);
     setGeneratedQuery('');
@@ -40,7 +73,7 @@ export default function AIQuery() {
       const executeResponse = await SupersetClient.post({
         endpoint: '/ai-query/execute',
         body: JSON.stringify({
-          database_id: 3, // USPTO database
+          database_id: databaseConfig.database_id,
           sql: sqlQuery,
           queryLimit: 1000,
           client_id: `ai_${Date.now().toString().slice(-8)}`,
@@ -79,6 +112,11 @@ export default function AIQuery() {
         <p style={{ margin: '0', color: '#666', fontSize: '16px' }}>
           Ask questions about the patent database in natural language
         </p>
+        {databaseConfig && databaseConfig.success && (
+          <p style={{ margin: '5px 0 0 0', color: '#888', fontSize: '14px' }}>
+            Querying: <strong>{databaseConfig.database_name}</strong>
+          </p>
+        )}
       </div>
       
       <div style={{ 
@@ -111,21 +149,35 @@ export default function AIQuery() {
         />
         <button 
           onClick={handleGenerateAndExecuteQuery}
-          disabled={loading}
+          disabled={loading || configLoading || !databaseConfig?.success}
           style={{
             marginTop: '15px',
             padding: '12px 24px',
-            background: loading ? '#ccc' : '#1890ff',
+            background: (loading || configLoading || !databaseConfig?.success) ? '#ccc' : '#1890ff',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: loading ? 'not-allowed' : 'pointer',
+            cursor: (loading || configLoading || !databaseConfig?.success) ? 'not-allowed' : 'pointer',
             fontSize: '16px',
             fontWeight: 'bold'
           }}
         >
-          {loading ? 'Processing...' : 'Ask AI'}
+          {loading ? 'Processing...' : configLoading ? 'Loading...' : !databaseConfig?.success ? 'Database Unavailable' : 'Ask AI'}
         </button>
+        
+        {databaseConfig && !databaseConfig.success && (
+          <div style={{
+            marginTop: '15px',
+            padding: '10px',
+            background: '#fff2f0',
+            border: '1px solid #ffccc7',
+            borderRadius: '4px',
+            color: '#ff4d4f',
+            fontSize: '14px'
+          }}>
+            <strong>Configuration Error:</strong> {databaseConfig.error}
+          </div>
+        )}
       </div>
       
       {generatedQuery && showSQL && (

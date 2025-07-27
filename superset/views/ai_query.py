@@ -16,7 +16,7 @@
 # under the License.
 import logging
 import os
-from typing import Any
+from typing import Any, Optional
 
 from flask import request, jsonify
 from flask_appbuilder import permission_name
@@ -62,7 +62,9 @@ class AIQueryView(BaseSupersetView):
     @event_logger.log_this
     def root(self, **kwargs: Any) -> FlaskResponse:
         """Handles the default AI Query page."""
-        payload = {}
+        payload = {
+            "ai_query_database_id": self._get_ai_query_database_id()
+        }
         return self.render_app_template(payload)
 
     @expose("/generate", methods=["POST"])
@@ -225,3 +227,76 @@ class AIQueryView(BaseSupersetView):
                 "error": f"Execution failed: {str(e)}",
                 "query": None
             }), 500
+
+    @expose("/config", methods=["GET"])
+    @has_access
+    @permission_name("read")
+    @event_logger.log_this
+    def get_config(self, **kwargs: Any) -> FlaskResponse:
+        """Get AI Query configuration including database ID."""
+        try:
+            database_id = self._get_ai_query_database_id()
+            if not database_id:
+                return jsonify({
+                    "success": False,
+                    "error": "No suitable database found for AI Query"
+                }), 404
+                
+            return jsonify({
+                "success": True,
+                "database_id": database_id,
+                "database_name": self._get_database_name(database_id)
+            })
+        except Exception as e:
+            logger.error(f"AI Query config error: {str(e)}", exc_info=True)
+            return jsonify({
+                "success": False,
+                "error": f"Configuration error: {str(e)}"
+            }), 500
+
+    def _get_ai_query_database_id(self) -> Optional[int]:
+        """
+        Get the database ID for AI Query.
+        Tries multiple approaches to find the appropriate database.
+        """
+        from superset.models.core import Database
+        
+        # Approach 1: Check configuration
+        configured_db_id = getattr(config, "AI_QUERY_DATABASE_ID", None)
+        if configured_db_id:
+            # Verify the database exists
+            database = db.session.query(Database).filter_by(id=configured_db_id).first()
+            if database:
+                return configured_db_id
+            else:
+                logger.warning(f"Configured AI_QUERY_DATABASE_ID {configured_db_id} not found")
+        
+        # Approach 2: Look for USPTO database by name
+        uspto_db = db.session.query(Database).filter(
+            Database.database_name.ilike('%uspto%')
+        ).first()
+        if uspto_db:
+            return uspto_db.id
+            
+        # Approach 3: Look for patent-related database names
+        patent_keywords = ['patent', 'intellectual', 'ip', 'trademark']
+        for keyword in patent_keywords:
+            patent_db = db.session.query(Database).filter(
+                Database.database_name.ilike(f'%{keyword}%')
+            ).first()
+            if patent_db:
+                return patent_db.id
+        
+        # Approach 4: Use the first available database as fallback
+        fallback_db = db.session.query(Database).first()
+        if fallback_db:
+            logger.warning(f"Using fallback database: {fallback_db.database_name} (id: {fallback_db.id})")
+            return fallback_db.id
+            
+        return None
+
+    def _get_database_name(self, database_id: int) -> Optional[str]:
+        """Get database name by ID."""
+        from superset.models.core import Database
+        database = db.session.query(Database).filter_by(id=database_id).first()
+        return database.database_name if database else None
