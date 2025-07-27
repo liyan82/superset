@@ -5,14 +5,18 @@ export default function AIQuery() {
   const [description, setDescription] = useState('');
   const [generatedQuery, setGeneratedQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [executing, setExecuting] = useState(false);
   const [executionResults, setExecutionResults] = useState(null);
+  const [showSQL, setShowSQL] = useState(false);
 
-  const handleGenerateQuery = async () => {
+  const handleGenerateAndExecuteQuery = async () => {
     setLoading(true);
     setExecutionResults(null);
+    setGeneratedQuery('');
+    setShowSQL(false);
+    
     try {
-      const response = await SupersetClient.post({
+      // Step 1: Generate SQL query
+      const generateResponse = await SupersetClient.post({
         endpoint: '/ai-query/generate',
         body: JSON.stringify({ description }),
         headers: {
@@ -20,26 +24,24 @@ export default function AIQuery() {
         },
       });
       
-      setGeneratedQuery(response.json.query || 'No query generated');
-    } catch (error) {
-      setGeneratedQuery('Error generating query: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const sqlQuery = generateResponse.json.query;
+      setGeneratedQuery(sqlQuery || 'No query generated');
+      
+      if (!sqlQuery || generateResponse.json.success === false) {
+        setExecutionResults({
+          success: false,
+          error: generateResponse.json.error || 'Failed to generate SQL query',
+          data: null,
+        });
+        return;
+      }
 
-  const handleExecuteQuery = async () => {
-    if (!generatedQuery || generatedQuery.includes('Error')) {
-      return;
-    }
-
-    setExecuting(true);
-    try {
-      const response = await SupersetClient.post({
+      // Step 2: Automatically execute the generated SQL
+      const executeResponse = await SupersetClient.post({
         endpoint: '/ai-query/execute',
         body: JSON.stringify({
           database_id: 3, // USPTO database
-          sql: generatedQuery,
+          sql: sqlQuery,
           queryLimit: 1000,
           client_id: `ai_${Date.now().toString().slice(-8)}`,
           expand_data: true,
@@ -49,7 +51,8 @@ export default function AIQuery() {
         },
       });
       
-      setExecutionResults(response.json);
+      setExecutionResults(executeResponse.json);
+      
     } catch (error) {
       setExecutionResults({
         success: false,
@@ -57,7 +60,7 @@ export default function AIQuery() {
         data: null,
       });
     } finally {
-      setExecuting(false);
+      setLoading(false);
     }
   };
 
@@ -71,10 +74,10 @@ export default function AIQuery() {
     }}>
       <div style={{ textAlign: 'center', marginBottom: '20px', flexShrink: 0 }}>
         <h1 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '28px' }}>
-          AI Query
+          AI Query Assistant
         </h1>
         <p style={{ margin: '0', color: '#666', fontSize: '16px' }}>
-          Use artificial intelligence to generate and execute SQL queries
+          Ask questions about the patent database in natural language
         </p>
       </div>
       
@@ -86,41 +89,46 @@ export default function AIQuery() {
         flexShrink: 0
       }}>
         <h2 style={{ marginTop: '0', marginBottom: '15px', color: '#444' }}>
-          Query Input
+          Ask Your Question
         </h2>
         <textarea 
-          placeholder="Describe what you want to query..." 
+          placeholder="Example: Find all attorneys with last name Smith, or Show me patents filed in 2023..." 
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           style={{
             width: '100%',
             height: '100px',
-            padding: '10px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
+            padding: '12px',
+            border: '2px solid #e1e5e9',
+            borderRadius: '6px',
             fontSize: '14px',
-            resize: 'vertical'
+            resize: 'vertical',
+            outline: 'none',
+            transition: 'border-color 0.2s',
           }}
+          onFocus={(e) => e.target.style.borderColor = '#1890ff'}
+          onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
         />
         <button 
-          onClick={handleGenerateQuery}
+          onClick={handleGenerateAndExecuteQuery}
           disabled={loading}
           style={{
             marginTop: '15px',
-            padding: '10px 20px',
+            padding: '12px 24px',
             background: loading ? '#ccc' : '#1890ff',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
             cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '14px'
+            fontSize: '16px',
+            fontWeight: 'bold'
           }}
         >
-          {loading ? 'Generating...' : 'Generate Query'}
+          {loading ? 'Processing...' : 'Ask AI'}
         </button>
       </div>
       
-      {generatedQuery && (
+      {generatedQuery && showSQL && (
         <div style={{ 
           background: '#f9f9f9', 
           border: '1px solid #ddd', 
@@ -128,7 +136,23 @@ export default function AIQuery() {
           padding: '20px',
           flexShrink: 0
         }}>
-          <h3 style={{ marginTop: '0', color: '#555' }}>Generated SQL Query</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <h3 style={{ margin: '0', color: '#555' }}>Generated SQL Query</h3>
+            <button 
+              onClick={() => setShowSQL(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#666',
+                cursor: 'pointer',
+                fontSize: '18px',
+                padding: '0'
+              }}
+              title="Hide SQL"
+            >
+              ✕
+            </button>
+          </div>
           <pre style={{ 
             background: 'white', 
             padding: '15px', 
@@ -136,25 +160,10 @@ export default function AIQuery() {
             border: '1px solid #ddd',
             fontSize: '14px',
             overflow: 'auto',
-            marginBottom: '15px'
+            margin: '0'
           }}>
             {generatedQuery}
           </pre>
-          <button 
-            onClick={handleExecuteQuery}
-            disabled={executing || generatedQuery.includes('Error')}
-            style={{
-              padding: '10px 20px',
-              background: executing ? '#ccc' : '#52c41a',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: executing || generatedQuery.includes('Error') ? 'not-allowed' : 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            {executing ? 'Executing...' : 'Execute Query'}
-          </button>
         </div>
       )}
       
@@ -169,7 +178,28 @@ export default function AIQuery() {
         display: 'flex',
         flexDirection: 'column'
       }}>
-        <h3 style={{ marginTop: '0', color: '#555' }}>Query Results</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <h3 style={{ margin: '0', color: '#555' }}>
+            {loading ? 'Processing your query...' : 'Results'}
+          </h3>
+          {generatedQuery && !showSQL && executionResults && (
+            <button 
+              onClick={() => setShowSQL(true)}
+              style={{
+                padding: '6px 12px',
+                background: '#f8f9fa',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                color: '#666'
+              }}
+              title="View generated SQL query"
+            >
+              Show SQL
+            </button>
+          )}
+        </div>
         {executionResults ? (
           <div>
             {executionResults.error ? (
@@ -262,9 +292,24 @@ export default function AIQuery() {
             )}
           </div>
         ) : (
-          <p style={{ color: '#888', fontStyle: 'italic' }}>
-            Query execution results will appear here...
-          </p>
+          <div style={{ 
+            textAlign: 'center', 
+            color: '#888', 
+            fontSize: '16px',
+            marginTop: '40px'
+          }}>
+            {loading ? (
+              <div>
+                <div style={{ marginBottom: '10px' }}>🤖</div>
+                <div>AI is analyzing your question and querying the database...</div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ marginBottom: '10px' }}>💬</div>
+                <div>Ask a question about the patent database above to get started</div>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
