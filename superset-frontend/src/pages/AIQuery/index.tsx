@@ -9,6 +9,8 @@ export default function AIQuery() {
   const [showSQL, setShowSQL] = useState(false);
   const [databaseConfig, setDatabaseConfig] = useState(null);
   const [configLoading, setConfigLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(50);
 
   // Fetch database configuration on component mount
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function AIQuery() {
     setExecutionResults(null);
     setGeneratedQuery('');
     setShowSQL(false);
+    setCurrentPage(1);
     
     try {
       // Step 1: Generate SQL query
@@ -95,6 +98,23 @@ export default function AIQuery() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Pagination helpers
+  const getTotalPages = () => {
+    if (!executionResults?.data) return 0;
+    return Math.ceil(executionResults.data.length / pageSize);
+  };
+
+  const getCurrentPageData = () => {
+    if (!executionResults?.data) return [];
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return executionResults.data.slice(startIndex, endIndex);
+  };
+
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, getTotalPages())));
   };
 
   return (
@@ -271,26 +291,34 @@ export default function AIQuery() {
                     background: 'white', 
                     border: '1px solid #ddd',
                     borderRadius: '4px',
-                    overflow: 'auto',
                     flex: '1',
-                    minHeight: '300px'
+                    minHeight: '300px',
+                    overflow: 'auto',
+                    position: 'relative'
                   }}>
                     <table style={{ 
                       width: '100%', 
                       borderCollapse: 'collapse',
-                      fontSize: '14px',
-                      height: '100%'
+                      fontSize: '14px'
                     }}>
                       <thead>
-                        <tr style={{ background: '#fafafa' }}>
+                        <tr style={{
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 10,
+                          background: '#f8f9fa'
+                        }}>
                           {executionResults.columns && executionResults.columns.map((col, idx) => (
                             <th key={idx} style={{ 
                               padding: '12px 16px', 
                               textAlign: 'left',
-                              borderBottom: '2px solid #e0e0e0',
                               fontWeight: 'bold',
                               background: '#f8f9fa',
-                              fontSize: '14px'
+                              fontSize: '14px',
+                              borderBottom: '2px solid #e0e0e0',
+                              borderRight: idx < executionResults.columns.length - 1 ? '1px solid #e0e0e0' : 'none',
+                              whiteSpace: 'nowrap',
+                              boxShadow: '0 2px 2px -1px rgba(0, 0, 0, 0.1)'
                             }}>
                               {col.name}
                             </th>
@@ -298,34 +326,104 @@ export default function AIQuery() {
                         </tr>
                       </thead>
                       <tbody>
-                        {executionResults.data.slice(0, 50).map((row, rowIdx) => (
+                        {getCurrentPageData().map((row, rowIdx) => (
                           <tr key={rowIdx} style={{ 
                             borderBottom: '1px solid #f0f0f0'
                           }}>
                             {executionResults.columns.map((col, colIdx) => (
                               <td key={colIdx} style={{ 
                                 padding: '12px 16px',
+                                borderRight: colIdx < executionResults.columns.length - 1 ? '1px solid #e0e0e0' : 'none',
                                 maxWidth: '250px',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                borderBottom: '1px solid #f0f0f0'
+                                whiteSpace: 'nowrap'
                               }}>
-                                {row[col.name] !== null ? String(row[col.name]) : 'NULL'}
+                                {row[col.name] !== null && row[col.name] !== undefined ? String(row[col.name]) : 
+                                  <span style={{ color: '#999', fontStyle: 'italic' }}>N/A</span>
+                                }
                               </td>
                             ))}
                           </tr>
                         ))}
                       </tbody>
                     </table>
-                    {executionResults.data.length > 50 && (
+                    
+                    {/* Pagination Controls */}
+                    {getTotalPages() > 1 && (
                       <div style={{ 
-                        padding: '10px', 
-                        textAlign: 'center', 
-                        color: '#666',
-                        borderTop: '1px solid #f0f0f0'
+                        padding: '12px 16px', 
+                        borderTop: '1px solid #f0f0f0',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        background: '#fafafa',
+                        fontSize: '14px'
                       }}>
-                        Showing first 50 of {executionResults.data.length} rows
+                        <div style={{ color: '#666' }}>
+                          Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, executionResults.data.length)} of {executionResults.data.length} rows
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <button 
+                            onClick={() => goToPage(1)}
+                            disabled={currentPage === 1}
+                            style={{
+                              padding: '4px 8px',
+                              border: '1px solid #ddd',
+                              background: currentPage === 1 ? '#f5f5f5' : 'white',
+                              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                              borderRadius: '3px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            First
+                          </button>
+                          <button 
+                            onClick={() => goToPage(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            style={{
+                              padding: '4px 8px',
+                              border: '1px solid #ddd',
+                              background: currentPage === 1 ? '#f5f5f5' : 'white',
+                              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                              borderRadius: '3px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Previous
+                          </button>
+                          <span style={{ padding: '0 8px', color: '#666' }}>
+                            Page {currentPage} of {getTotalPages()}
+                          </span>
+                          <button 
+                            onClick={() => goToPage(currentPage + 1)}
+                            disabled={currentPage === getTotalPages()}
+                            style={{
+                              padding: '4px 8px',
+                              border: '1px solid #ddd',
+                              background: currentPage === getTotalPages() ? '#f5f5f5' : 'white',
+                              cursor: currentPage === getTotalPages() ? 'not-allowed' : 'pointer',
+                              borderRadius: '3px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Next
+                          </button>
+                          <button 
+                            onClick={() => goToPage(getTotalPages())}
+                            disabled={currentPage === getTotalPages()}
+                            style={{
+                              padding: '4px 8px',
+                              border: '1px solid #ddd',
+                              background: currentPage === getTotalPages() ? '#f5f5f5' : 'white',
+                              cursor: currentPage === getTotalPages() ? 'not-allowed' : 'pointer',
+                              borderRadius: '3px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Last
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
