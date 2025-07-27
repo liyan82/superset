@@ -193,6 +193,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             TableModelView,
         )
         from superset.views.sqllab import SqllabView
+        from superset.views.ai_query import AIQueryView
         from superset.views.tags import TagModelView, TagView
         from superset.views.themes import ThemeModelView
         from superset.views.user_info import UserInfoView
@@ -411,6 +412,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         appbuilder.add_view_no_menu(ExplorePermalinkView)
         appbuilder.add_view_no_menu(SavedQueryView)
         appbuilder.add_view_no_menu(SqllabView)
+        appbuilder.add_view_no_menu(AIQueryView)
         appbuilder.add_view_no_menu(Superset)
         appbuilder.add_view_no_menu(TableModelView)
         appbuilder.add_view_no_menu(TableSchemaView)
@@ -433,6 +435,12 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             icon="fa-flask",
             category="SQL Lab",
             category_label=_("SQL"),
+        )
+        appbuilder.add_link(
+            "AI Query",
+            label=_("AI Query"),
+            href=f"{app_root}/ai-query/",
+            icon="fa-robot",
         )
         appbuilder.add_link(
             "Saved Queries",

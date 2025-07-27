@@ -119,6 +119,10 @@ const SqlLab = lazy(
   () => import(/* webpackChunkName: "SqlLab" */ 'src/pages/SqlLab'),
 );
 
+const AIQuery = lazy(
+  () => import(/* webpackChunkName: "AIQuery" */ 'src/pages/AIQuery'),
+);
+
 const AllEntities = lazy(
   () => import(/* webpackChunkName: "AllEntities" */ 'src/pages/AllEntities'),
 );
@@ -306,6 +310,10 @@ export const routes: Routes = [
   {
     path: '/sqllab/',
     Component: SqlLab,
+  },
+  {
+    path: '/ai-query/',
+    Component: AIQuery,
   },
   { path: '/user_info/', Component: UserInfo },
   {
