@@ -66,6 +66,15 @@ class GeminiService:
                 "error": "Gemini API key not configured",
                 "query": None
             }
+        
+        # Security validation: prevent abuse of API key
+        validation_result = self._validate_query_request(description)
+        if not validation_result["valid"]:
+            return {
+                "success": False,
+                "error": validation_result["error"],
+                "query": None
+            }
             
         prompt = self._build_prompt(description, schema_info)
         
@@ -74,6 +83,15 @@ class GeminiService:
             
             if response.get("candidates"):
                 generated_text = response["candidates"][0]["content"]["parts"][0]["text"]
+                
+                # Check if AI refused the request due to restrictions
+                if "ERROR:" in generated_text or "not related to patent database" in generated_text.lower():
+                    return {
+                        "success": False,
+                        "error": "Request not related to patent database queries. Please ask about patent data, examiners, attorneys, applications, or inventors.",
+                        "query": None
+                    }
+                
                 sql_query = self._extract_sql_from_response(generated_text)
                 
                 return {
@@ -102,27 +120,36 @@ class GeminiService:
         # Use provided schema_info, or fall back to configured schema context
         schema_context = schema_info or self.schema_context
         
-        base_prompt = f"""You are a SQL expert working with a patent application database. 
+        base_prompt = f"""You are a specialized SQL generator for a patent application database. You ONLY generate SQL queries for database-related requests.
 
+IMPORTANT RESTRICTIONS:
+- ONLY respond to database query requests about patent data
+- If the request is not about querying patent database data, respond with: "ERROR: Request not related to patent database queries"
+- Do NOT provide general AI assistance, explanations, or answers to non-database questions
+- Do NOT respond to requests for stories, essays, translations, or general information
+
+DATABASE SCHEMA:
 {schema_context if schema_context else ""}
 
-Generate a SQL query for this request: {description}
+USER REQUEST: {description}
 
-Instructions:
-- Use the exact table and column names from the schema above
-- ALWAYS use dedicated entity tables when querying specific entities:
-  * For examiner queries: Use the 'examiner' table, NOT application.examiner_name
-    - Examiner names are in format "Last, First Middle" - use appropriate string functions
-  * For attorney queries: Use the 'attorney' table
-  * For inventor queries: Use the 'inventor' table
-  * For applicant queries: Use the 'applicant' table
-- Return only valid PostgreSQL syntax WITHOUT any comments or explanations
-- Use ILIKE for case-insensitive string comparisons instead of LIKE or =
+SQL GENERATION RULES:
+- Use exact table and column names from schema above
+- ALWAYS use dedicated entity tables:
+  * examiner table (names: "Last, First Middle" format)
+  * attorney table 
+  * inventor table
+  * applicant table
+- Return ONLY valid PostgreSQL syntax without comments
+- Use ILIKE for case-insensitive comparisons
 - Use LOWER() or UPPER() functions for case-insensitive string operations
 - Use appropriate JOINs when accessing related data
 - Consider using materialized views (app_m_view, att_firm_m_view) for complex queries
 - For date ranges, use proper date formatting
 - If the request involves analytics, consider using GROUP BY and aggregations
+
+RESPONSE FORMAT:
+Return only the SQL query, no explanations or additional text.
 
 SQL Query:"""
         
@@ -164,3 +191,90 @@ SQL Query:"""
             lines = lines[:-1]
             
         return '\n'.join(lines).strip()
+    
+    def _validate_query_request(self, description: str) -> Dict[str, Any]:
+        """
+        Validate the user input to prevent API abuse.
+        
+        Args:
+            description: User's natural language description
+            
+        Returns:
+            Dict with validation result and error message if invalid
+        """
+        # Check for empty input
+        if not description or not description.strip():
+            return {
+                "valid": False,
+                "error": "Query description cannot be empty"
+            }
+        
+        # Length restrictions to prevent abuse
+        description = description.strip()
+        MAX_LENGTH = 500  # Reasonable limit for database queries
+        MIN_LENGTH = 5    # Too short is likely not a real query
+        
+        if len(description) > MAX_LENGTH:
+            return {
+                "valid": False,
+                "error": f"Query description too long (max {MAX_LENGTH} characters). Please keep your question concise."
+            }
+            
+        if len(description) < MIN_LENGTH:
+            return {
+                "valid": False,
+                "error": f"Query description too short (min {MIN_LENGTH} characters). Please provide more details."
+            }
+        
+        # Content validation: must be database/query related
+        database_keywords = [
+            # Query intentions
+            'find', 'show', 'list', 'get', 'select', 'search', 'display', 'retrieve',
+            'count', 'sum', 'total', 'average', 'min', 'max', 'group', 'filter',
+            # Database entities from our schema
+            'examiner', 'attorney', 'patent', 'application', 'inventor', 'applicant',
+            'firm', 'classification', 'cpc', 'uspc', 'database', 'table', 'record',
+            # Common query words
+            'where', 'with', 'having', 'by', 'from', 'in', 'all', 'any', 'some',
+            'name', 'id', 'date', 'year', 'status', 'type', 'number',
+            # Question words
+            'what', 'which', 'who', 'when', 'where', 'how', 'many', 'much'
+        ]
+        
+        # Convert to lowercase for case-insensitive checking
+        description_lower = description.lower()
+        
+        # Check if description contains database/query related keywords
+        has_database_keywords = any(keyword in description_lower for keyword in database_keywords)
+        
+        if not has_database_keywords:
+            return {
+                "valid": False,
+                "error": "This appears to be a general question rather than a database query. Please ask about patent data, examiners, attorneys, applications, or inventors."
+            }
+        
+        # Check for suspicious patterns that might indicate abuse
+        suspicious_patterns = [
+            # Non-query requests
+            'write', 'create', 'generate', 'make', 'build', 'develop', 'code',
+            'story', 'essay', 'article', 'letter', 'email', 'report', 'summary',
+            'translate', 'explain', 'describe', 'tell me about', 'what is',
+            # Attempts to bypass restrictions
+            'ignore', 'forget', 'override', 'bypass', 'system', 'prompt', 'instruction',
+            'pretend', 'roleplay', 'act as', 'imagine',
+            # Non-database domains
+            'weather', 'news', 'stock', 'recipe', 'joke', 'poem', 'song'
+        ]
+        
+        # Check for suspicious patterns
+        for pattern in suspicious_patterns:
+            if pattern in description_lower:
+                return {
+                    "valid": False,
+                    "error": "Please ask questions specifically about the patent database. General AI assistance is not available through this interface."
+                }
+        
+        return {
+            "valid": True,
+            "error": None
+        }
