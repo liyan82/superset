@@ -16,6 +16,7 @@
 # under the License.
 from typing import Any
 
+from flask import request, jsonify
 from flask_appbuilder import permission_name
 from flask_appbuilder.api import expose
 from flask_appbuilder.security.decorators import has_access
@@ -41,3 +42,22 @@ class AIQueryView(BaseSupersetView):
         """Handles the default AI Query page."""
         payload = {}
         return self.render_app_template(payload)
+
+    @expose("/generate", methods=["POST"])
+    @has_access
+    @permission_name("read")
+    @event_logger.log_this
+    def generate_query(self, **kwargs: Any) -> FlaskResponse:
+        """Generate SQL query from natural language description."""
+        data = request.get_json()
+        description = data.get("description", "") if data else ""
+        
+        # Simple hello world response
+        response = {
+            "success": True,
+            "query": f"-- Generated from: {description}\nSELECT 'Hello World' as message;",
+            "description": description,
+            "timestamp": "2024-01-01 12:00:00"
+        }
+        
+        return jsonify(response)

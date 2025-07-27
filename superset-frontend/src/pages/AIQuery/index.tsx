@@ -1,14 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { SupersetClient } from '@superset-ui/core';
 
 export default function AIQuery() {
+  const [description, setDescription] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleGenerateQuery = async () => {
+    setLoading(true);
+    try {
+      const response = await SupersetClient.post({
+        endpoint: '/ai-query/generate',
+        body: JSON.stringify({ description }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      setResult(response.json.query || 'No query generated');
+    } catch (error) {
+      setResult('Error generating query: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{ 
       height: '100vh', 
       display: 'flex', 
       flexDirection: 'column',
-      padding: '20px', 
-      maxWidth: '1200px', 
-      margin: '0 auto' 
+      padding: '20px'
     }}>
       <h1 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>
         AI Query
@@ -29,6 +51,8 @@ export default function AIQuery() {
         </h2>
         <textarea 
           placeholder="Describe what you want to query..." 
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           style={{
             width: '100%',
             height: '100px',
@@ -39,17 +63,21 @@ export default function AIQuery() {
             resize: 'vertical'
           }}
         />
-        <button style={{
-          marginTop: '15px',
-          padding: '10px 20px',
-          background: '#1890ff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '14px'
-        }}>
-          Generate Query
+        <button 
+          onClick={handleGenerateQuery}
+          disabled={loading}
+          style={{
+            marginTop: '15px',
+            padding: '10px 20px',
+            background: loading ? '#ccc' : '#1890ff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          {loading ? 'Generating...' : 'Generate Query'}
         </button>
       </div>
       
@@ -57,12 +85,27 @@ export default function AIQuery() {
         background: '#f0f0f0', 
         border: '1px solid #ddd', 
         borderRadius: '8px', 
-        padding: '20px' 
+        padding: '20px',
+        flex: '1',
+        overflow: 'auto'
       }}>
         <h3 style={{ marginTop: '0', color: '#555' }}>Results</h3>
-        <p style={{ color: '#888', fontStyle: 'italic' }}>
-          Generated query and results will appear here...
-        </p>
+        {result ? (
+          <pre style={{ 
+            background: 'white', 
+            padding: '10px', 
+            borderRadius: '4px',
+            border: '1px solid #ddd',
+            fontSize: '14px',
+            overflow: 'auto'
+          }}>
+            {result}
+          </pre>
+        ) : (
+          <p style={{ color: '#888', fontStyle: 'italic' }}>
+            Generated query and results will appear here...
+          </p>
+        )}
       </div>
     </div>
   );
