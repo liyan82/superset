@@ -1859,6 +1859,8 @@ TALISMAN_DEV_CONFIG = {
             "https://events.mapbox.com",
             "https://tile.openstreetmap.org",
             "https://tile.osm.ch",
+            "ws://localhost/ws",    # Allow direct WebSocket connection via Nginx
+            "ws://localhost:9000", # Allow direct WebSocket connection to webpack
         ],
         "object-src": "'none'",
         "style-src": [
@@ -2141,6 +2143,12 @@ SYNC_DB_PERMISSIONS_IN_ASYNC_MODE: bool = False
 # -------------------------------------------------------------------
 # Don't add config values below this line since local configs won't be
 # able to override them.
+
+# AI Query Configuration
+# Configure AI Query functionality powered by Google Gemini
+# Set GEMINI_API_KEY environment variable or configure in superset_config.py
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+
 if CONFIG_PATH_ENV_VAR in os.environ:
     # Explicitly import config module that is not necessarily in pythonpath; useful
     # for case where app is being executed via pex.

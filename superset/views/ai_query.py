@@ -14,6 +14,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+import os
 from typing import Any
 
 from flask import request, jsonify
@@ -49,15 +50,39 @@ class AIQueryView(BaseSupersetView):
     @event_logger.log_this
     def generate_query(self, **kwargs: Any) -> FlaskResponse:
         """Generate SQL query from natural language description."""
+        from superset.ai_query.gemini_service import GeminiService
+        from datetime import datetime
+        
         data = request.get_json()
         description = data.get("description", "") if data else ""
         
-        # Simple hello world response
-        response = {
-            "success": True,
-            "query": f"-- Generated from: {description}\nSELECT 'Hello World' as message;",
-            "description": description,
-            "timestamp": "2024-01-01 12:00:00"
-        }
+        if not description.strip():
+            return jsonify({
+                "success": False,
+                "error": "Description is required",
+                "query": None
+            })
         
-        return jsonify(response)
+        # Initialize Gemini service
+        gemini_service = GeminiService()
+        
+        # Debug: Check if API key is available
+        if not gemini_service.api_key:
+            return jsonify({
+                "success": False,
+                "error": "Gemini API key not configured. Please set GEMINI_API_KEY in superset_config_docker.py or environment variable.",
+                "query": None,
+                "debug_info": {
+                    "config_has_key": hasattr(request, 'current_app') and 'GEMINI_API_KEY' in request.current_app.config,
+                    "env_has_key": bool(os.getenv("GEMINI_API_KEY"))
+                }
+            })
+        
+        # Generate SQL query using Gemini
+        result = gemini_service.generate_sql_query(description)
+        
+        # Add timestamp to response
+        result["timestamp"] = datetime.now().isoformat()
+        result["description"] = description
+        
+        return jsonify(result)
