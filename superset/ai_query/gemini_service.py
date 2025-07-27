@@ -17,6 +17,7 @@
 
 import logging
 import os
+import re
 from typing import Optional, Dict, Any
 import requests
 
@@ -30,18 +31,21 @@ class GeminiService:
         # Try to get API key from multiple sources
         self.api_key = api_key
         self.schema_context = None
+        self.excluded_columns = []
         
         if not self.api_key:
             try:
                 from flask import current_app
                 self.api_key = current_app.config.get("GEMINI_API_KEY")
                 self.schema_context = current_app.config.get("GEMINI_SCHEMA_CONTEXT")
+                self.excluded_columns = current_app.config.get("AI_QUERY_EXCLUDED_COLUMNS", [])
             except RuntimeError:
                 # Not in application context, try importing app
                 try:
                     from superset import app
                     self.api_key = app.config.get("GEMINI_API_KEY")
                     self.schema_context = app.config.get("GEMINI_SCHEMA_CONTEXT")
+                    self.excluded_columns = app.config.get("AI_QUERY_EXCLUDED_COLUMNS", [])
                 except Exception:
                     pass
         
@@ -94,6 +98,15 @@ class GeminiService:
                 
                 sql_query = self._extract_sql_from_response(generated_text)
                 
+                # Validate that the generated query doesn't contain excluded columns
+                validation_result = self._validate_excluded_columns(sql_query)
+                if not validation_result["valid"]:
+                    return {
+                        "success": False,
+                        "error": validation_result["error"],
+                        "query": None
+                    }
+                
                 return {
                     "success": True,
                     "query": sql_query,
@@ -120,6 +133,17 @@ class GeminiService:
         # Use provided schema_info, or fall back to configured schema context
         schema_context = schema_info or self.schema_context
         
+        # Build column exclusion instructions
+        exclusion_text = ""
+        if self.excluded_columns:
+            exclusion_text = f"""
+COLUMN EXCLUSION POLICY:
+- NEVER select or include these columns in any query: {', '.join(self.excluded_columns)}
+- These columns contain sensitive, internal, or irrelevant data that should not be exposed to end users
+- If a user request would require these columns, either omit them or suggest alternative columns
+- Always prioritize user privacy and data security
+"""
+        
         base_prompt = f"""You are a specialized SQL generator for a patent application database. You ONLY generate SQL queries for database-related requests.
 
 IMPORTANT RESTRICTIONS:
@@ -130,7 +154,7 @@ IMPORTANT RESTRICTIONS:
 
 DATABASE SCHEMA:
 {schema_context if schema_context else ""}
-
+{exclusion_text}
 USER REQUEST: {description}
 
 SQL GENERATION RULES:
@@ -147,6 +171,7 @@ SQL GENERATION RULES:
 - Consider using materialized views (app_m_view, att_firm_m_view) for complex queries
 - For date ranges, use proper date formatting
 - If the request involves analytics, consider using GROUP BY and aggregations
+- STRICTLY AVOID selecting any excluded columns listed above
 
 RESPONSE FORMAT:
 Return only the SQL query, no explanations or additional text.
@@ -273,6 +298,67 @@ SQL Query:"""
                     "valid": False,
                     "error": "Please ask questions specifically about the patent database. General AI assistance is not available through this interface."
                 }
+        
+        return {
+            "valid": True,
+            "error": None
+        }
+    
+    def _validate_excluded_columns(self, sql_query: str) -> Dict[str, Any]:
+        """
+        Validate that the generated SQL query doesn't contain any excluded columns.
+        
+        Args:
+            sql_query: The SQL query to validate
+            
+        Returns:
+            Dict with validation result and error message if invalid
+        """
+        if not self.excluded_columns:
+            # No excluded columns configured, so validation passes
+            return {
+                "valid": True,
+                "error": None
+            }
+        
+        # Convert query to lowercase for case-insensitive checking
+        sql_lower = sql_query.lower()
+        
+        # Check for excluded columns in the query
+        found_excluded = []
+        for column in self.excluded_columns:
+            column_lower = column.lower()
+            
+            # Use word boundary patterns to match exact column names only
+            # This prevents partial matches (e.g., 'eth' matching when 'eth_prob' is excluded)
+            
+            # Pattern matches:
+            # - column names after SELECT, comma, or whitespace
+            # - table.column references
+            # - quoted column names
+            # - column names followed by word boundaries (space, comma, FROM, etc.)
+            patterns = [
+                rf'\bselect\s+.*?\b{re.escape(column_lower)}\b',  # SELECT ... column
+                rf'\b{re.escape(column_lower)}\s*,',  # column,
+                rf',\s*{re.escape(column_lower)}\b',  # , column
+                rf'\.\s*{re.escape(column_lower)}\b',  # table.column
+                rf'`{re.escape(column_lower)}`',  # `column`
+                rf'"{re.escape(column_lower)}"',  # "column"
+                rf"'{re.escape(column_lower)}'",  # 'column'
+                rf'\b{re.escape(column_lower)}\s+(?:from|where|group|order|having)',  # column FROM/WHERE/etc
+            ]
+            
+            # Check if any pattern matches
+            for pattern in patterns:
+                if re.search(pattern, sql_lower, re.IGNORECASE):
+                    found_excluded.append(column)
+                    break
+        
+        if found_excluded:
+            return {
+                "valid": False,
+                "error": f"Generated query contains excluded columns that cannot be exposed: {', '.join(found_excluded)}. Please rephrase your request to avoid sensitive data."
+            }
         
         return {
             "valid": True,

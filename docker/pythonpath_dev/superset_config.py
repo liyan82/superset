@@ -181,6 +181,136 @@ WEBDRIVER_BASEURL_USER_FRIENDLY = (
 )
 SQLLAB_CTAS_NO_LIMIT = True
 
+# ===================================================================
+# AI Query Configuration
+# ===================================================================
+
+# AI Query Database Configuration
+# Specify which database to use for AI Query Assistant
+# If not set, system will auto-detect USPTO/patent database
+# AI_QUERY_DATABASE_ID = 3  # Uncomment and set specific database ID if needed
+
+# Columns that should never be included in AI query results for privacy/security
+# These columns will be explicitly excluded from AI-generated SELECT statements
+AI_QUERY_EXCLUDED_COLUMNS = [
+    # Sensitive personal identifiers
+    'ssn', 'social_security_number', 'tax_id', 'passport_number',
+    # Internal system fields
+    'password', 'password_hash', 'salt', 'token', 'api_key', 'secret',
+    # Financial information
+    'credit_card', 'bank_account', 'routing_number', 'payment_info',
+    # Internal IDs that shouldn't be exposed
+    'internal_id', 'system_id', 'uuid', 'guid',
+    # Audit/tracking fields that are not user-relevant
+    'created_by_system', 'modified_by_system', 'internal_notes',
+    # Large binary/text fields that would clutter results
+    'full_text_content', 'blob_data', 'binary_content', 'raw_data'
+]
+
+# Patent Database Schema for AI Query Generation
+GEMINI_SCHEMA_CONTEXT = """
+PATENT APPLICATION DATABASE SCHEMA:
+
+Core Tables:
+- application: Main patent applications table
+  * app_num (int, primary) - Application number
+  * filing_date (date) - Application filing date
+  * cat (text) - Category
+  * group_art (text) - Art group
+  * inv_title (text) - Invention title
+  * app_status (text) - Application status
+  * status_code (text) - Status code
+  * patent_num (text) - Patent number if granted
+  * grant_date (date) - Grant date
+  * type_code (text) - Application type
+  * class_num (text) - Classification number
+  * examiner_name (text) - Examiner name (denormalized, prefer examiner table)
+  * customer_num (int) - Customer/firm reference
+
+- examiner: Patent examiners (PREFERRED for examiner queries)
+  * id (serial, primary) - Examiner ID
+  * name (text) - Full examiner name in format: "Last, First Middle"
+  * gender (int) - Gender code
+  * eth (text) - Ethnicity
+  * nat (text) - Nationality
+
+- attorney: Patent attorneys/agents
+  * id (serial, primary)
+  * reg_num (int, unique) - Registration number
+  * first_name, middle_name, last_name (text) - Attorney name
+  * practitioner_type (enum) - Attorney or agent
+  * active (boolean) - Active status
+  * gender (int), eth (text), nat (text) - Demographics
+
+- inventor: Patent inventors
+  * id (serial, primary)
+  * first_name, middle_name, last_name, full_name (text) - Inventor name
+  * gender (int), nat (int), eth (text) - Demographics with probabilities
+  * city, country (text) - Location
+
+- applicant: Patent applicants/organizations
+  * id (serial, primary)
+  * org_name (text) - Organization name
+  * name_line_1, name_line_2 (text) - Name lines
+  * address_line_1, address_line_2 (text) - Address
+  * city, state, country, postal_code (text) - Location
+  * fingerprint (text, unique) - Unique identifier
+
+- customer_add: Customer/firm addresses
+  * customer_num (int, unique) - Customer number
+  * firm_name (text) - Law firm name
+  * url (text) - Firm website
+  * name_line_1, name_line_2 (text) - Contact names
+  * address_line_1, address_line_2 (text) - Address
+  * city, state, country, postal_code (text) - Location
+
+Classification Tables:
+- cpc_class: Cooperative Patent Classification
+  * symbol (text, unique) - CPC symbol (e.g., A01B1/00)
+  * level (int) - Classification level
+  * title (text) - Classification title
+  * parent (text) - Parent classification
+  * class_desc (text) - Description
+
+- uspc_class: US Patent Classification
+  * id (text, primary) - USPC class ID
+  * number (text) - Class number
+  * title (text) - Class title
+  * description (text) - Detailed description
+
+Relationship Tables:
+- app_attorney: Links applications to attorneys
+  * app_num (int) - Application number
+  * att_num (int) - Attorney registration number
+
+- app_inventor: Links applications to inventors
+  * app_num (int) - Application number
+  * inventor_id (int) - Inventor ID
+
+- app_applicant: Links applications to applicants
+  * app_num (int) - Application number
+  * applicant_fp (text) - Applicant fingerprint
+
+- app_cpc: Application CPC classifications
+  * app_num (int) - Application number
+  * cpc_class (text) - CPC classification
+  * category (text) - CPC category
+  * top_level (text) - Top level classification
+
+Key Materialized Views:
+- app_m_view: Comprehensive application view with firm, applicant, and CPC data
+- att_firm_m_view: Attorneys with their associated firms
+- app_attorney_m_view: Applications with attorney and classification details
+
+Common Query Patterns:
+- Applications by filing date range
+- Applications by attorney or firm
+- Applications by technology area (CPC classification)
+- Patent prosecution analytics
+- Attorney/firm performance metrics
+- Inventor collaboration networks
+"""
+
 log_level_text = os.getenv("SUPERSET_LOG_LEVEL", "INFO")
 LOG_LEVEL = getattr(logging, log_level_text.upper(), logging.INFO)
 
