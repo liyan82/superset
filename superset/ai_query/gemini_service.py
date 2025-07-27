@@ -29,16 +29,19 @@ class GeminiService:
     def __init__(self, api_key: Optional[str] = None):
         # Try to get API key from multiple sources
         self.api_key = api_key
+        self.schema_context = None
         
         if not self.api_key:
             try:
                 from flask import current_app
                 self.api_key = current_app.config.get("GEMINI_API_KEY")
+                self.schema_context = current_app.config.get("GEMINI_SCHEMA_CONTEXT")
             except RuntimeError:
                 # Not in application context, try importing app
                 try:
                     from superset import app
                     self.api_key = app.config.get("GEMINI_API_KEY")
+                    self.schema_context = app.config.get("GEMINI_SCHEMA_CONTEXT")
                 except Exception:
                     pass
         
@@ -96,25 +99,32 @@ class GeminiService:
     
     def _build_prompt(self, description: str, schema_info: Optional[str] = None) -> str:
         """Build the prompt for Gemini API."""
-        base_prompt = f"""
-Generate a SQL query based on this description: {description}
+        # Use provided schema_info, or fall back to configured schema context
+        schema_context = schema_info or self.schema_context
+        
+        base_prompt = f"""You are a SQL expert working with a patent application database. 
+
+{schema_context if schema_context else ""}
+
+Generate a SQL query for this request: {description}
 
 Instructions:
-- Return only valid SQL syntax
-- Use standard SQL that works with most databases
-- Include comments to explain the query logic
-- If the request is unclear, make reasonable assumptions
+- Use the exact table and column names from the schema above
+- ALWAYS use dedicated entity tables when querying specific entities:
+  * For examiner queries: Use the 'examiner' table, NOT application.examiner_name
+    - Examiner names are in format "Last, First Middle" - use appropriate string functions
+  * For attorney queries: Use the 'attorney' table
+  * For inventor queries: Use the 'inventor' table
+  * For applicant queries: Use the 'applicant' table
+- Return only valid PostgreSQL syntax WITHOUT any comments or explanations
+- Use ILIKE for case-insensitive string comparisons instead of LIKE or =
+- Use LOWER() or UPPER() functions for case-insensitive string operations
+- Use appropriate JOINs when accessing related data
+- Consider using materialized views (app_m_view, att_firm_m_view) for complex queries
+- For date ranges, use proper date formatting
+- If the request involves analytics, consider using GROUP BY and aggregations
 
-"""
-        
-        if schema_info:
-            base_prompt += f"""
-Database Schema Context:
-{schema_info}
-
-"""
-        
-        base_prompt += "SQL Query:"
+SQL Query:"""
         
         return base_prompt
     
