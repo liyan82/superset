@@ -153,17 +153,30 @@ class AIQueryView(BaseSupersetView):
                     "query": None
                 }), 400
             
-            # Check if database exists
+            # Check if database exists and user has access
             from superset.models.core import Database
+            from superset.security.manager import SupersetSecurityManager
+            
             database = db.session.query(Database).filter_by(id=database_id).first()
             if not database:
                 # Get list of available databases for debugging
                 available_dbs = db.session.query(Database.id, Database.database_name).all()
+                logger.error(f"Database {database_id} not found. Available: {available_dbs}")
                 return jsonify({
                     "success": False,
                     "error": f"Database with id {database_id} not found. Available databases: {available_dbs}",
                     "query": None
                 }), 400
+            
+            # Check if user has access to this database
+            security_manager = SupersetSecurityManager()
+            if not security_manager.can_access_database(database):
+                logger.error(f"User does not have access to database {database_id} ({database.database_name})")
+                return jsonify({
+                    "success": False,
+                    "error": f"Access denied to database {database.database_name} (id: {database_id})",
+                    "query": None
+                }), 403
             
             # Smart pagination: check result count first
             PAGINATION_THRESHOLD = 500
@@ -234,17 +247,25 @@ class AIQueryView(BaseSupersetView):
     def get_config(self, **kwargs: Any) -> FlaskResponse:
         """Get AI Query configuration including database ID."""
         try:
+            from superset.models.core import Database
+            
+            # Get all available databases for debugging
+            all_dbs = db.session.query(Database.id, Database.database_name).all()
+            logger.info(f"All available databases: {all_dbs}")
+            
             database_id = self._get_ai_query_database_id()
             if not database_id:
                 return jsonify({
                     "success": False,
-                    "error": "No suitable database found for AI Query"
+                    "error": "No suitable database found for AI Query",
+                    "available_databases": [{"id": db_id, "name": db_name} for db_id, db_name in all_dbs]
                 }), 404
                 
             return jsonify({
                 "success": True,
                 "database_id": database_id,
-                "database_name": self._get_database_name(database_id)
+                "database_name": self._get_database_name(database_id),
+                "available_databases": [{"id": db_id, "name": db_name} for db_id, db_name in all_dbs]
             })
         except Exception as e:
             logger.error(f"AI Query config error: {str(e)}", exc_info=True)
