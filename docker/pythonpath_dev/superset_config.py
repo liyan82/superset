@@ -216,15 +216,15 @@ PATENT APPLICATION DATABASE SCHEMA:
 - application: Main patent applications table (PRIMARY DATA SOURCE)
   * app_num (int, primary) - Application number (unique identifier)
   * filing_date (date) - Application filing date
-  * cat (text) - Category
-  * group_art (text) - Art group
-  * inv_title (text) - Invention title
-  * app_status (text) - Application status
-  * status_code (text) - Status code
+  * cat (text) - Category. The valid values are: REGULAR (meaning a new application), and REISSUE (meaning a reissue of an existing application)
+  * group_art (text) - Art group. The USPTO uses one signle art group number to classify all applications in the same art group. almost all of them are numbers, with several exceptions.. The USPTO uses one signle art group number to classify all applications in the same art group. almost all of them are numbers, with several exceptions.
+  * inv_title (text) - Invention title describes what the invention is.
+  * app_status (text) - Application status is the status of the application, identifying if the application is pending, granted, or abandoned.
+  * status_code (text) - Status code. USPTO uses numbers to identify the status of the application. This is the correpondent number to the app_status.
   * patent_num (text) - Patent number if granted
   * grant_date (date) - Grant date
-  * type_code (text) - Application type
-  * class_num (text) - Classification number
+  * type_code (text) - Application type. The valid values are: DES (design patent), UTL (utility patent), and PLT (meaning plant patent).
+  * class_num (text) - Classification number is the standard of Unite States Patent Classification. It is distinguished from CPC classification.
   * examiner_name (text) - Examiner name (denormalized, prefer examiner table)
   * customer_num (int) - Links to customer_add for firm information
   * first_applicant_name, first_inventor_name (text) - Denormalized names
@@ -299,23 +299,23 @@ PATENT APPLICATION DATABASE SCHEMA:
   * confidence_rate (double) - Data confidence score
   ➤ USE THIS when asking about "filed by" or "submitted by" attorney
 
-- app_attorney: REPRESENTATION RELATIONSHIP (WHO REPRESENTS WHOM)
+- app_attorney: REPRESENTATION RELATIONSHIP (WHO REPRESENTS WHOM: which attorneys are in the Power of Attorney (POA) list. doesn't mean the attorney actually represents the applicant. doc_attorney table is the correct table to use for this.)
   * app_num (int) - Application number
   * att_num (int) - Attorney registration number
   ➤ USE THIS when asking about attorney representation on applications
 
-- app_customer: APPLICATION-CUSTOMER LINKS
+- app_customer: APPLICATION-CUSTOMER LINKS. Customers are probably the law firms. Some of them are the law departments of the companies that filed the applications.
   * app_num (int) - Application number  
   * customer_num (int) - Customer number
   ➤ Links applications to customers/firms
 
-- app_inventor: APPLICATION-INVENTOR LINKS
+- app_inventor: APPLICATION-INVENTOR LINKS. Inventors are the people who invented the invention.
   * app_num (int) - Application number
   * inventor_id (int) - Inventor ID
   * add_fingerprint (text) - Address fingerprint
   * add_type (postal_address_type) - Address type
 
-- app_applicant: APPLICATION-APPLICANT LINKS
+- app_applicant: APPLICATION-APPLICANT LINKS. Applicant is the entity that actually filed the application. most of them are represented by law firms (which are customers for the USPTO).
   * app_num (int) - Application number
   * applicant_fp (text) - Applicant fingerprint (links to applicant.fingerprint)
 
@@ -377,6 +377,11 @@ PATENT APPLICATION DATABASE SCHEMA:
 
 ❓ "Applications in CPC class A01B"
 ➤ USE: app_cpc WHERE category = 'A01B' OR cpc_class LIKE 'A01B%'
+
+=== Warnings ===
+
+- Never use "select *" in your queries. Always specify the columns you want to select.
+- Never use "where 1=1" in your queries. Always specify the columns you want to select.
 """
 
 log_level_text = os.getenv("SUPERSET_LOG_LEVEL", "INFO")
