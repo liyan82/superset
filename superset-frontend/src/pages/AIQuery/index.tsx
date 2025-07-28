@@ -1,13 +1,71 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 import React, { useState, useEffect } from 'react';
 import { SupersetClient } from '@superset-ui/core';
+
+interface DatabaseConfig {
+  success: boolean;
+  database_id?: number;
+  database_name?: string;
+  error?: string;
+}
+
+interface Column {
+  column_name: string;
+  name: string;
+  type: string;
+  is_dttm: boolean;
+}
+
+interface Pagination {
+  page: number;
+  page_size: number;
+  total_count: number;
+  total_pages: number;
+  has_next: boolean;
+  has_prev: boolean;
+  server_side: boolean;
+}
+
+interface ExecutionResults {
+  query_id?: number;
+  status?: string;
+  data?: Record<string, any>[] | null;
+  columns?: Column[];
+  selected_columns?: Column[];
+  expanded_columns?: Column[];
+  query?: {
+    sql: string;
+    executed_sql: string;
+  };
+  pagination?: Pagination;
+  success?: boolean;
+  error?: string;
+}
 
 export default function AIQuery() {
   const [description, setDescription] = useState('');
   const [generatedQuery, setGeneratedQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [executionResults, setExecutionResults] = useState(null);
+  const [executionResults, setExecutionResults] = useState<ExecutionResults | null>(null);
   const [showSQL, setShowSQL] = useState(false);
-  const [databaseConfig, setDatabaseConfig] = useState(null);
+  const [databaseConfig, setDatabaseConfig] = useState<DatabaseConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(50);
@@ -20,7 +78,7 @@ export default function AIQuery() {
         const response = await SupersetClient.get({
           endpoint: '/ai-query/config',
         });
-        setDatabaseConfig(response.json);
+        setDatabaseConfig(response.json as DatabaseConfig);
       } catch (error) {
         console.error('Failed to fetch database config:', error);
         setDatabaseConfig({
@@ -104,7 +162,7 @@ export default function AIQuery() {
   };
 
   // Handle pagination for server-side paginated results
-  const handlePageChange = async (newPage) => {
+  const handlePageChange = async (newPage: number) => {
     if (!executionResults || !generatedQuery) return;
     
     const pagination = executionResults.pagination;
@@ -117,7 +175,7 @@ export default function AIQuery() {
         const executeResponse = await SupersetClient.post({
           endpoint: '/ai-query/execute',
           body: JSON.stringify({
-            database_id: databaseConfig.database_id,
+            database_id: databaseConfig!.database_id,
             sql: generatedQuery,
             queryLimit: 1000,
             client_id: `ai_${Date.now().toString().slice(-8)}`,
@@ -386,7 +444,7 @@ export default function AIQuery() {
                           zIndex: 10,
                           background: '#f8f9fa'
                         }}>
-                          {executionResults.columns && executionResults.columns.map((col, idx) => (
+                          {executionResults.columns && executionResults.columns.map((col: Column, idx: number) => (
                             <th key={idx} style={{ 
                               padding: '12px 16px', 
                               textAlign: 'left',
@@ -394,7 +452,7 @@ export default function AIQuery() {
                               background: '#f8f9fa',
                               fontSize: '14px',
                               borderBottom: '2px solid #e0e0e0',
-                              borderRight: idx < executionResults.columns.length - 1 ? '1px solid #e0e0e0' : 'none',
+                              borderRight: idx < executionResults.columns!.length - 1 ? '1px solid #e0e0e0' : 'none',
                               whiteSpace: 'nowrap',
                               boxShadow: '0 2px 2px -1px rgba(0, 0, 0, 0.1)'
                             }}>
@@ -404,14 +462,14 @@ export default function AIQuery() {
                         </tr>
                       </thead>
                       <tbody>
-                        {getCurrentPageData().map((row, rowIdx) => (
+                        {getCurrentPageData().map((row: Record<string, any>, rowIdx: number) => (
                           <tr key={rowIdx} style={{ 
                             borderBottom: '1px solid #f0f0f0'
                           }}>
-                            {executionResults.columns.map((col, colIdx) => (
+                            {executionResults.columns!.map((col: Column, colIdx: number) => (
                               <td key={colIdx} style={{ 
                                 padding: '12px 16px',
-                                borderRight: colIdx < executionResults.columns.length - 1 ? '1px solid #e0e0e0' : 'none',
+                                borderRight: colIdx < executionResults.columns!.length - 1 ? '1px solid #e0e0e0' : 'none',
                                 maxWidth: '250px',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
