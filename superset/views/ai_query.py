@@ -16,6 +16,7 @@
 # under the License.
 import logging
 import os
+import time
 from typing import Any, Optional
 
 from flask import request, jsonify
@@ -115,7 +116,7 @@ class AIQueryView(BaseSupersetView):
     @permission_name("read")
     @event_logger.log_this
     def execute_sql(self, **kwargs: Any) -> FlaskResponse:
-        """Execute SQL query using SqlLab's infrastructure."""
+        """Execute SQL query using SqlLab's infrastructure with smart pagination."""
         try:
             # Parse and validate request data
             request_data = request.get_json()
@@ -131,11 +132,24 @@ class AIQueryView(BaseSupersetView):
                 
             sql = request_data.get("sql")
             database_id = request_data.get("database_id")
+            page = request_data.get("page", 1)
+            page_size = request_data.get("page_size", 50)
             
             if not sql or not database_id:
                 return jsonify({
                     "success": False,
                     "error": "Missing required fields: sql and database_id",
+                    "query": None
+                }), 400
+                
+            # Validate pagination parameters
+            try:
+                page = max(1, int(page))
+                page_size = max(1, min(int(page_size), 100))  # Cap at 100 per page
+            except (ValueError, TypeError):
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid pagination parameters",
                     "query": None
                 }), 400
             
@@ -151,74 +165,59 @@ class AIQueryView(BaseSupersetView):
                     "query": None
                 }), 400
             
-            # Now let's try the real SqlLab execution
-            try:
-                schema = ExecutePayloadSchema()
-                payload = schema.load(request_data)
-                logger.info(f"Schema validation passed: {payload}")
-                
-                # Create execution context
-                execution_context = SqlJsonExecutionContext(payload)
-                logger.info(f"Execution context created successfully")
-                
-                # Create query DAO
-                query_dao = QueryDAO()
-                
-                # Create SQL JSON executor
-                if execution_context.is_run_asynchronous():
-                    sql_json_executor = ASynchronousSqlJsonExecutor(query_dao, get_sql_results)
-                else:
-                    sql_json_executor = SynchronousSqlJsonExecutor(
-                        query_dao,
-                        get_sql_results,
-                        getattr(config, "SQLLAB_TIMEOUT", 60),
-                        is_feature_enabled("SQLLAB_BACKEND_PERSISTENCE"),
-                    )
-                logger.info(f"SQL executor created successfully")
-                
-                # Create execution context convertor
-                execution_context_convertor = ExecutionContextConvertor()
-                execution_context_convertor.set_max_row_in_display(
-                    int(getattr(config, "DISPLAY_MAX_ROW", 10000))
-                )
-                
-                # Create and run the command
-                command = ExecuteSqlCommand(
-                    execution_context,
-                    query_dao,
-                    DatabaseDAO(),
-                    CanAccessQueryValidatorImpl(),
-                    SqlQueryRenderImpl(get_template_processor),
-                    sql_json_executor,
-                    execution_context_convertor,
-                    getattr(config, "SQLLAB_CTAS_NO_LIMIT", True),
-                    None,  # log_params
-                )
-                logger.info(f"Command created, about to execute")
-                
-                # Execute the command
-                command_result = command.run()
-                logger.info(f"Command executed successfully: {type(command_result)}")
-                
-                # Use the same response format as SqlLab
-                response_status = (
-                    202
-                    if command_result["status"] == SqlJsonExecutionStatus.QUERY_IS_RUNNING
-                    else 200
-                )
-                
-                # Return using json_success like SqlLab does
-                return json_success(command_result["payload"], response_status)
-                
-            except Exception as sqllab_error:
-                logger.error(f"SqlLab execution failed: {str(sqllab_error)}", exc_info=True)
-                # Fall back to mock response for now
+            # Smart pagination: check result count first
+            PAGINATION_THRESHOLD = 500
+            total_count = self._get_query_count(sql, database_id)
+            
+            if total_count is None:
                 return jsonify({
                     "success": False,
-                    "error": f"SQL execution failed: {str(sqllab_error)}",
-                    "fallback_data": [{"test": "fallback", "sql": sql[:50]}],
-                    "columns": [{"name": "test"}, {"name": "sql"}]
-                })
+                    "error": "Failed to determine result count",
+                    "query": None
+                }), 500
+            
+            # Use direct SQL execution for all queries to avoid session management issues
+            # This bypasses SqlLab's complex infrastructure which has user session dependencies
+            try:
+                # Determine if we need server-side pagination
+                use_server_pagination = total_count > PAGINATION_THRESHOLD
+                
+                if use_server_pagination:
+                    # Modify SQL with LIMIT and OFFSET for server-side pagination
+                    paginated_sql = self._add_pagination_to_sql(sql, page, page_size)
+                    sql_to_execute = paginated_sql
+                else:
+                    # Use original SQL for small result sets
+                    sql_to_execute = sql
+                
+                # Execute SQL directly against the database
+                payload = self._execute_sql_direct(database_id, sql_to_execute, page, page_size, total_count)
+                
+                # For client-side pagination, modify the pagination metadata
+                if not use_server_pagination:
+                    data_count = len(payload.get("data", []))
+                    payload["pagination"] = {
+                        "page": 1,
+                        "page_size": data_count,
+                        "total_count": total_count,
+                        "total_pages": 1,
+                        "has_next": False,
+                        "has_prev": False,
+                        "server_side": False
+                    }
+                
+                logger.info(f"Final payload structure: {type(payload)}, keys: {list(payload.keys()) if isinstance(payload, dict) else 'not dict'}")
+                
+                # Return the payload as JSON directly since json_success might be causing formatting issues
+                return jsonify(payload)
+                
+            except Exception as execution_error:
+                logger.error(f"Direct SQL execution failed: {str(execution_error)}", exc_info=True)
+                return jsonify({
+                    "success": False,
+                    "error": f"SQL execution failed: {str(execution_error)}",
+                    "query": None
+                }), 500
             
         except Exception as e:
             logger.error(f"AI Query execute error: {str(e)}", exc_info=True)
@@ -300,3 +299,204 @@ class AIQueryView(BaseSupersetView):
         from superset.models.core import Database
         database = db.session.query(Database).filter_by(id=database_id).first()
         return database.database_name if database else None
+
+    def _get_query_count(self, sql: str, database_id: int) -> Optional[int]:
+        """
+        Get the total count of records that would be returned by the query.
+        Converts SELECT query to COUNT query to determine result size.
+        """
+        try:
+            # Convert SELECT query to COUNT query
+            count_sql = self._convert_to_count_query(sql)
+            
+            # Execute count query using SqlLab infrastructure
+            count_request = {
+                "database_id": database_id,
+                "sql": count_sql,
+                "queryLimit": 1,
+                "client_id": f"cnt_{int(time.time()) % 10000000}",  # Keep it under 11 chars
+                "expand_data": True,
+            }
+            
+            # Execute count query
+            from superset.sqllab.execution_context_convertor import ExecutionContextConvertor
+            from superset.sqllab.query_render import SqlQueryRenderImpl
+            from superset.sqllab.sqllab_execution_context import SqlJsonExecutionContext
+            from superset.sqllab.schemas import ExecutePayloadSchema
+            from superset.commands.sql_lab.execute import ExecuteSqlCommand
+            from superset.daos.database import DatabaseDAO
+            from superset.daos.query import QueryDAO
+            from superset.sqllab.validators import CanAccessQueryValidatorImpl
+            from superset.sqllab.sql_json_executer import SynchronousSqlJsonExecutor
+            from superset.sql_lab import get_sql_results
+            from superset.jinja_context import get_template_processor
+            
+            schema = ExecutePayloadSchema()
+            payload = schema.load(count_request)
+            
+            execution_context = SqlJsonExecutionContext(payload)
+            query_dao = QueryDAO()
+            
+            sql_json_executor = SynchronousSqlJsonExecutor(
+                query_dao,
+                get_sql_results,
+                getattr(config, "SQLLAB_TIMEOUT", 60),
+                is_feature_enabled("SQLLAB_BACKEND_PERSISTENCE"),
+            )
+            
+            execution_context_convertor = ExecutionContextConvertor()
+            execution_context_convertor.set_max_row_in_display(
+                int(getattr(config, "DISPLAY_MAX_ROW", 10000))
+            )
+            
+            command = ExecuteSqlCommand(
+                execution_context,
+                query_dao,
+                DatabaseDAO(),
+                CanAccessQueryValidatorImpl(),
+                SqlQueryRenderImpl(get_template_processor),
+                sql_json_executor,
+                execution_context_convertor,
+                getattr(config, "SQLLAB_CTAS_NO_LIMIT", True),
+                None,
+            )
+            
+            result = command.run()
+            logger.info(f"Count query result type: {type(result)}, content: {result}")
+            
+            if result and isinstance(result, dict):
+                payload = result.get("payload")
+                if payload:
+                    # Handle case where payload might be a string (JSON) or dict
+                    if isinstance(payload, str):
+                        try:
+                            import json
+                            payload = json.loads(payload)
+                        except (json.JSONDecodeError, ValueError):
+                            logger.error(f"Failed to parse payload JSON: {payload}")
+                            return None
+                    
+                    if isinstance(payload, dict) and payload.get("data"):
+                        count_data = payload["data"]
+                        if count_data and len(count_data) > 0:
+                            # Extract count from first row, first column
+                            count_value = list(count_data[0].values())[0]
+                            return int(count_value)
+            
+            return 0
+            
+        except Exception as e:
+            logger.error(f"Failed to get query count: {str(e)}", exc_info=True)
+            return None
+
+    def _convert_to_count_query(self, sql: str) -> str:
+        """
+        Convert a SELECT query to a COUNT query.
+        Handles various SQL formats safely.
+        """
+        sql = sql.strip()
+        
+        # Remove trailing semicolon if present (causes parsing issues in subqueries)
+        if sql.endswith(';'):
+            sql = sql[:-1]
+        
+        # Simple approach: wrap the original query in a COUNT subquery
+        # This is safer than trying to parse and modify complex SQL
+        count_sql = f"SELECT COUNT(*) as total_count FROM ({sql}) AS count_subquery"
+        
+        return count_sql
+
+    def _add_pagination_to_sql(self, sql: str, page: int, page_size: int) -> str:
+        """
+        Add LIMIT and OFFSET clauses to SQL query for server-side pagination.
+        Safely appends pagination without breaking existing query structure.
+        """
+        sql = sql.strip()
+        
+        # Calculate offset
+        offset = (page - 1) * page_size
+        
+        # Remove trailing semicolon if present
+        if sql.endswith(';'):
+            sql = sql[:-1]
+        
+        # Add LIMIT and OFFSET
+        paginated_sql = f"{sql} LIMIT {page_size} OFFSET {offset}"
+        
+        return paginated_sql
+
+    def _execute_sql_direct(self, database_id: int, sql: str, page: int, page_size: int, total_count: int) -> dict:
+        """
+        Execute SQL query directly against the database for server-side pagination.
+        This bypasses the complex SqlLab infrastructure to avoid session issues.
+        """
+        try:
+            # Get database engine directly - handle context manager
+            from sqlalchemy import text
+            from superset.models.core import Database
+            
+            # Get a fresh database object from the current session using the database_id
+            database = db.session.query(Database).filter_by(id=database_id).first()
+            if not database:
+                raise Exception(f"Database with id {database_id} not found")
+            
+            # database.get_sqla_engine() returns a context manager
+            with database.get_sqla_engine() as engine:
+                with engine.connect() as connection:
+                    result = connection.execute(text(sql))
+                    
+                    # Get column names
+                    column_names = list(result.keys())
+                    columns = [{"column_name": col, "name": col, "type": "STRING", "is_dttm": False} for col in column_names]
+                    
+                    # Fetch all rows for this page
+                    rows = result.fetchall()
+                    
+                    # Convert rows to list of dictionaries
+                    data = []
+                    for row in rows:
+                        row_dict = {}
+                        for i, col_name in enumerate(column_names):
+                            # Ensure JSON serializable values
+                            value = row[i]
+                            if value is None:
+                                row_dict[col_name] = None
+                            else:
+                                # Convert to string to ensure JSON serialization works
+                                row_dict[col_name] = str(value)
+                        data.append(row_dict)
+            
+            # Calculate pagination info (outside the connection context)
+            total_pages = (total_count + page_size - 1) // page_size
+            
+            # Build response payload in SqlLab format - match the expected frontend structure
+            payload = {
+                "query_id": None,
+                "status": "success",
+                "data": data,
+                "columns": columns,
+                "selected_columns": columns,
+                "expanded_columns": columns,
+                "query": {
+                    "sql": sql,
+                    "executed_sql": sql
+                },
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total_count": total_count,
+                    "total_pages": total_pages,
+                    "has_next": page < total_pages,
+                    "has_prev": page > 1,
+                    "server_side": True
+                }
+            }
+            
+            logger.info(f"Direct SQL execution successful: {len(data)} rows returned")
+            
+            # Return in the same format as json_success - just the payload, not wrapped
+            return payload
+                
+        except Exception as e:
+            logger.error(f"Direct SQL execution error: {str(e)}", exc_info=True)
+            raise e

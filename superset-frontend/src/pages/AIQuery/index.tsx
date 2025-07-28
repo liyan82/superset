@@ -11,6 +11,7 @@ export default function AIQuery() {
   const [configLoading, setConfigLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(50);
+  const [paginationLoading, setPaginationLoading] = useState(false);
 
   // Fetch database configuration on component mount
   useEffect(() => {
@@ -81,6 +82,8 @@ export default function AIQuery() {
           queryLimit: 1000,
           client_id: `ai_${Date.now().toString().slice(-8)}`,
           expand_data: true,
+          page: currentPage,
+          page_size: pageSize,
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -100,21 +103,96 @@ export default function AIQuery() {
     }
   };
 
+  // Handle pagination for server-side paginated results
+  const handlePageChange = async (newPage) => {
+    if (!executionResults || !generatedQuery) return;
+    
+    const pagination = executionResults.pagination;
+    if (pagination?.server_side) {
+      // Server-side pagination: make new request
+      setPaginationLoading(true);
+      setCurrentPage(newPage);
+      
+      try {
+        const executeResponse = await SupersetClient.post({
+          endpoint: '/ai-query/execute',
+          body: JSON.stringify({
+            database_id: databaseConfig.database_id,
+            sql: generatedQuery,
+            queryLimit: 1000,
+            client_id: `ai_${Date.now().toString().slice(-8)}`,
+            expand_data: true,
+            page: newPage,
+            page_size: pageSize,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        setExecutionResults(executeResponse.json);
+      } catch (error) {
+        console.error('Pagination request failed:', error);
+        // Reset to previous page on error
+        setCurrentPage(currentPage);
+      } finally {
+        setPaginationLoading(false);
+      }
+    } else {
+      // Client-side pagination: just update page
+      setCurrentPage(newPage);
+    }
+  };
+
   // Pagination helpers
   const getTotalPages = () => {
+    const pagination = executionResults?.pagination;
+    if (pagination) {
+      return pagination.total_pages;
+    }
+    // Fallback for old format
     if (!executionResults?.data) return 0;
     return Math.ceil(executionResults.data.length / pageSize);
   };
 
   const getCurrentPageData = () => {
-    if (!executionResults?.data) return [];
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return executionResults.data.slice(startIndex, endIndex);
+    const pagination = executionResults?.pagination;
+    if (pagination?.server_side) {
+      // Server-side pagination: data is already the current page
+      return executionResults?.data || [];
+    } else {
+      // Client-side pagination: slice the data
+      if (!executionResults?.data) return [];
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      return executionResults.data.slice(startIndex, endIndex);
+    }
   };
 
-  const goToPage = (page) => {
-    setCurrentPage(Math.max(1, Math.min(page, getTotalPages())));
+  const getCurrentPage = () => {
+    const pagination = executionResults?.pagination;
+    return pagination?.page || currentPage;
+  };
+
+  const getTotalCount = () => {
+    const pagination = executionResults?.pagination;
+    return pagination?.total_count || executionResults?.data?.length || 0;
+  };
+
+  const getDisplayRange = () => {
+    const pagination = executionResults?.pagination;
+    const totalCount = getTotalCount();
+    const currentPageNum = getCurrentPage();
+    
+    if (pagination?.server_side) {
+      const start = ((currentPageNum - 1) * pageSize) + 1;
+      const end = Math.min(currentPageNum * pageSize, totalCount);
+      return { start, end, total: totalCount };
+    } else {
+      const start = ((currentPage - 1) * pageSize) + 1;
+      const end = Math.min(currentPage * pageSize, totalCount);
+      return { start, end, total: totalCount };
+    }
   };
 
   return (
@@ -361,17 +439,29 @@ export default function AIQuery() {
                         fontSize: '14px'
                       }}>
                         <div style={{ color: '#666' }}>
-                          Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, executionResults.data.length)} of {executionResults.data.length} rows
+                          {(() => {
+                            const range = getDisplayRange();
+                            const pagination = executionResults?.pagination;
+                            return (
+                              <span>
+                                Showing {range.start} to {range.end} of {range.total} rows
+                                {pagination?.server_side && <span style={{ marginLeft: '8px', fontStyle: 'italic' }}>(server-side pagination)</span>}
+                              </span>
+                            );
+                          })()}
                         </div>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          {paginationLoading && (
+                            <span style={{ fontSize: '12px', color: '#999', marginRight: '8px' }}>Loading...</span>
+                          )}
                           <button 
-                            onClick={() => goToPage(1)}
-                            disabled={currentPage === 1}
+                            onClick={() => handlePageChange(1)}
+                            disabled={getCurrentPage() === 1 || paginationLoading}
                             style={{
                               padding: '4px 8px',
                               border: '1px solid #ddd',
-                              background: currentPage === 1 ? '#f5f5f5' : 'white',
-                              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                              background: (getCurrentPage() === 1 || paginationLoading) ? '#f5f5f5' : 'white',
+                              cursor: (getCurrentPage() === 1 || paginationLoading) ? 'not-allowed' : 'pointer',
                               borderRadius: '3px',
                               fontSize: '12px'
                             }}
@@ -379,13 +469,13 @@ export default function AIQuery() {
                             First
                           </button>
                           <button 
-                            onClick={() => goToPage(currentPage - 1)}
-                            disabled={currentPage === 1}
+                            onClick={() => handlePageChange(getCurrentPage() - 1)}
+                            disabled={getCurrentPage() === 1 || paginationLoading}
                             style={{
                               padding: '4px 8px',
                               border: '1px solid #ddd',
-                              background: currentPage === 1 ? '#f5f5f5' : 'white',
-                              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                              background: (getCurrentPage() === 1 || paginationLoading) ? '#f5f5f5' : 'white',
+                              cursor: (getCurrentPage() === 1 || paginationLoading) ? 'not-allowed' : 'pointer',
                               borderRadius: '3px',
                               fontSize: '12px'
                             }}
@@ -393,16 +483,16 @@ export default function AIQuery() {
                             Previous
                           </button>
                           <span style={{ padding: '0 8px', color: '#666' }}>
-                            Page {currentPage} of {getTotalPages()}
+                            Page {getCurrentPage()} of {getTotalPages()}
                           </span>
                           <button 
-                            onClick={() => goToPage(currentPage + 1)}
-                            disabled={currentPage === getTotalPages()}
+                            onClick={() => handlePageChange(getCurrentPage() + 1)}
+                            disabled={getCurrentPage() === getTotalPages() || paginationLoading}
                             style={{
                               padding: '4px 8px',
                               border: '1px solid #ddd',
-                              background: currentPage === getTotalPages() ? '#f5f5f5' : 'white',
-                              cursor: currentPage === getTotalPages() ? 'not-allowed' : 'pointer',
+                              background: (getCurrentPage() === getTotalPages() || paginationLoading) ? '#f5f5f5' : 'white',
+                              cursor: (getCurrentPage() === getTotalPages() || paginationLoading) ? 'not-allowed' : 'pointer',
                               borderRadius: '3px',
                               fontSize: '12px'
                             }}
@@ -410,13 +500,13 @@ export default function AIQuery() {
                             Next
                           </button>
                           <button 
-                            onClick={() => goToPage(getTotalPages())}
-                            disabled={currentPage === getTotalPages()}
+                            onClick={() => handlePageChange(getTotalPages())}
+                            disabled={getCurrentPage() === getTotalPages() || paginationLoading}
                             style={{
                               padding: '4px 8px',
                               border: '1px solid #ddd',
-                              background: currentPage === getTotalPages() ? '#f5f5f5' : 'white',
-                              cursor: currentPage === getTotalPages() ? 'not-allowed' : 'pointer',
+                              background: (getCurrentPage() === getTotalPages() || paginationLoading) ? '#f5f5f5' : 'white',
+                              cursor: (getCurrentPage() === getTotalPages() || paginationLoading) ? 'not-allowed' : 'pointer',
                               borderRadius: '3px',
                               fontSize: '12px'
                             }}
