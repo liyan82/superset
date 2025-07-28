@@ -211,9 +211,10 @@ AI_QUERY_EXCLUDED_COLUMNS = [
 GEMINI_SCHEMA_CONTEXT = """
 PATENT APPLICATION DATABASE SCHEMA:
 
-Core Tables:
-- application: Main patent applications table
-  * app_num (int, primary) - Application number
+=== CORE ENTITY TABLES ===
+
+- application: Main patent applications table (PRIMARY DATA SOURCE)
+  * app_num (int, primary) - Application number (unique identifier)
   * filing_date (date) - Application filing date
   * cat (text) - Category
   * group_art (text) - Art group
@@ -225,90 +226,157 @@ Core Tables:
   * type_code (text) - Application type
   * class_num (text) - Classification number
   * examiner_name (text) - Examiner name (denormalized, prefer examiner table)
-  * customer_num (int) - Customer/firm reference
+  * customer_num (int) - Links to customer_add for firm information
+  * first_applicant_name, first_inventor_name (text) - Denormalized names
 
-- examiner: Patent examiners (PREFERRED for examiner queries)
-  * id (serial, primary) - Examiner ID
-  * name (text) - Full examiner name in format: "Last, First Middle"
-  * gender (int) - Gender code
-  * eth (text) - Ethnicity
-  * nat (text) - Nationality
-
-- attorney: Patent attorneys/agents
+- attorney: Patent attorneys/agents (MASTER ATTORNEY DATA)
   * id (serial, primary)
-  * reg_num (int, unique) - Registration number
-  * first_name, middle_name, last_name (text) - Attorney name
+  * reg_num (int, unique) - Registration number (USE THIS for attorney searches)
+  * first_name, middle_name, last_name (text) - Attorney name components
   * practitioner_type (enum) - Attorney or agent
   * active (boolean) - Active status
   * gender (int), eth (text), nat (text) - Demographics
+  * org_id (int) - Organization reference
 
-- inventor: Patent inventors
+- examiner: Patent examiners (PREFERRED for examiner queries)
   * id (serial, primary)
-  * first_name, middle_name, last_name, full_name (text) - Inventor name
-  * gender (int), nat (int), eth (text) - Demographics with probabilities
-  * city, country (text) - Location
+  * name (text) - Full examiner name in format: "Last, First Middle"
+  * gender (int), eth (text), nat (text) - Demographics
 
-- applicant: Patent applicants/organizations
+- inventor: Patent inventors (MASTER INVENTOR DATA)
   * id (serial, primary)
-  * org_name (text) - Organization name
+  * first_name, middle_name, last_name, full_name (text) - Name components
+  * gender (int), nat (int), eth (text) - Demographics with probability scores
+  * city, country (text) - Geographic location
+
+- applicant: Patent applicants/organizations (MASTER APPLICANT DATA)
+  * id (serial, primary)
+  * org_name (text) - Organization name (USE THIS for company searches)
+  * org_norm (text) - Normalized organization name
   * name_line_1, name_line_2 (text) - Name lines
   * address_line_1, address_line_2 (text) - Address
   * city, state, country, postal_code (text) - Location
-  * fingerprint (text, unique) - Unique identifier
+  * fingerprint (text, unique) - Unique identifier for linking
+  * type (postal_address_type) - Address type
 
-- customer_add: Customer/firm addresses
-  * customer_num (int, unique) - Customer number
-  * firm_name (text) - Law firm name
+- customer_add: Customer/firm addresses (FIRM INFORMATION)
+  * id (serial, primary)
+  * customer_num (int, unique) - Customer number (links from application.customer_num)
+  * firm_name (text) - Law firm name (USE THIS for firm searches)
   * url (text) - Firm website
   * name_line_1, name_line_2 (text) - Contact names
   * address_line_1, address_line_2 (text) - Address
   * city, state, country, postal_code (text) - Location
 
-Classification Tables:
-- cpc_class: Cooperative Patent Classification
+=== CRITICAL DISTINCTION: FILING vs REPRESENTATION ===
+
+**IMPORTANT: Choose the correct table based on the question intent:**
+
+1. **For "applications FILED BY attorney X" or "documents filed by attorney X":**
+   - USE: doc_attorney table (tracks actual document filing activity)
+   - This shows WHO FILED specific documents/applications
+   - JOIN: doc_attorney → attorney ON doc_attorney.attorney_num = attorney.reg_num
+
+2. **For "applications WHERE attorney X represents the applicant":**
+   - USE: app_attorney table (tracks representation relationships)
+   - This shows ongoing attorney-client relationships
+   - JOIN: app_attorney → attorney ON app_attorney.att_num = attorney.reg_num
+
+3. **For "applications by firm X" (most common):**
+   - USE: application → customer_add JOIN ON application.customer_num = customer_add.customer_num
+   - Search by customer_add.firm_name
+   - This shows applications where the firm is the customer of record
+
+=== RELATIONSHIP TABLES (Use carefully based on intent) ===
+
+- doc_attorney: FILING ACTIVITY (WHO FILED WHAT)
+  * id (serial, primary)
+  * app_num (int) - Application number
+  * doc_code (text) - Document type code
+  * doc_identifier (text) - Unique document identifier
+  * doc_date (date) - Filing date
+  * attorney_num (int) - Attorney registration number who FILED this document
+  * confidence_rate (double) - Data confidence score
+  ➤ USE THIS when asking about "filed by" or "submitted by" attorney
+
+- app_attorney: REPRESENTATION RELATIONSHIP (WHO REPRESENTS WHOM)
+  * app_num (int) - Application number
+  * att_num (int) - Attorney registration number
+  ➤ USE THIS when asking about attorney representation on applications
+
+- app_customer: APPLICATION-CUSTOMER LINKS
+  * app_num (int) - Application number  
+  * customer_num (int) - Customer number
+  ➤ Links applications to customers/firms
+
+- app_inventor: APPLICATION-INVENTOR LINKS
+  * app_num (int) - Application number
+  * inventor_id (int) - Inventor ID
+  * add_fingerprint (text) - Address fingerprint
+  * add_type (postal_address_type) - Address type
+
+- app_applicant: APPLICATION-APPLICANT LINKS
+  * app_num (int) - Application number
+  * applicant_fp (text) - Applicant fingerprint (links to applicant.fingerprint)
+
+=== CLASSIFICATION TABLES ===
+
+- app_cpc: Application CPC classifications (CURRENT CLASSIFICATIONS)
+  * app_num (int) - Application number
+  * cpc_class (text) - Full CPC classification
+  * category (text) - CPC category (e.g., A01B)
+  * top_level (text) - Top level classification
+  * level_0 (text) - Level 0 classification
+
+- cpc_class: CPC classification definitions (REFERENCE DATA)
   * symbol (text, unique) - CPC symbol (e.g., A01B1/00)
   * level (int) - Classification level
   * title (text) - Classification title
   * parent (text) - Parent classification
-  * class_desc (text) - Description
+  * class_desc (text) - Detailed description
 
-- uspc_class: US Patent Classification
+- uspc_class: US Patent Classification (LEGACY SYSTEM)
   * id (text, primary) - USPC class ID
   * number (text) - Class number
   * title (text) - Class title
   * description (text) - Detailed description
 
-Relationship Tables:
-- app_attorney: Links applications to attorneys
-  * app_num (int) - Application number
-  * att_num (int) - Attorney registration number
+=== OPTIMIZED MATERIALIZED VIEWS (Use for complex queries) ===
 
-- app_inventor: Links applications to inventors
-  * app_num (int) - Application number
-  * inventor_id (int) - Inventor ID
+- app_m_view: Comprehensive application view
+  ➤ Pre-joined application data with firm, applicant, and CPC info
+  ➤ USE THIS for complex queries needing multiple entity data
 
-- app_applicant: Links applications to applicants
-  * app_num (int) - Application number
-  * applicant_fp (text) - Applicant fingerprint
+- att_firm_m_view: Attorneys with their firms
+  ➤ Pre-joined attorney and firm information
+  ➤ USE THIS for "attorneys at firm X" queries
 
-- app_cpc: Application CPC classifications
-  * app_num (int) - Application number
-  * cpc_class (text) - CPC classification
-  * category (text) - CPC category
-  * top_level (text) - Top level classification
+- app_attorney_m_view: Applications with attorney and classification
+  ➤ Pre-joined application, attorney, and classification data
+  ➤ USE THIS for complex attorney-application analytics
 
-Key Materialized Views:
-- app_m_view: Comprehensive application view with firm, applicant, and CPC data
-- att_firm_m_view: Attorneys with their associated firms
-- app_attorney_m_view: Applications with attorney and classification details
+=== QUERY GUIDANCE BY COMMON QUESTIONS ===
 
-Common Query Patterns:
-- Applications by filing date range
-- Applications by attorney or firm
-- Applications by technology area (CPC classification)
-- Patent prosecution analytics
-- Attorney/firm performance metrics
-- Inventor collaboration networks
+❓ "Applications filed by attorney with reg number 12345"
+➤ USE: doc_attorney JOIN attorney WHERE attorney.reg_num = 12345
+
+❓ "Applications where attorney John Smith represents the applicant"  
+➤ USE: app_attorney JOIN attorney WHERE attorney.first_name = 'John' AND attorney.last_name = 'Smith'
+
+❓ "Applications by firm 'ABC Law'"
+➤ USE: application JOIN customer_add WHERE customer_add.firm_name ILIKE '%ABC Law%'
+
+❓ "Patents filed in 2023"
+➤ USE: application WHERE filing_date BETWEEN '2023-01-01' AND '2023-12-31'
+
+❓ "Applications by inventor named David"
+➤ USE: app_inventor JOIN inventor WHERE inventor.first_name ILIKE '%David%'
+
+❓ "Applications by Apple Inc"
+➤ USE: app_applicant JOIN applicant WHERE applicant.org_name ILIKE '%Apple%'
+
+❓ "Applications in CPC class A01B"
+➤ USE: app_cpc WHERE category = 'A01B' OR cpc_class LIKE 'A01B%'
 """
 
 log_level_text = os.getenv("SUPERSET_LOG_LEVEL", "INFO")
