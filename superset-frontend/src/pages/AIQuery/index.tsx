@@ -69,6 +69,47 @@ export default function AIQuery() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(50);
   const [paginationLoading, setPaginationLoading] = useState(false);
+  
+  // Stopwatch state
+  const [executionStartTime, setExecutionStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);  
+  const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
+
+  // Timer management functions
+  const startStopwatch = () => {
+    const startTime = Date.now();
+    setExecutionStartTime(startTime);
+    setElapsedTime(0);
+
+    const interval = setInterval(() => {
+      setElapsedTime(Date.now() - startTime);
+    }, 100); // Update every 100ms for smooth display
+
+    setTimerInterval(interval);
+  };
+
+  const stopStopwatch = () => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      setTimerInterval(null);
+    }
+  };
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, [timerInterval]);
+
+  // Format elapsed time for display
+  const formatElapsedTime = (milliseconds: number) => {
+    const seconds = Math.floor(milliseconds / 1000);
+    const ms = Math.floor((milliseconds % 1000) / 100);
+    return `${seconds}.${ms}s`;
+  };
 
   // Fetch database configuration on component mount
   useEffect(() => {
@@ -106,6 +147,9 @@ export default function AIQuery() {
     setExecutionResults(null);
     setGeneratedQuery('');
     setCurrentPage(1);
+    
+    // Start the stopwatch
+    startStopwatch();
     
     try {
       // Step 1: Generate SQL query
@@ -156,6 +200,7 @@ export default function AIQuery() {
       });
     } finally {
       setLoading(false);
+      stopStopwatch();
     }
   };
 
@@ -168,6 +213,9 @@ export default function AIQuery() {
       // Server-side pagination: make new request
       setPaginationLoading(true);
       setCurrentPage(newPage);
+      
+      // Start stopwatch for pagination request
+      startStopwatch();
       
       try {
         const executeResponse = await SupersetClient.post({
@@ -193,6 +241,7 @@ export default function AIQuery() {
         setCurrentPage(currentPage);
       } finally {
         setPaginationLoading(false);
+        stopStopwatch();
       }
     } else {
       // Client-side pagination: just update page
@@ -348,9 +397,71 @@ export default function AIQuery() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
           <h3 style={{ margin: '0', color: '#555' }}>
-            {loading ? 'Processing your query...' : 'Results'}
+            {loading ? 'Processing your query...' : paginationLoading ? 'Loading page...' : 'Results'}
           </h3>
+          {(loading || paginationLoading) && executionStartTime && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              fontSize: '14px'
+            }}>
+              <span style={{ color: '#666' }}>⏱️</span>
+              <span style={{ 
+                color: elapsedTime > 60000 ? '#ff4d4f' : '#1890ff',
+                fontWeight: 'bold',
+                fontFamily: 'monospace'
+              }}>
+                {formatElapsedTime(elapsedTime)}
+              </span>
+            </div>
+          )}
         </div>
+        
+        {/* Warning message when execution exceeds 1 minute */}
+        {(loading || paginationLoading) && elapsedTime > 60000 && (
+          <div style={{
+            background: '#fff7e6',
+            border: '1px solid #ffd591',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '16px',
+            color: '#d48806'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <span style={{ fontSize: '18px', marginTop: '2px' }}>⚠️</span>
+              <div>
+                <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+                  Query Taking Longer Than Expected
+                </div>
+                <div style={{ lineHeight: '1.5', fontSize: '14px' }}>
+                  Your query has been running for over 1 minute. You can continue waiting, but there's a possibility 
+                  that the search clause might be too complex for our AI interpreter to process efficiently.
+                </div>
+                <div style={{ 
+                  marginTop: '12px', 
+                  padding: '12px', 
+                  background: '#fafafa', 
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  lineHeight: '1.5'
+                }}>
+                  <strong>Need the dataset?</strong> If you really need this specific data, please reach out to us at{' '}
+                  <a 
+                    href="mailto:support@patent1024.com" 
+                    style={{ color: '#1890ff', textDecoration: 'none' }}
+                    onMouseOver={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                    onMouseOut={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                  >
+                    support@patent1024.com
+                  </a>
+                  {' '}to get the dataset. We offer data mining services at competitive prices below market rates.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {executionResults ? (
           <div>
             {executionResults.error ? (
