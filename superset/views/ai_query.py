@@ -155,7 +155,7 @@ class AIQueryView(BaseSupersetView):
             
             # Check if database exists and user has access
             from superset.models.core import Database
-            from superset.security.manager import SupersetSecurityManager
+            from superset import security_manager
             
             database = db.session.query(Database).filter_by(id=database_id).first()
             if not database:
@@ -169,7 +169,6 @@ class AIQueryView(BaseSupersetView):
                 }), 400
             
             # Check if user has access to this database
-            security_manager = SupersetSecurityManager()
             if not security_manager.can_access_database(database):
                 logger.error(f"User does not have access to database {database_id} ({database.database_name})")
                 return jsonify({
