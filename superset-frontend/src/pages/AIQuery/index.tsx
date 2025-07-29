@@ -64,7 +64,6 @@ export default function AIQuery() {
   const [generatedQuery, setGeneratedQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [executionResults, setExecutionResults] = useState<ExecutionResults | null>(null);
-  const [showSQL, setShowSQL] = useState(false);
   const [databaseConfig, setDatabaseConfig] = useState<DatabaseConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -106,7 +105,6 @@ export default function AIQuery() {
     setLoading(true);
     setExecutionResults(null);
     setGeneratedQuery('');
-    setShowSQL(false);
     setCurrentPage(1);
     
     try {
@@ -336,44 +334,6 @@ export default function AIQuery() {
         )}
       </div>
       
-      {generatedQuery && showSQL && (
-        <div style={{ 
-          background: '#f9f9f9', 
-          border: '1px solid #ddd', 
-          borderRadius: '8px', 
-          padding: '20px',
-          flexShrink: 0
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h3 style={{ margin: '0', color: '#555' }}>Generated SQL Query</h3>
-            <button 
-              onClick={() => setShowSQL(false)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#666',
-                cursor: 'pointer',
-                fontSize: '18px',
-                padding: '0'
-              }}
-              title="Hide SQL"
-            >
-              ✕
-            </button>
-          </div>
-          <pre style={{ 
-            background: 'white', 
-            padding: '15px', 
-            borderRadius: '4px',
-            border: '1px solid #ddd',
-            fontSize: '14px',
-            overflow: 'auto',
-            margin: '0'
-          }}>
-            {generatedQuery}
-          </pre>
-        </div>
-      )}
       
       <div style={{ 
         background: '#f0f0f0', 
@@ -390,23 +350,6 @@ export default function AIQuery() {
           <h3 style={{ margin: '0', color: '#555' }}>
             {loading ? 'Processing your query...' : 'Results'}
           </h3>
-          {generatedQuery && !showSQL && executionResults && (
-            <button 
-              onClick={() => setShowSQL(true)}
-              style={{
-                padding: '6px 12px',
-                background: '#f8f9fa',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                color: '#666'
-              }}
-              title="View generated SQL query"
-            >
-              Show SQL
-            </button>
-          )}
         </div>
         {executionResults ? (
           <div>
