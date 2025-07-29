@@ -17,6 +17,7 @@
 import logging
 import os
 import time
+from datetime import datetime
 from typing import Any, Optional
 
 from flask import request, jsonify
@@ -71,16 +72,45 @@ class AIQueryView(BaseSupersetView):
     @expose("/generate", methods=["POST"])
     @has_access
     @permission_name("read")
-    @event_logger.log_this
+    @event_logger.log_this_with_context(
+        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.generate_query",
+        log_to_statsd=True,
+    )
     def generate_query(self, **kwargs: Any) -> FlaskResponse:
         """Generate SQL query from natural language description."""
         from superset.ai_query.gemini_service import GeminiService
-        from datetime import datetime
         
+        start_time = time.time()
         data = request.get_json()
         description = data.get("description", "") if data else ""
         
+        # Collect comprehensive client information for logging
+        client_info = {
+            "ai_query_type": "generate",
+            "description_length": len(description.strip()) if description else 0,
+            "user_agent": request.headers.get("User-Agent", ""),
+            "ip_address": request.environ.get("REMOTE_ADDR", ""),
+            "referrer": request.referrer,
+            "request_id": request.headers.get("X-Request-ID", ""),
+            "session_id": getattr(request, "session_id", ""),
+            "content_type": request.content_type,
+            "request_method": request.method,
+            "endpoint": request.endpoint,
+            "timestamp": datetime.now().isoformat(),
+        }
+        
+        # Add forwarded headers if behind proxy
+        if "X-Forwarded-For" in request.headers:
+            client_info["forwarded_for"] = request.headers.get("X-Forwarded-For")
+        if "X-Real-IP" in request.headers:
+            client_info["real_ip"] = request.headers.get("X-Real-IP")
+        
+        logger.info(f"AI Query generate request: {client_info}")
+        
         if not description.strip():
+            # Log validation failure
+            error_info = {**client_info, "error": "Description is required", "processing_time_ms": (time.time() - start_time) * 1000}
+            logger.warning(f"AI Query generate validation failed: {error_info}")
             return jsonify({
                 "success": False,
                 "error": "Description is required",
@@ -92,6 +122,15 @@ class AIQueryView(BaseSupersetView):
         
         # Debug: Check if API key is available
         if not gemini_service.api_key:
+            # Log configuration error
+            config_error_info = {
+                **client_info, 
+                "error": "Gemini API key not configured",
+                "processing_time_ms": (time.time() - start_time) * 1000,
+                "config_has_key": hasattr(request, 'current_app') and 'GEMINI_API_KEY' in request.current_app.config,
+                "env_has_key": bool(os.getenv("GEMINI_API_KEY"))
+            }
+            logger.error(f"AI Query generate config error: {config_error_info}")
             return jsonify({
                 "success": False,
                 "error": "Gemini API key not configured. Please set GEMINI_API_KEY in superset_config_docker.py or environment variable.",
@@ -102,28 +141,94 @@ class AIQueryView(BaseSupersetView):
                 }
             })
         
-        # Generate SQL query using Gemini
-        result = gemini_service.generate_sql_query(description)
-        
-        # Add timestamp to response
-        result["timestamp"] = datetime.now().isoformat()
-        result["description"] = description
-        
-        return jsonify(result)
+        try:
+            # Generate SQL query using Gemini
+            ai_start_time = time.time()
+            result = gemini_service.generate_sql_query(description)
+            ai_processing_time = (time.time() - ai_start_time) * 1000
+            
+            # Add timing and tracking info to response
+            result["timestamp"] = datetime.now().isoformat()
+            result["description"] = description
+            
+            # Log successful generation with comprehensive details
+            success_info = {
+                **client_info,
+                "success": result.get("success", False),
+                "generated_query_length": len(result.get("query", "")) if result.get("query") else 0,
+                "ai_processing_time_ms": ai_processing_time,
+                "total_processing_time_ms": (time.time() - start_time) * 1000,
+                "has_error": "error" in result,
+                "gemini_model_used": getattr(gemini_service, 'model_name', 'unknown'),
+            }
+            logger.info(f"AI Query generate completed: {success_info}")
+            
+            return jsonify(result)
+            
+        except Exception as e:
+            # Log generation error with full context
+            error_info = {
+                **client_info,
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "processing_time_ms": (time.time() - start_time) * 1000,
+            }
+            logger.error(f"AI Query generate exception: {error_info}", exc_info=True)
+            return jsonify({
+                "success": False,
+                "error": f"Failed to generate query: {str(e)}",
+                "query": None,
+                "timestamp": datetime.now().isoformat(),
+                "description": description
+            })
 
     @expose("/execute", methods=["POST"])
     @has_access
     @permission_name("read")
-    @event_logger.log_this
+    @event_logger.log_this_with_context(
+        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}.execute_sql", 
+        log_to_statsd=True,
+    )
     def execute_sql(self, **kwargs: Any) -> FlaskResponse:
         """Execute SQL query using SqlLab's infrastructure with smart pagination."""
+        start_time = time.time()
+        
         try:
             # Parse and validate request data
             request_data = request.get_json()
-            logger.info(f"AI Query execute request: {request_data}")
+            
+            # Collect comprehensive client information for logging
+            client_info = {
+                "ai_query_type": "execute",
+                "user_agent": request.headers.get("User-Agent", ""),
+                "ip_address": request.environ.get("REMOTE_ADDR", ""),
+                "referrer": request.referrer,
+                "request_id": request.headers.get("X-Request-ID", ""),
+                "session_id": getattr(request, "session_id", ""),
+                "content_type": request.content_type,
+                "request_method": request.method,
+                "endpoint": request.endpoint,
+                "timestamp": datetime.now().isoformat(),
+                "database_id": request_data.get("database_id") if request_data else None,
+                "sql_length": len(request_data.get("sql", "")) if request_data and request_data.get("sql") else 0,
+                "page": request_data.get("page", 1) if request_data else 1,
+                "page_size": request_data.get("page_size", 50) if request_data else 50,
+                "client_id": request_data.get("client_id", "") if request_data else "",
+            }
+            
+            # Add forwarded headers if behind proxy
+            if "X-Forwarded-For" in request.headers:
+                client_info["forwarded_for"] = request.headers.get("X-Forwarded-For")
+            if "X-Real-IP" in request.headers:
+                client_info["real_ip"] = request.headers.get("X-Real-IP")
+            
+            logger.info(f"AI Query execute request: {client_info}")
             
             # Simple validation first
             if not request_data:
+                # Log validation failure
+                error_info = {**client_info, "error": "No request data provided", "processing_time_ms": (time.time() - start_time) * 1000}
+                logger.warning(f"AI Query execute validation failed: {error_info}")
                 return jsonify({
                     "success": False,
                     "error": "No request data provided",
@@ -136,6 +241,15 @@ class AIQueryView(BaseSupersetView):
             page_size = request_data.get("page_size", 50)
             
             if not sql or not database_id:
+                # Log validation failure with more details
+                validation_error_info = {
+                    **client_info, 
+                    "error": "Missing required fields",
+                    "missing_sql": not sql,
+                    "missing_database_id": not database_id,
+                    "processing_time_ms": (time.time() - start_time) * 1000
+                }
+                logger.warning(f"AI Query execute validation failed: {validation_error_info}")
                 return jsonify({
                     "success": False,
                     "error": "Missing required fields: sql and database_id",
@@ -144,9 +258,33 @@ class AIQueryView(BaseSupersetView):
                 
             # Validate pagination parameters
             try:
+                original_page = page
+                original_page_size = page_size
                 page = max(1, int(page))
                 page_size = max(1, min(int(page_size), 100))  # Cap at 100 per page
+                
+                # Log if pagination was adjusted
+                if page != original_page or page_size != original_page_size:
+                    adjustment_info = {
+                        **client_info,
+                        "pagination_adjusted": True,
+                        "original_page": original_page,
+                        "adjusted_page": page,
+                        "original_page_size": original_page_size,
+                        "adjusted_page_size": page_size
+                    }
+                    logger.info(f"AI Query execute pagination adjusted: {adjustment_info}")
+                    
             except (ValueError, TypeError):
+                # Log pagination parameter error
+                pagination_error_info = {
+                    **client_info, 
+                    "error": "Invalid pagination parameters",
+                    "invalid_page": page,
+                    "invalid_page_size": page_size,
+                    "processing_time_ms": (time.time() - start_time) * 1000
+                }
+                logger.warning(f"AI Query execute pagination error: {pagination_error_info}")
                 return jsonify({
                     "success": False,
                     "error": "Invalid pagination parameters",
@@ -161,16 +299,35 @@ class AIQueryView(BaseSupersetView):
             if not database:
                 # Get list of available databases for debugging
                 available_dbs = db.session.query(Database.id, Database.database_name).all()
-                logger.error(f"Database {database_id} not found. Available: {available_dbs}")
+                db_error_info = {
+                    **client_info,
+                    "error": "Database not found",
+                    "requested_database_id": database_id,
+                    "available_databases": [{"id": db_id, "name": db_name} for db_id, db_name in available_dbs],
+                    "processing_time_ms": (time.time() - start_time) * 1000
+                }
+                logger.error(f"AI Query execute database not found: {db_error_info}")
                 return jsonify({
                     "success": False,
                     "error": f"Database with id {database_id} not found. Available databases: {available_dbs}",
                     "query": None
                 }), 400
             
+            # Update client info with database details
+            client_info.update({
+                "database_name": database.database_name,
+                "database_backend": database.backend,
+                "database_driver": database.driver,
+            })
+            
             # Check if user has access to this database
             if not security_manager.can_access_database(database):
-                logger.error(f"User does not have access to database {database_id} ({database.database_name})")
+                access_error_info = {
+                    **client_info,
+                    "error": "Database access denied",
+                    "processing_time_ms": (time.time() - start_time) * 1000
+                }
+                logger.error(f"AI Query execute access denied: {access_error_info}")
                 return jsonify({
                     "success": False,
                     "error": f"Access denied to database {database.database_name} (id: {database_id})",
@@ -179,20 +336,41 @@ class AIQueryView(BaseSupersetView):
             
             # Smart pagination: check result count first
             PAGINATION_THRESHOLD = 500
+            count_start_time = time.time()
             total_count = self._get_query_count(sql, database_id)
+            count_time = (time.time() - count_start_time) * 1000
             
             if total_count is None:
+                count_error_info = {
+                    **client_info,
+                    "error": "Failed to determine result count",
+                    "count_query_time_ms": count_time,
+                    "processing_time_ms": (time.time() - start_time) * 1000
+                }
+                logger.error(f"AI Query execute count failed: {count_error_info}")
                 return jsonify({
                     "success": False,
                     "error": "Failed to determine result count",
                     "query": None
                 }), 500
             
+            # Log query analysis
+            query_analysis_info = {
+                **client_info,
+                "total_count": total_count,
+                "count_query_time_ms": count_time,
+                "pagination_threshold": PAGINATION_THRESHOLD,
+                "requires_server_pagination": total_count > PAGINATION_THRESHOLD
+            }
+            logger.info(f"AI Query execute analysis: {query_analysis_info}")
+            
             # Use direct SQL execution for all queries to avoid session management issues
             # This bypasses SqlLab's complex infrastructure which has user session dependencies
             try:
                 # Determine if we need server-side pagination
                 use_server_pagination = total_count > PAGINATION_THRESHOLD
+                
+                sql_execution_start = time.time()
                 
                 if use_server_pagination:
                     # Modify SQL with LIMIT and OFFSET for server-side pagination
@@ -204,6 +382,7 @@ class AIQueryView(BaseSupersetView):
                 
                 # Execute SQL directly against the database
                 payload = self._execute_sql_direct(database_id, sql_to_execute, page, page_size, total_count)
+                sql_execution_time = (time.time() - sql_execution_start) * 1000
                 
                 # For client-side pagination, modify the pagination metadata
                 if not use_server_pagination:
@@ -218,13 +397,37 @@ class AIQueryView(BaseSupersetView):
                         "server_side": False
                     }
                 
-                logger.info(f"Final payload structure: {type(payload)}, keys: {list(payload.keys()) if isinstance(payload, dict) else 'not dict'}")
+                # Log successful execution with comprehensive metrics
+                success_info = {
+                    **client_info,
+                    "success": True,
+                    "rows_returned": len(payload.get("data", [])) if payload else 0,
+                    "columns_count": len(payload.get("columns", [])) if payload else 0,
+                    "total_count": total_count,
+                    "use_server_pagination": use_server_pagination,
+                    "count_query_time_ms": count_time,
+                    "sql_execution_time_ms": sql_execution_time,
+                    "total_processing_time_ms": (time.time() - start_time) * 1000,
+                    "final_page": payload.get("pagination", {}).get("page", page) if payload else page,
+                    "final_page_size": payload.get("pagination", {}).get("page_size", page_size) if payload else page_size,
+                }
+                logger.info(f"AI Query execute completed: {success_info}")
                 
                 # Return the payload as JSON directly since json_success might be causing formatting issues
                 return jsonify(payload)
                 
             except Exception as execution_error:
-                logger.error(f"Direct SQL execution failed: {str(execution_error)}", exc_info=True)
+                # Log SQL execution error with comprehensive context
+                sql_error_info = {
+                    **client_info,
+                    "error": str(execution_error),
+                    "error_type": type(execution_error).__name__,
+                    "sql_execution_failed": True,
+                    "total_count": total_count,
+                    "use_server_pagination": use_server_pagination,
+                    "processing_time_ms": (time.time() - start_time) * 1000
+                }
+                logger.error(f"AI Query execute SQL failed: {sql_error_info}", exc_info=True)
                 return jsonify({
                     "success": False,
                     "error": f"SQL execution failed: {str(execution_error)}",
@@ -232,7 +435,19 @@ class AIQueryView(BaseSupersetView):
                 }), 500
             
         except Exception as e:
-            logger.error(f"AI Query execute error: {str(e)}", exc_info=True)
+            # Log general execution error with full context
+            # Use empty client_info if it wasn't initialized due to early error
+            base_client_info = locals().get("client_info", {
+                "ai_query_type": "execute",
+                "error": "Early initialization error"
+            })
+            general_error_info = {
+                **base_client_info,
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "processing_time_ms": (time.time() - start_time) * 1000
+            }
+            logger.error(f"AI Query execute error: {general_error_info}", exc_info=True)
             return jsonify({
                 "success": False,
                 "error": f"Execution failed: {str(e)}",
