@@ -228,6 +228,82 @@ PATENT APPLICATION DATABASE SCHEMA:
   * examiner_name (text) - Examiner name (denormalized, prefer examiner table)
   * customer_num (int) - Links to customer_add for firm information
   * first_applicant_name, first_inventor_name (text) - Denormalized names
+  * status_code and app_status are corresponding to each other as follows (therefore, when you are asked to find the status of the application, you should use the status_code column for convenience):
+    - Missassigned Application Number = 1
+    - "Awaiting TC Resp, Issue Fee Payment Verified" = 100
+    - Appeal Ready for Review = 116
+    - TC Return of Appeal = 119
+    - Notice of Appeal Filed = 120
+    - Appeal Brief (or Supplemental Brief) Entered and Forwarded to Examiner = 121
+    - Examiner's Answer to Appeal Brief Counted = 122
+    - Examiner's Answer to Appeal Brief Mailed = 123
+    - On Appeal -- Awaiting Decision by the Board of Appeals = 124
+    - Amendment after notice of appeal = 127
+    - Reply Brief (or Supplemental Reply Brief) Forwarded to Examiner = 128
+    - Examiner's Answer to Reply Brief or Response to Remand Mailed = 130
+    - Reply Brief (or Supplemental Reply Brief) Filed - Not Entered = 131
+    - Appeal Awaiting BPAI Docketing = 132
+    - Reply Brief filed and forwarded to BPAI = 133
+    - Board of Appeals Decision Rendered = 135
+    - Amendment / Argument after Board of Appeals Decision = 136
+    - Appeal Dismissed / Withdrawn = 139
+    - Prosecution Suspended = 140
+    - Request Reconsideration after Board of Appeals Decision = 143
+    - Board of Appeals Decision Rendered after Request for Reconsideration = 144
+    - Patented Case = 150
+    - Patented File - (Old Case Added for File Tracking Purposes) = 151
+    - Abandoned  --  Incomplete Application (Pre-examination) = 160
+    - Abandoned  --  Failure to Respond to an Office Action = 161
+    - Expressly Abandoned  --  During Publication Process = 162
+    - Abandoned  --  After Examiner's Answer or Board of Appeals Decision = 163
+    - Abandoned  --  Failure to Pay Issue Fee = 164
+    - ABANDONED - RESTORED = 165
+    - Abandoned  --  File-Wrapper-Continuation Parent Application = 166
+    - Abandonment for Failure to Correct Drawings/Oath/NonPub Request = 167
+    - Expressly Abandoned  --  During Examination = 168
+    - Abandoned  --  Incomplete (Filing Date Under Rule 53 (b) - PreExam) = 169
+    - Sent to Classification contractor = 17
+    - Interference -- Initial Memorandum = 172
+    - Interference -- Declared by Board of Interferences = 174
+    - Application Returned back to Preexam = 18
+    - Interference -- Decision on Priority Rendered by Board of Interferences = 180
+    - Application Undergoing Preexam Processing = 19
+    - Application Involved in Court Proceedings = 195
+    - Court Proceedings Terminated = 197
+    - "Application Dispatched from Preexam, Not Yet Docketed" = 20
+    - Patent Expired Due to NonPayment of Maintenance Fees Under 37 CFR 1.362 = 250
+    - Proceedings Terminated = 3
+    - Docketed New Case - Ready for Examination = 30
+    - "AWAITING RESPONSE FOR INFORMALITY, FEE DEFICIENCY OR CRF ACTION" = 31
+    - Special New = 37
+    - Rocket Docket = 38
+    - "Non Final Action Counted, Not Yet Mailed" = 40
+    - Non Final Action Mailed = 41
+    - Non-Final Action Mailed = 423
+    - Response after Non-Final Action Entered (or Ready for Examiner Action) = 424
+    - Notice of Appeal Filed = 432
+    - Examiner's Answer Mailed = 435
+    - Reexamination forwarded to Board for Decision on Appeal = 439
+    - "Ex parte Quayle Action Counted, Not Yet Mailed" = 50
+    - Ex parte Quayle Action Mailed = 51
+    - "Final Rejection Counted, Not Yet Mailed" = 60
+    - Final Rejection Mailed = 61
+    - "Withdrawn Abandonment, awaiting examiner action" = 66
+    - Ready for Reexam -- Certificate in IFW = 660
+    - Response to Non-Final Office Action Entered and Forwarded to Examiner = 71
+    - Response to Ex parte Quayle Action Entered and Forwarded to Examiner = 77
+    - Response after Final Action Forwarded to Examiner = 80
+    - "Advisory Action Counted, Not Yet Mailed" = 82
+    - Advisory Action Mailed = 83
+    - Supplemental examiner's answer to appeal brief = 865
+    - Allowed -- Notice of Allowance Not Yet Mailed = 90
+    - Withdraw from issue awaiting action = 91
+    - Notice of Allowance Mailed -- Application Received in Office of Publications = 93
+    - Publications -- Issue Fee Payment Received = 94
+    - Publications -- Issue Fee Payment Verified = 95
+    - "Awaiting TC Resp., Issue Fee Not Paid" = 98
+    - "Awaiting TC Resp, Issue Fee Payment Received" = 99
+
 
 - attorney: Patent attorneys/agents (MASTER ATTORNEY DATA)
   * id (serial, primary)
