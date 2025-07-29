@@ -149,7 +149,7 @@ export default styled.div`
     .dt-pagination {
       text-align: right;
       /* use padding instead of margin so clientHeight can capture it */
-      padding-top: 0.5em;
+      padding: ${theme.paddingXXS}px 0px;
     }
 
     .dt-pagination .pagination {
@@ -161,8 +161,8 @@ export default styled.div`
     }
 
     .dt-pagination .pagination > li {
-      display: inline-block;
-      margin: 0 2px;
+      display: inline;
+      margin: 0 ${theme.marginXXS}px;
     }
 
     .dt-pagination .pagination > li > a,
@@ -170,10 +170,10 @@ export default styled.div`
       background-color: ${theme.colorBgBase};
       color: ${theme.colorText};
       border-color: ${theme.colorBorderSecondary};
-      padding: 0.375rem 0.75rem;
+      padding: ${theme.paddingXXS}px ${theme.paddingXS}px;
       text-decoration: none;
       border: 1px solid ${theme.colorBorderSecondary};
-      border-radius: 4px;
+      border-radius: ${theme.borderRadius}px;
       display: block;
     }
 
