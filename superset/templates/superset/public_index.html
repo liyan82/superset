@@ -99,9 +99,20 @@
     .hero p { font-size: 1.25rem; color: var(--p4-blue); margin-bottom: 2.5rem; }
     .hero-buttons { display: flex; gap: 1.5rem; justify-content: flex-start; }
     
+    .rankings-section {
+      padding: 4rem 0;
+      background: var(--white);
+    }
+    
     .rankings-showcase {
       display: flex;
       flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .rankings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
     }
     
@@ -297,6 +308,11 @@
       
       .hero-container {
         gap: 2rem;
+      }
+      
+      .rankings-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
       }
       
       .rankings-showcase h2 {
@@ -901,6 +917,219 @@
         max-width: none;
       }
     }
+    
+    /* AI Query Showcase Styles */
+    .ai-query-showcase {
+      background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
+      border: 2px solid var(--p4-light-gray);
+      border-radius: 20px;
+      padding: 3rem;
+      margin: 3rem 0;
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+      box-shadow: 0 8px 32px rgba(40, 62, 83, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .ai-query-showcase::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(45deg, rgba(0, 168, 232, 0.05), rgba(118, 75, 162, 0.05));
+      border-radius: 50%;
+      z-index: 0;
+    }
+    .ai-visual {
+      position: relative;
+      z-index: 1;
+    }
+    .ai-icon-container {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ai-icon {
+      font-size: 3.5rem;
+      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(0, 168, 232, 0.3);
+      position: relative;
+      z-index: 2;
+    }
+    .ai-pulse {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 3px solid var(--p4-accent);
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 0.6;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.3;
+      }
+      100% {
+        transform: scale(1.2);
+        opacity: 0;
+      }
+    }
+    .ai-content {
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+    .ai-header {
+      margin-bottom: 2rem;
+    }
+    .ai-badge {
+      display: inline-block;
+      background: linear-gradient(45deg, var(--p4-accent), #0099cc);
+      color: white;
+      padding: 0.4rem 1.2rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
+    }
+    .ai-query-showcase h3 {
+      color: var(--p4-dark-blue);
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 0.8rem;
+      line-height: 1.2;
+    }
+    .ai-description {
+      color: var(--p4-blue);
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+    .ai-benefits {
+      margin: 1.5rem 0 2rem 0;
+    }
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.8rem;
+      padding: 0.5rem 0;
+    }
+    .benefit-check {
+      background: var(--p4-accent);
+      color: white;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .benefit-item span:last-child {
+      color: var(--p4-blue);
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    .ai-cta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      align-items: flex-start;
+    }
+    .ai-primary-btn {
+      display: inline-block;
+      background: linear-gradient(45deg, var(--p4-accent), var(--p4-dark-blue));
+      color: white;
+      padding: 1rem 2.5rem;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0, 168, 232, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .ai-primary-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    .ai-primary-btn:hover::before {
+      left: 100%;
+    }
+    .ai-primary-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 168, 232, 0.4);
+      color: white;
+      text-decoration: none;
+    }
+    .ai-hint {
+      color: var(--p4-blue);
+      font-size: 0.9rem;
+      font-style: italic;
+      opacity: 0.8;
+    }
+    
+    /* Responsive Design for AI Query */
+    @media (max-width: 768px) {
+      .ai-query-showcase {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem;
+        gap: 2rem;
+      }
+      .ai-icon-container {
+        width: 100px;
+        height: 100px;
+      }
+      .ai-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+      }
+      .ai-query-showcase h3 {
+        font-size: 1.8rem;
+      }
+      .ai-cta {
+        align-items: center;
+      }
+    }
+    
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .rankings-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.2rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -941,51 +1170,56 @@
             </div>
           </div>
           
-          <div class="rankings-showcase">
-            <h2>🏆 Live Rankings</h2>
-            
+          <!-- AI Query Feature Showcase -->
+          <div class="ai-query-showcase">
+            <div class="ai-visual">
+              <div class="ai-icon-container">
+                <div class="ai-icon">🤖</div>
+                <div class="ai-pulse"></div>
+              </div>
+            </div>
+            <div class="ai-content">
+              <div class="ai-header">
+                <div class="ai-badge">🚀 Just Launched</div>
+                <h3>AI Query Engine</h3>
+                <p class="ai-description">Transform natural language into powerful database insights. No technical knowledge required.</p>
+              </div>
+              <div class="ai-benefits">
+                <div class="benefit-item">
+                  <span class="benefit-check">✓</span>
+                  <span>Ask complex questions in plain English</span>
+                </div>
+                <div class="benefit-item">
+                  <span class="benefit-check">✓</span>
+                  <span>Get results in seconds, not hours</span>
+                </div>
+                <div class="benefit-item">
+                  <span class="benefit-check">✓</span>
+                  <span>Enterprise-grade security & performance</span>
+                </div>
+              </div>
+              <div class="ai-cta">
+                <a href="/ai-query" class="ai-primary-btn">Experience AI Query</a>
+                <div class="ai-hint">Try: "Show me Apple's latest patent filings"</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rankings Section -->
+    <section class="rankings-section">
+      <div class="container">
+        <div class="rankings-showcase">
+          <h2>🏆 Live Rankings</h2>
+          <div class="rankings-grid">
             <a href="/rankings/attorneys" class="ranking-card">
               <div class="ranking-header">
-                <div class="ranking-icon">
-                  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Professional Person in Suit -->
-                    <g fill="currentColor">
-                      <!-- Head -->
-                      <circle cx="50" cy="30" r="15"/>
-                      
-                      <!-- Neck -->
-                      <rect x="46" y="42" width="8" height="6"/>
-                      
-                      <!-- Suit jacket body -->
-                      <path d="M25 48 Q25 45 28 45 L72 45 Q75 45 75 48 L75 85 Q75 88 72 88 L28 88 Q25 88 25 85 Z"/>
-                      
-                      <!-- Shirt -->
-                      <path d="M35 48 L65 48 L65 85 L35 85 Z" fill="rgba(255,255,255,0.9)"/>
-                      
-                      <!-- Suit lapels -->
-                      <path d="M25 48 L35 48 L45 58 L35 68 L25 58 Z" fill="currentColor"/>
-                      <path d="M75 48 L65 48 L55 58 L65 68 L75 58 Z" fill="currentColor"/>
-                      
-                      <!-- Tie -->
-                      <path d="M45 48 L55 48 L52 75 L48 75 Z" fill="rgba(0,0,0,0.3)"/>
-                      
-                      <!-- Suit buttons -->
-                      <circle cx="50" cy="55" r="1.5" fill="rgba(0,0,0,0.4)"/>
-                      <circle cx="50" cy="62" r="1.5" fill="rgba(0,0,0,0.4)"/>
-                      
-                      <!-- Arms -->
-                      <ellipse cx="20" cy="60" rx="8" ry="20" fill="currentColor"/>
-                      <ellipse cx="80" cy="60" rx="8" ry="20" fill="currentColor"/>
-                      
-                      <!-- Hands -->
-                      <circle cx="20" cy="78" r="4" fill="currentColor"/>
-                      <circle cx="80" cy="78" r="4" fill="currentColor"/>
-                    </g>
-                  </svg>
-                </div>
+                <div class="ranking-icon">👨‍💼</div>
                 <div class="ranking-title">
                   <h3>Top Practitioners</h3>
-                  <div class="ranking-subtitle">Weighted Composite Score Ranking (2020-2024)</div>
+                  <div class="ranking-subtitle">Weighted Score (2020-2024)</div>
                 </div>
                 <div class="ranking-badge">Top 1024</div>
               </div>
@@ -993,41 +1227,10 @@
             
             <a href="/rankings/firms" class="ranking-card">
               <div class="ranking-header">
-                <div class="ranking-icon">
-                  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Law Firm Building -->
-                    <g fill="currentColor">
-                      <!-- Building base -->
-                      <rect x="20" y="50" width="60" height="45" rx="3"/>
-                      
-                      <!-- Building top section -->
-                      <rect x="25" y="30" width="50" height="25" rx="2"/>
-                      
-                      <!-- Pillars -->
-                      <rect x="28" y="50" width="4" height="40"/>
-                      <rect x="38" y="50" width="4" height="40"/>
-                      <rect x="48" y="50" width="4" height="40"/>
-                      <rect x="58" y="50" width="4" height="40"/>
-                      <rect x="68" y="50" width="4" height="40"/>
-                      
-                      <!-- Windows -->
-                      <rect x="30" y="35" width="6" height="8" fill="rgba(255,255,255,0.3)"/>
-                      <rect x="40" y="35" width="6" height="8" fill="rgba(255,255,255,0.3)"/>
-                      <rect x="54" y="35" width="6" height="8" fill="rgba(255,255,255,0.3)"/>
-                      <rect x="64" y="35" width="6" height="8" fill="rgba(255,255,255,0.3)"/>
-                      
-                      <!-- Steps -->
-                      <rect x="15" y="88" width="70" height="3"/>
-                      <rect x="18" y="85" width="64" height="3"/>
-                      
-                      <!-- Roof detail -->
-                      <polygon points="20,30 50,15 80,30 75,30 50,20 25,30" fill="currentColor"/>
-                    </g>
-                  </svg>
-                </div>
+                <div class="ranking-icon">🏢</div>
                 <div class="ranking-title">
                   <h3>Leading Law Firms</h3>
-                  <div class="ranking-subtitle">Most Patents Granted (2022-2024)</div>
+                  <div class="ranking-subtitle">Most Patents (2022-2024)</div>
                 </div>
                 <div class="ranking-badge">Top 1024</div>
               </div>
@@ -1035,50 +1238,10 @@
             
             <a href="/rankings/companies" class="ranking-card">
               <div class="ranking-header">
-                <div class="ranking-icon">
-                  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Innovation/Patent Factory -->
-                    <g fill="currentColor">
-                      <!-- Factory building -->
-                      <rect x="15" y="60" width="70" height="35" rx="3"/>
-                      
-                      <!-- Smokestacks -->
-                      <rect x="25" y="35" width="8" height="30"/>
-                      <rect x="40" y="30" width="8" height="35"/>
-                      <rect x="55" y="25" width="8" height="40"/>
-                      
-                      <!-- Innovation smoke (ideas) -->
-                      <circle cx="29" cy="25" r="3" fill="rgba(255,255,255,0.6)"/>
-                      <circle cx="32" cy="20" r="2" fill="rgba(255,255,255,0.5)"/>
-                      <circle cx="44" cy="20" r="4" fill="rgba(255,255,255,0.6)"/>
-                      <circle cx="48" cy="15" r="2.5" fill="rgba(255,255,255,0.5)"/>
-                      <circle cx="59" cy="15" r="5" fill="rgba(255,255,255,0.6)"/>
-                      <circle cx="63" cy="10" r="3" fill="rgba(255,255,255,0.5)"/>
-                      
-                      <!-- Gear/Innovation symbols -->
-                      <g transform="translate(25,70)">
-                        <circle cx="0" cy="0" r="8" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-                        <polygon points="-6,-6 6,-6 6,6 -6,6" fill="rgba(255,255,255,0.3)"/>
-                        <circle cx="0" cy="0" r="3" fill="rgba(255,255,255,0.8)"/>
-                      </g>
-                      
-                      <g transform="translate(75,70)">
-                        <circle cx="0" cy="0" r="6" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
-                        <polygon points="-4,-4 4,-4 4,4 -4,4" fill="rgba(255,255,255,0.3)"/>
-                        <circle cx="0" cy="0" r="2" fill="rgba(255,255,255,0.8)"/>
-                      </g>
-                      
-                      <!-- Patent documents coming out -->
-                      <rect x="45" y="75" width="10" height="12" fill="rgba(255,255,255,0.9)" rx="1"/>
-                      <line x1="47" y1="77" x2="53" y2="77" stroke="currentColor" stroke-width="0.5"/>
-                      <line x1="47" y1="79" x2="53" y2="79" stroke="currentColor" stroke-width="0.5"/>
-                      <line x1="47" y1="81" x2="53" y2="81" stroke="currentColor" stroke-width="0.5"/>
-                    </g>
-                  </svg>
-                </div>
+                <div class="ranking-icon">🏭</div>
                 <div class="ranking-title">
                   <h3>Top Applicants</h3>
-                  <div class="ranking-subtitle">Most Patents Granted (2022-2024)</div>
+                  <div class="ranking-subtitle">Most Patents (2022-2024)</div>
                 </div>
                 <div class="ranking-badge">Top 1024</div>
               </div>
@@ -1863,6 +2026,60 @@
         }
       }
     });
+    
+    // AI Demo function
+    window.showAIDemo = function() {
+      // Create and show a simple demo modal
+      const demoContent = `
+        <div style="text-align: center; padding: 2rem;">
+          <h3 style="color: var(--p4-dark-blue); margin-bottom: 1rem;">🤖 AI Query Demo</h3>
+          <p style="color: var(--p4-blue); margin-bottom: 2rem;">Experience the power of natural language database querying!</p>
+          
+          <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+            <div style="margin-bottom: 1rem;">
+              <strong>Try asking:</strong>
+            </div>
+            <div style="text-align: left; margin-bottom: 1rem;">
+              • "Show me all patents filed by Google in 2024"<br>
+              • "Which law firms have the most AI patents?"<br>
+              • "Find applications with 'machine learning' in the title"<br>
+              • "Compare patent activity between Apple and Microsoft"
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 2rem;">
+            <strong>Key Features:</strong><br>
+            ⚡ Real-time query execution with performance tracking<br>
+            🔒 Enterprise-grade security and access control<br>
+            📊 Comprehensive analytics and event logging<br>
+            🚀 No SQL knowledge required - just ask naturally!
+          </div>
+          
+          <a href="/ai-query" style="
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 1rem;
+          ">Launch AI Query Now →</a>
+        </div>
+      `;
+      
+      // Show in existing modal or create a simple alert
+      if (typeof pricingModal !== 'undefined' && pricingModal) {
+        const modalBody = pricingModal.querySelector('.modal-content');
+        if (modalBody) {
+          modalBody.innerHTML = demoContent;
+          pricingModal.classList.add('active');
+        }
+      } else {
+        // Fallback to alert if modal system isn't available
+        alert('🤖 AI Query Demo\\n\\nTry our revolutionary natural language database querying!\\n\\n✨ Ask questions in plain English\\n⚡ Get instant SQL results\\n🔒 Enterprise security\\n📊 Advanced analytics\\n\\nClick "Try AI Query Now" to get started!');
+      }
+    };
   });
 </script>
 
