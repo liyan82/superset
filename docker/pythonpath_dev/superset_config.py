@@ -227,7 +227,6 @@ PATENT APPLICATION DATABASE SCHEMA:
     "app_m_view": {
       "description": "Comprehensive application view with denormalized data (OPTIMIZED FOR QUERIES)",
       "purpose": "Flattened view combining application data with CPC classifications, firm information, and applicant details",
-      "owner": "superset",
       "columns": {
         "app_num": {
           "source": "application.app_num",
@@ -302,7 +301,7 @@ PATENT APPLICATION DATABASE SCHEMA:
         "examiner_name": {
           "source": "application.examiner_name",
           "type": "text",
-          "description": "Examiner name"
+          "description": "Examiner name. All capital letters with format: 'Last, First Middle'."
         },
         "cpc_class": {
           "source": "app_cpc.category",
@@ -348,7 +347,6 @@ PATENT APPLICATION DATABASE SCHEMA:
     "att_firm_m_view": {
       "description": "Attorney-firm relationship view (OPTIMIZED FOR ATTORNEY-FIRM QUERIES)",
       "purpose": "Shows attorneys and their associated law firms through application relationships",
-      "owner": "superset",
       "columns": {
         "reg_num": {
           "source": "attorney.reg_num",
@@ -358,22 +356,23 @@ PATENT APPLICATION DATABASE SCHEMA:
         "first_name": {
           "source": "attorney.first_name",
           "type": "text",
-          "description": "Attorney first name"
+          "description": "Attorney first name. All capital letters."
         },
         "middle_name": {
           "source": "attorney.middle_name",
           "type": "text",
-          "description": "Attorney middle name"
+          "description": "Attorney middle name. All capital letters."
         },
         "last_name": {
           "source": "attorney.last_name",
           "type": "text",
-          "description": "Attorney last name"
+          "description": "Attorney last name. All capital letters."
         },
         "practitioner_type": {
           "source": "attorney.practitioner_type",
           "type": "enum",
-          "description": "Attorney or agent"
+          "description": "Attorney or agent",
+          "valid_values": ["ATTORNEY", "AGENT", "DESIGN", "DESIGN AGENT", "LIMITED"],
         },
         "gender": {
           "source": "attorney.gender",
@@ -556,18 +555,19 @@ PATENT APPLICATION DATABASE SCHEMA:
         },
         "first_name": {
           "type": "text",
-          "description": "Attorney first name"
+          "description": "Attorney first name. All capital letters."
         },
         "middle_name": {
           "type": "text",
-          "description": "Attorney middle name"
+          "description": "Attorney middle name. All capital letters."
         },
         "last_name": {
           "type": "text",
-          "description": "Attorney last name"
+          "description": "Attorney last name. All capital letters."
         },
         "practitioner_type": {
           "type": "enum",
+          "valid_values": ["ATTORNEY", "AGENT", "DESIGN", "DESIGN AGENT", "LIMITED"],
           "description": "Attorney or agent"
         },
         "active": {
@@ -626,19 +626,19 @@ PATENT APPLICATION DATABASE SCHEMA:
         },
         "first_name": {
           "type": "text",
-          "description": "Inventor first name"
+          "description": "Inventor first name. All capital letters."
         },
         "middle_name": {
           "type": "text",
-          "description": "Inventor middle name"
+          "description": "Inventor middle name. All capital letters."
         },
         "last_name": {
           "type": "text",
-          "description": "Inventor last name"
+          "description": "Inventor last name. All capital letters."
         },
         "full_name": {
           "type": "text",
-          "description": "Inventor full name"
+          "description": "Inventor full name. All capital letters. Format: 'First Middle Last'. Use separate fields for first, middle, and last names for purpose of searching."
         },
         "gender": {
           "type": "int",
@@ -1005,7 +1005,7 @@ PATENT APPLICATION DATABASE SCHEMA:
       "firm_searches": "Use customer_add.firm_name for firm searches",
       "examiner_queries": "Prefer examiner table over denormalized examiner_name in application table",
       "status_queries": "Use status_code column for convenience when finding application status (see mappings in application.status_code field)",
-      "optimized_queries": "Consider using materialized views for better performance: app_m_view for comprehensive application data, att_firm_m_view for attorney-firm relationships"
+      "optimized_queries": "Always consider using materialized views for better performance before you write a query with connecting tables: app_m_view for comprehensive application data, att_firm_m_view for attorney-firm relationships"
     }
   },
 

@@ -168,7 +168,7 @@ export default function AIQuery() {
       if (!sqlQuery || generateResponse.json.success === false) {
         setExecutionResults({
           success: false,
-          error: generateResponse.json.error || 'Failed to generate SQL query',
+          error: generateResponse.json.error || "I'm having trouble understanding that. Could you try asking differently?",
           data: null,
         });
         return;
@@ -467,14 +467,26 @@ export default function AIQuery() {
         {executionResults ? (
           <div>
             {executionResults.error ? (
-              <div style={{ 
-                color: '#ff4d4f', 
-                background: '#fff2f0', 
-                padding: '10px', 
-                borderRadius: '4px',
-                border: '1px solid #ffccc7'
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%',
+                minHeight: '300px'
               }}>
-                <strong>Error:</strong> {executionResults.error}
+                <div style={{
+                  color: '#ff4d4f',
+                  background: '#fff2f0',
+                  padding: '20px',
+                  borderRadius: '8px',
+                  border: '1px solid #ffccc7',
+                  textAlign: 'center',
+                  maxWidth: '400px',
+                  fontSize: '16px',
+                  lineHeight: '1.5'
+                }}>
+                  {executionResults.error}
+                </div>
               </div>
             ) : (
               <div>
