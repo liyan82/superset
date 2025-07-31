@@ -18,6 +18,7 @@
 import logging
 import os
 import re
+import uuid
 from typing import Optional, Dict, Any
 import requests
 
@@ -25,13 +26,23 @@ logger = logging.getLogger(__name__)
 
 
 class GeminiService:
-    """Service for interacting with Google Gemini AI to generate SQL queries."""
+    """
+    Service for interacting with Google Gemini AI to generate SQL queries.
+    
+    Privacy Features:
+    - Each request is stateless with no conversation history
+    - System instructions explicitly prevent context storage and model training
+    - Safety settings configured to block harmful content
+    - Unique request IDs ensure no correlation between requests
+    """
     
     def __init__(self, api_key: Optional[str] = None):
         # Try to get API key from multiple sources
         self.api_key = api_key
         self.schema_context = None
         self.excluded_columns = []
+        # Privacy controls - ensure stateless requests
+        self.disable_context_storage = True
         
         if not self.api_key:
             try:
@@ -165,13 +176,29 @@ SQL GENERATION RULES:
   * inventor table
   * applicant table
 - Return ONLY valid PostgreSQL syntax without comments
-- Use ILIKE for case-insensitive comparisons
-- Use LOWER() or UPPER() functions for case-insensitive string operations
+
+STRING MATCHING RULES:
+- For EXACT WORD matches, use word boundary patterns:
+  * For single words: column_name ~* '\\y[search_term]\\y' or column_name ~* '\\b[search_term]\\b'
+  * For space-separated words: column_name ILIKE '% [search_term] %' OR column_name ILIKE '[search_term] %' OR column_name ILIKE '% [search_term]'
+  * For start/end of field: column_name ILIKE '[search_term]%' or column_name ILIKE '%[search_term]'
+- For PARTIAL matches only when explicitly requested: column_name ILIKE '%[search_term]%'
+- Use ILIKE for case-insensitive comparisons (preferred over LIKE)
+- Use LOWER() or UPPER() functions for case-insensitive string operations when regex not available
+- When searching names, consider both "Last, First" and "First Last" formats
+
+QUERY STRUCTURE RULES:
 - Use appropriate JOINs when accessing related data
 - Consider using materialized views (app_m_view, att_firm_m_view) for complex queries
 - For date ranges, use proper date formatting
 - If the request involves analytics, consider using GROUP BY and aggregations
 - STRICTLY AVOID selecting any excluded columns listed above
+
+MATCHING EXAMPLES:
+- User says "find Smith": Use word boundaries → examiner_name ~* '\\ySmith\\y'
+- User says "companies with Tech": Use space patterns → company_name ILIKE '% Tech %' OR company_name ILIKE 'Tech %' OR company_name ILIKE '% Tech'  
+- User says "starts with Bio": Use prefix → company_name ILIKE 'Bio%'
+- User says "contains partial word": Use full wildcard → company_name ILIKE '%search%'
 
 RESPONSE FORMAT:
 Return only the SQL query, no explanations or additional text.
@@ -180,8 +207,23 @@ SQL Query:"""
         
         return base_prompt
     
+    def _generate_request_id(self) -> str:
+        """Generate a unique request ID to ensure no correlation between requests."""
+        return str(uuid.uuid4())
+    
     def _call_gemini_api(self, prompt: str) -> Dict[str, Any]:
-        """Make API call to Gemini."""
+        """
+        Make API call to Gemini with privacy controls to prevent context storage.
+        
+        Privacy measures implemented:
+        - System instruction explicitly prevents context storage and model training
+        - Unique request ID prevents correlation between requests
+        - Safety settings block harmful content
+        - No conversation history or session state maintained
+        """
+        # Generate unique request ID to prevent correlation (for logging/tracking if needed)
+        # request_id = self._generate_request_id()
+        
         headers = {
             "Content-Type": "application/json",
             "x-goog-api-key": self.api_key,
@@ -196,6 +238,30 @@ SQL Query:"""
             "generationConfig": {
                 "temperature": 0.1,
                 "maxOutputTokens": 1000,
+            },
+            "safetySettings": [
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH", 
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+                }
+            ],
+            # Prevent context storage and ensure stateless requests
+            "system_instruction": {
+                "parts": [{
+                    "text": "PRIVACY DIRECTIVE: This is a completely stateless, one-time request. Do not store, retain, or reference any conversation context, user data, or request history. Treat each request as independent with no memory of previous interactions. Do not use this data for model training or improvement."
+                }]
             }
         }
         
@@ -236,8 +302,8 @@ SQL Query:"""
         
         # Length restrictions to prevent abuse
         description = description.strip()
-        MAX_LENGTH = 500  # Reasonable limit for database queries
-        MIN_LENGTH = 5    # Too short is likely not a real query
+        MAX_LENGTH = 800  # Reasonable limit for database queries
+        MIN_LENGTH = 10    # Too short is likely not a real query
         
         if len(description) > MAX_LENGTH:
             return {

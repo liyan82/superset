@@ -18,6 +18,7 @@
  */
 import { useState, useEffect } from 'react';
 import { SupersetClient } from '@superset-ui/core';
+import aiQueryGif from 'src/assets/images/ai-query.gif';
 
 interface DatabaseConfig {
   success: boolean;
@@ -312,14 +313,6 @@ export default function AIQuery() {
         <h1 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '28px' }}>
           AI Query Assistant
         </h1>
-        <p style={{ margin: '0', color: '#666', fontSize: '16px' }}>
-          Ask questions about the patent database in natural language
-        </p>
-        {databaseConfig && databaseConfig.success && (
-          <p style={{ margin: '5px 0 0 0', color: '#888', fontSize: '14px' }}>
-            Querying: <strong>{databaseConfig.database_name}</strong>
-          </p>
-        )}
       </div>
       
       <div style={{ 
@@ -350,6 +343,15 @@ export default function AIQuery() {
           onFocus={(e) => e.target.style.borderColor = '#1890ff'}
           onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
         />
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginTop: '5px',
+          fontSize: '12px',
+          color: description.length > 720 ? '#ff4d4f' : description.length > 640 ? '#fa8c16' : '#999'
+        }}>
+          {800 - description.length} characters remaining
+        </div>
         <button 
           onClick={handleGenerateAndExecuteQuery}
           disabled={loading || configLoading || !databaseConfig?.success}
@@ -645,18 +647,42 @@ export default function AIQuery() {
           </div>
         ) : (
           <div style={{ 
-            textAlign: 'center', 
-            color: '#888', 
-            fontSize: '16px',
-            marginTop: '40px'
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+            minHeight: '300px'
           }}>
             {loading ? (
-              <div>
-                <div style={{ marginBottom: '10px' }}>🤖</div>
-                <div>AI is analyzing your question and querying the database...</div>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '20px'
+              }}>
+                <img 
+                  src={aiQueryGif} 
+                  alt="AI processing animation"
+                  style={{
+                    width: '120px',
+                    height: 'auto',
+                    borderRadius: '8px'
+                  }}
+                />
+                <div style={{
+                  color: '#888',
+                  fontSize: '16px',
+                  textAlign: 'center'
+                }}>
+                  AI is analyzing your question and querying the database...
+                </div>
               </div>
             ) : (
-              <div>
+              <div style={{
+                textAlign: 'center',
+                color: '#888',
+                fontSize: '16px'
+              }}>
                 <div style={{ marginBottom: '10px' }}>💬</div>
                 <div>Ask a question about the patent database above to get started</div>
               </div>

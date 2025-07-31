@@ -211,225 +211,811 @@ AI_QUERY_EXCLUDED_COLUMNS = [
 GEMINI_SCHEMA_CONTEXT = """
 PATENT APPLICATION DATABASE SCHEMA:
 
-=== CORE ENTITY TABLES ===
+{
+  "database_name": "patent_database",
+  "description": "USPTO Patent Application Database Schema",
+  "tables": {
+    "application": {
+      "description": "Main patent applications table (PRIMARY DATA SOURCE)",
+      "columns": {
+        "app_num": {
+          "type": "int",
+          "constraints": ["primary"],
+          "description": "Application number (unique identifier)"
+        },
+  "materialized_views": {
+    "app_m_view": {
+      "description": "Comprehensive application view with denormalized data (OPTIMIZED FOR QUERIES)",
+      "purpose": "Flattened view combining application data with CPC classifications, firm information, and applicant details",
+      "owner": "superset",
+      "columns": {
+        "app_num": {
+          "source": "application.app_num",
+          "type": "int",
+          "description": "Application number (unique identifier)"
+        },
+        "filing_date": {
+          "source": "application.filing_date",
+          "type": "date",
+          "description": "Application filing date"
+        },
+        "cat": {
+          "source": "application.cat",
+          "type": "text",
+          "description": "Category (REGULAR/REISSUE)"
+        },
+        "group_art": {
+          "source": "application.group_art",
+          "type": "text",
+          "description": "Art group classification"
+        },
+        "inv_title": {
+          "source": "application.inv_title",
+          "type": "text",
+          "description": "Invention title"
+        },
+        "app_status": {
+          "source": "application.app_status",
+          "type": "text",
+          "description": "Application status"
+        },
+        "status_code": {
+          "source": "application.status_code",
+          "type": "text",
+          "description": "USPTO status code"
+        },
+        "patent_num": {
+          "source": "application.patent_num",
+          "type": "text",
+          "description": "Patent number if granted"
+        },
+        "grant_date": {
+          "source": "application.grant_date",
+          "type": "date",
+          "description": "Grant date"
+        },
+        "type_code": {
+          "source": "application.type_code",
+          "type": "text",
+          "description": "Application type (DES/UTL/PLT)"
+        },
+        "class_num": {
+          "source": "application.class_num",
+          "type": "text",
+          "description": "Classification number"
+        },
+        "subclass_num": {
+          "source": "application.subclass_num",
+          "type": "text",
+          "description": "Subclass number"
+        },
+        "type_label": {
+          "source": "application.type_label",
+          "type": "text",
+          "description": "Type label"
+        },
+        "customer_num": {
+          "source": "application.customer_num",
+          "type": "int",
+          "description": "Customer number"
+        },
+        "examiner_name": {
+          "source": "application.examiner_name",
+          "type": "text",
+          "description": "Examiner name"
+        },
+        "cpc_class": {
+          "source": "app_cpc.category",
+          "type": "text",
+          "description": "CPC classification category"
+        },
+        "cpc_desc": {
+          "source": "cpc_class.class_desc",
+          "type": "text",
+          "description": "CPC classification description"
+        },
+        "firm_name": {
+          "source": "customer_add.firm_name",
+          "type": "text",
+          "description": "Law firm name"
+        },
+        "url": {
+          "source": "customer_add.url",
+          "type": "text",
+          "description": "Firm website URL"
+        },
+        "org_name": {
+          "source": "applicant.org_name",
+          "type": "text",
+          "description": "Applicant organization name"
+        },
+        "country": {
+          "source": "applicant.country",
+          "type": "text",
+          "description": "Applicant country"
+        }
+      },
+      "joins": [
+        "application (base)",
+        "app_cpc (LEFT JOIN DISTINCT on app_num)",
+        "cpc_class (JOIN on category = symbol)",
+        "customer_add (LEFT JOIN on customer_num)",
+        "app_applicant (LEFT JOIN on app_num)",
+        "applicant (LEFT JOIN on applicant_fp = fingerprint)"
+      ],
+      "usage_notes": "Preferred for complex queries requiring application data with related entities. Eliminates need for multiple joins in most common queries."
+    },
+    "att_firm_m_view": {
+      "description": "Attorney-firm relationship view (OPTIMIZED FOR ATTORNEY-FIRM QUERIES)",
+      "purpose": "Shows attorneys and their associated law firms through application relationships",
+      "owner": "superset",
+      "columns": {
+        "reg_num": {
+          "source": "attorney.reg_num",
+          "type": "int",
+          "description": "Attorney registration number (DISTINCT)"
+        },
+        "first_name": {
+          "source": "attorney.first_name",
+          "type": "text",
+          "description": "Attorney first name"
+        },
+        "middle_name": {
+          "source": "attorney.middle_name",
+          "type": "text",
+          "description": "Attorney middle name"
+        },
+        "last_name": {
+          "source": "attorney.last_name",
+          "type": "text",
+          "description": "Attorney last name"
+        },
+        "practitioner_type": {
+          "source": "attorney.practitioner_type",
+          "type": "enum",
+          "description": "Attorney or agent"
+        },
+        "gender": {
+          "source": "attorney.gender",
+          "type": "int",
+          "description": "Gender demographics"
+        },
+        "eth": {
+          "source": "attorney.eth",
+          "type": "text",
+          "description": "Ethnicity demographics"
+        },
+        "nat": {
+          "source": "attorney.nat",
+          "type": "text",
+          "description": "Nationality demographics"
+        },
+        "firm_name": {
+          "source": "customer_add.firm_name",
+          "type": "text",
+          "description": "Associated law firm name"
+        }
+      },
+      "joins": [
+        "attorney (base)",
+        "app_attorney (LEFT JOIN on reg_num = att_num)",
+        "application (LEFT JOIN on app_num)",
+        "customer_add (LEFT JOIN on customer_num)"
+      ],
+      "usage_notes": "Use for queries about attorney-firm relationships. Shows which attorneys work with which firms based on application representations. Uses DISTINCT to avoid duplicate attorney records."
+    }
+        "filing_date": {
+          "type": "date",
+          "description": "Application filing date"
+        },
+        "cat": {
+          "type": "text",
+          "description": "Category",
+          "valid_values": ["REGULAR", "REISSUE"],
+          "notes": "REGULAR = new application, REISSUE = reissue of existing application"
+        },
+        "group_art": {
+          "type": "text",
+          "description": "Art group. USPTO uses one single art group number to classify all applications in the same art group. Almost all are numbers, with several exceptions."
+        },
+        "inv_title": {
+          "type": "text",
+          "description": "Invention title describes what the invention is"
+        },
+        "app_status": {
+          "type": "text",
+          "description": "Application status text description - See status_code for more details. Valid text descriptions are defined in status_code's mapping."
+        },
+        "status_code": {
+          "type": "text",
+          "description": "Status code. USPTO uses numbers to identify the status of the application. Corresponds to app_status.",
+          "mapping": {
+            "1": "Missassigned Application Number",
+            "100": "Awaiting TC Resp, Issue Fee Payment Verified",
+            "116": "Appeal Ready for Review",
+            "119": "TC Return of Appeal",
+            "120": "Notice of Appeal Filed",
+            "121": "Appeal Brief (or Supplemental Brief) Entered and Forwarded to Examiner",
+            "122": "Examiner's Answer to Appeal Brief Counted",
+            "123": "Examiner's Answer to Appeal Brief Mailed",
+            "124": "On Appeal -- Awaiting Decision by the Board of Appeals",
+            "127": "Amendment after notice of appeal",
+            "128": "Reply Brief (or Supplemental Reply Brief) Forwarded to Examiner",
+            "130": "Examiner's Answer to Reply Brief or Response to Remand Mailed",
+            "131": "Reply Brief (or Supplemental Reply Brief) Filed - Not Entered",
+            "132": "Appeal Awaiting BPAI Docketing",
+            "133": "Reply Brief filed and forwarded to BPAI",
+            "135": "Board of Appeals Decision Rendered",
+            "136": "Amendment / Argument after Board of Appeals Decision",
+            "139": "Appeal Dismissed / Withdrawn",
+            "140": "Prosecution Suspended",
+            "143": "Request Reconsideration after Board of Appeals Decision",
+            "144": "Board of Appeals Decision Rendered after Request for Reconsideration",
+            "150": "Patented Case",
+            "151": "Patented File - (Old Case Added for File Tracking Purposes)",
+            "160": "Abandoned  --  Incomplete Application (Pre-examination)",
+            "161": "Abandoned  --  Failure to Respond to an Office Action",
+            "162": "Expressly Abandoned  --  During Publication Process",
+            "163": "Abandoned  --  After Examiner's Answer or Board of Appeals Decision",
+            "164": "Abandoned  --  Failure to Pay Issue Fee",
+            "165": "ABANDONED - RESTORED",
+            "166": "Abandoned  --  File-Wrapper-Continuation Parent Application",
+            "167": "Abandonment for Failure to Correct Drawings/Oath/NonPub Request",
+            "168": "Expressly Abandoned  --  During Examination",
+            "169": "Abandoned  --  Incomplete (Filing Date Under Rule 53 (b) - PreExam)",
+            "17": "Sent to Classification contractor",
+            "172": "Interference -- Initial Memorandum",
+            "174": "Interference -- Declared by Board of Interferences",
+            "18": "Application Returned back to Preexam",
+            "180": "Interference -- Decision on Priority Rendered by Board of Interferences",
+            "19": "Application Undergoing Preexam Processing",
+            "195": "Application Involved in Court Proceedings",
+            "197": "Court Proceedings Terminated",
+            "20": "Application Dispatched from Preexam, Not Yet Docketed",
+            "250": "Patent Expired Due to NonPayment of Maintenance Fees Under 37 CFR 1.362",
+            "3": "Proceedings Terminated",
+            "30": "Docketed New Case - Ready for Examination",
+            "31": "AWAITING RESPONSE FOR INFORMALITY, FEE DEFICIENCY OR CRF ACTION",
+            "37": "Special New",
+            "38": "Rocket Docket",
+            "40": "Non Final Action Counted, Not Yet Mailed",
+            "41": "Non Final Action Mailed",
+            "423": "Non-Final Action Mailed",
+            "424": "Response after Non-Final Action Entered (or Ready for Examiner Action)",
+            "432": "Notice of Appeal Filed",
+            "435": "Examiner's Answer Mailed",
+            "439": "Reexamination forwarded to Board for Decision on Appeal",
+            "50": "Ex parte Quayle Action Counted, Not Yet Mailed",
+            "51": "Ex parte Quayle Action Mailed",
+            "60": "Final Rejection Counted, Not Yet Mailed",
+            "61": "Final Rejection Mailed",
+            "66": "Withdrawn Abandonment, awaiting examiner action",
+            "660": "Ready for Reexam -- Certificate in IFW",
+            "71": "Response to Non-Final Office Action Entered and Forwarded to Examiner",
+            "77": "Response to Ex parte Quayle Action Entered and Forwarded to Examiner",
+            "80": "Response after Final Action Forwarded to Examiner",
+            "82": "Advisory Action Counted, Not Yet Mailed",
+            "83": "Advisory Action Mailed",
+            "865": "Supplemental examiner's answer to appeal brief",
+            "90": "Allowed -- Notice of Allowance Not Yet Mailed",
+            "91": "Withdraw from issue awaiting action",
+            "93": "Notice of Allowance Mailed -- Application Received in Office of Publications",
+            "94": "Publications -- Issue Fee Payment Received",
+            "95": "Publications -- Issue Fee Payment Verified",
+            "98": "Awaiting TC Resp., Issue Fee Not Paid",
+            "99": "Awaiting TC Resp, Issue Fee Payment Received"
+          }
+        },
+        "patent_num": {
+          "type": "text",
+          "description": "Patent number if granted"
+        },
+        "grant_date": {
+          "type": "date",
+          "description": "Grant date"
+        },
+        "type_code": {
+          "type": "text",
+          "description": "Application type",
+          "valid_values": ["DES", "UTL", "PLT"],
+          "notes": "DES = design patent, UTL = utility patent, PLT = plant patent"
+        },
+        "class_num": {
+          "type": "text",
+          "description": "Classification number using United States Patent Classification (distinct from CPC classification)"
+        },
+        "examiner_name": {
+          "type": "text",
+          "description": "Examiner name (denormalized, prefer examiner table)"
+        },
+        "customer_num": {
+          "type": "int",
+          "description": "Links to customer_add for firm information"
+        },
+        "first_applicant_name": {
+          "type": "text",
+          "description": "Denormalized first applicant name"
+        },
+        "first_inventor_name": {
+          "type": "text",
+          "description": "Denormalized first inventor name"
+        }
+      }
+    },
+    "attorney": {
+      "description": "Patent attorneys/agents (MASTER ATTORNEY DATA)",
+      "columns": {
+        "id": {
+          "type": "serial",
+          "constraints": ["primary"]
+        },
+        "reg_num": {
+          "type": "int",
+          "constraints": ["unique"],
+          "description": "Registration number (USE THIS for attorney searches)"
+        },
+        "first_name": {
+          "type": "text",
+          "description": "Attorney first name"
+        },
+        "middle_name": {
+          "type": "text",
+          "description": "Attorney middle name"
+        },
+        "last_name": {
+          "type": "text",
+          "description": "Attorney last name"
+        },
+        "practitioner_type": {
+          "type": "enum",
+          "description": "Attorney or agent"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Active status"
+        },
+        "gender": {
+          "type": "int",
+          "description": "Gender demographics"
+        },
+        "eth": {
+          "type": "text",
+          "description": "Ethnicity demographics"
+        },
+        "nat": {
+          "type": "text",
+          "description": "Nationality demographics"
+        },
+        "org_id": {
+          "type": "int",
+          "description": "Organization reference"
+        }
+      }
+    },
+    "examiner": {
+      "description": "Patent examiners (PREFERRED for examiner queries)",
+      "columns": {
+        "id": {
+          "type": "serial",
+          "constraints": ["primary"]
+        },
+        "name": {
+          "type": "text",
+          "description": "Full examiner name in format: 'Last, First Middle'"
+        },
+        "gender": {
+          "type": "int",
+          "description": "Gender demographics"
+        },
+        "eth": {
+          "type": "text",
+          "description": "Ethnicity demographics"
+        },
+        "nat": {
+          "type": "text",
+          "description": "Nationality demographics"
+        }
+      }
+    },
+    "inventor": {
+      "description": "Patent inventors (MASTER INVENTOR DATA)",
+      "columns": {
+        "id": {
+          "type": "serial",
+          "constraints": ["primary"]
+        },
+        "first_name": {
+          "type": "text",
+          "description": "Inventor first name"
+        },
+        "middle_name": {
+          "type": "text",
+          "description": "Inventor middle name"
+        },
+        "last_name": {
+          "type": "text",
+          "description": "Inventor last name"
+        },
+        "full_name": {
+          "type": "text",
+          "description": "Inventor full name"
+        },
+        "gender": {
+          "type": "int",
+          "description": "Gender demographics with probability scores"
+        },
+        "nat": {
+          "type": "int",
+          "description": "Nationality demographics with probability scores"
+        },
+        "eth": {
+          "type": "text",
+          "description": "Ethnicity demographics with probability scores"
+        },
+        "city": {
+          "type": "text",
+          "description": "Geographic location - city"
+        },
+        "country": {
+          "type": "text",
+          "description": "Geographic location - country"
+        }
+      }
+    },
+    "applicant": {
+      "description": "Patent applicants/organizations (MASTER APPLICANT DATA)",
+      "columns": {
+        "id": {
+          "type": "serial",
+          "constraints": ["primary"]
+        },
+        "org_name": {
+          "type": "text",
+          "description": "Organization name (USE THIS for company searches)"
+        },
+        "org_norm": {
+          "type": "text",
+          "description": "Normalized organization name"
+        },
+        "name_line_1": {
+          "type": "text",
+          "description": "Name line 1"
+        },
+        "name_line_2": {
+          "type": "text",
+          "description": "Name line 2"
+        },
+        "address_line_1": {
+          "type": "text",
+          "description": "Address line 1"
+        },
+        "address_line_2": {
+          "type": "text",
+          "description": "Address line 2"
+        },
+        "city": {
+          "type": "text",
+          "description": "City"
+        },
+        "state": {
+          "type": "text",
+          "description": "State"
+        },
+        "country": {
+          "type": "text",
+          "description": "Country"
+        },
+        "postal_code": {
+          "type": "text",
+          "description": "Postal code"
+        },
+        "fingerprint": {
+          "type": "text",
+          "constraints": ["unique"],
+          "description": "Unique identifier for linking"
+        },
+        "type": {
+          "type": "postal_address_type",
+          "description": "Address type"
+        }
+      }
+    },
+    "customer_add": {
+      "description": "Customer/firm addresses (FIRM INFORMATION)",
+      "columns": {
+        "id": {
+          "type": "serial",
+          "constraints": ["primary"]
+        },
+        "customer_num": {
+          "type": "int",
+          "constraints": ["unique"],
+          "description": "Customer number (links from application.customer_num)"
+        },
+        "firm_name": {
+          "type": "text",
+          "description": "Law firm name (USE THIS for firm searches)"
+        },
+        "url": {
+          "type": "text",
+          "description": "Firm website"
+        },
+        "name_line_1": {
+          "type": "text",
+          "description": "Contact name line 1"
+        },
+        "name_line_2": {
+          "type": "text",
+          "description": "Contact name line 2"
+        },
+        "address_line_1": {
+          "type": "text",
+          "description": "Address line 1"
+        },
+        "address_line_2": {
+          "type": "text",
+          "description": "Address line 2"
+        },
+        "city": {
+          "type": "text",
+          "description": "City"
+        },
+        "state": {
+          "type": "text",
+          "description": "State"
+        },
+        "country": {
+          "type": "text",
+          "description": "Country"
+        },
+        "postal_code": {
+          "type": "text",
+          "description": "Postal code"
+        }
+      }
+    },
+    "doc_attorney": {
+      "description": "FILING ACTIVITY (WHO FILED WHAT) - Use when asking about 'filed by' or 'submitted by' attorney",
+      "columns": {
+        "id": {
+          "type": "serial",
+          "constraints": ["primary"]
+        },
+        "app_num": {
+          "type": "int",
+          "description": "Application number"
+        },
+        "doc_code": {
+          "type": "text",
+          "description": "Document type code"
+        },
+        "doc_identifier": {
+          "type": "text",
+          "description": "Unique document identifier"
+        },
+        "doc_date": {
+          "type": "date",
+          "description": "Filing date"
+        },
+        "attorney_num": {
+          "type": "int",
+          "description": "Attorney registration number who FILED this document"
+        },
+        "confidence_rate": {
+          "type": "double",
+          "description": "Data confidence score"
+        }
+      }
+    },
+    "app_attorney": {
+      "description": "REPRESENTATION RELATIONSHIP (WHO REPRESENTS WHOM) - Power of Attorney (POA) list. Use when asking about attorney representation on applications",
+      "columns": {
+        "app_num": {
+          "type": "int",
+          "description": "Application number"
+        },
+        "att_num": {
+          "type": "int",
+          "description": "Attorney registration number"
+        }
+      }
+    },
+    "app_customer": {
+      "description": "APPLICATION-CUSTOMER LINKS. Links applications to customers/firms",
+      "columns": {
+        "app_num": {
+          "type": "int",
+          "description": "Application number"
+        },
+        "customer_num": {
+          "type": "int",
+          "description": "Customer number"
+        }
+      }
+    },
+    "app_inventor": {
+      "description": "APPLICATION-INVENTOR LINKS. Links applications to inventors",
+      "columns": {
+        "app_num": {
+          "type": "int",
+          "description": "Application number"
+        },
+        "inventor_id": {
+          "type": "int",
+          "description": "Inventor ID"
+        },
+        "add_fingerprint": {
+          "type": "text",
+          "description": "Address fingerprint"
+        },
+        "add_type": {
+          "type": "postal_address_type",
+          "description": "Address type"
+        }
+      }
+    },
+    "app_applicant": {
+      "description": "APPLICATION-APPLICANT LINKS. Links applications to applicants",
+      "columns": {
+        "app_num": {
+          "type": "int",
+          "description": "Application number"
+        },
+        "applicant_fp": {
+          "type": "text",
+          "description": "Applicant fingerprint (links to applicant.fingerprint)"
+        }
+      }
+    },
+    "app_cpc": {
+      "description": "Application CPC classifications (CURRENT CLASSIFICATIONS)",
+      "columns": {
+        "app_num": {
+          "type": "int",
+          "description": "Application number"
+        },
+        "cpc_class": {
+          "type": "text",
+          "description": "Full CPC classification"
+        },
+        "category": {
+          "type": "text",
+          "description": "CPC category (e.g., A01B)"
+        },
+        "top_level": {
+          "type": "text",
+          "description": "Top level classification"
+        },
+        "level_0": {
+          "type": "text",
+          "description": "Level 0 classification"
+        }
+      }
+    },
+    "cpc_class": {
+      "description": "CPC classification definitions (REFERENCE DATA)",
+      "columns": {
+        "symbol": {
+          "type": "text",
+          "constraints": ["unique"],
+          "description": "CPC symbol (e.g., A01B1/00)"
+        },
+        "level": {
+          "type": "int",
+          "description": "Classification level"
+        },
+        "title": {
+          "type": "text",
+          "description": "Classification title"
+        },
+        "parent": {
+          "type": "text",
+          "description": "Parent classification"
+        },
+        "class_desc": {
+          "type": "text",
+          "description": "Detailed description"
+        }
+      }
+    },
+    "uspc_class": {
+      "description": "US Patent Classification (LEGACY SYSTEM)",
+      "columns": {
+        "id": {
+          "type": "text",
+          "constraints": ["primary"],
+          "description": "USPC class ID"
+        },
+        "number": {
+          "type": "text",
+          "description": "Class number"
+        },
+        "title": {
+          "type": "text",
+          "description": "Class title"
+        },
+        "description": {
+          "type": "text",
+          "description": "Detailed description"
+        }
+      }
+    }
+  },
+  "relationships": {
+    "application_to_customer": {
+      "type": "one_to_one",
+      "from": "application.customer_num",
+      "to": "customer_add.customer_num",
+      "description": "Links applications to law firms/customers"
+    },
+    "doc_attorney_to_attorney": {
+      "type": "many_to_one",
+      "from": "doc_attorney.attorney_num",
+      "to": "attorney.reg_num",
+      "description": "Links document filings to attorneys"
+    },
+    "app_attorney_to_attorney": {
+      "type": "many_to_one",
+      "from": "app_attorney.att_num",
+      "to": "attorney.reg_num",
+      "description": "Links applications to representing attorneys"
+    },
+    "app_inventor_to_inventor": {
+      "type": "many_to_one",
+      "from": "app_inventor.inventor_id",
+      "to": "inventor.id",
+      "description": "Links applications to inventors"
+    },
+    "app_applicant_to_applicant": {
+      "type": "many_to_one",
+      "from": "app_applicant.applicant_fp",
+      "to": "applicant.fingerprint",
+      "description": "Links applications to applicants"
+    }
+  },
+  "usage_guidelines": {
+    "critical_distinctions": {
+      "filing_vs_representation": {
+        "description": "Choose the correct table based on question intent",
+        "filing_activity": {
+          "use_table": "doc_attorney",
+          "when": "For 'applications FILED BY attorney X' or 'documents filed by attorney X'",
+          "description": "Shows WHO FILED specific documents/applications",
+          "join": "doc_attorney → attorney ON doc_attorney.attorney_num = attorney.reg_num"
+        },
+        "representation": {
+          "use_table": "app_attorney",
+          "when": "For 'applications WHERE attorney X represents the applicant'",
+          "description": "Shows ongoing attorney-client relationships",
+          "join": "app_attorney → attorney ON app_attorney.att_num = attorney.reg_num"
+        },
+        "firm_applications": {
+          "use_table": "application → customer_add",
+          "when": "For 'applications by firm X' (most common)",
+          "description": "Shows applications where the firm is the customer of record",
+          "join": "application → customer_add ON application.customer_num = customer_add.customer_num",
+          "search_by": "customer_add.firm_name"
+        }
+      }
+    },
+    "search_recommendations": {
+      "attorney_searches": "Use attorney.reg_num for attorney searches",
+      "abbreviation" : "When user searches for an abbreviation, you should know the common name of the company and use both the abbreviation and the common name in your SQL in case you miss records in the database. For example, 'NVDA' is the common name for 'NVIDIA'",
+      "company_searches": "Use applicant.org_name for company searches",
+      "firm_searches": "Use customer_add.firm_name for firm searches",
+      "examiner_queries": "Prefer examiner table over denormalized examiner_name in application table",
+      "status_queries": "Use status_code column for convenience when finding application status (see mappings in application.status_code field)",
+      "optimized_queries": "Consider using materialized views for better performance: app_m_view for comprehensive application data, att_firm_m_view for attorney-firm relationships"
+    }
+  },
 
-- application: Main patent applications table (PRIMARY DATA SOURCE)
-  * app_num (int, primary) - Application number (unique identifier)
-  * filing_date (date) - Application filing date
-  * cat (text) - Category. The valid values are: REGULAR (meaning a new application), and REISSUE (meaning a reissue of an existing application)
-  * group_art (text) - Art group. The USPTO uses one signle art group number to classify all applications in the same art group. almost all of them are numbers, with several exceptions.. The USPTO uses one signle art group number to classify all applications in the same art group. almost all of them are numbers, with several exceptions.
-  * inv_title (text) - Invention title describes what the invention is.
-  * app_status (text) - Application status is the status of the application, identifying if the application is pending, granted, or abandoned.
-  * status_code (text) - Status code. USPTO uses numbers to identify the status of the application. This is the correpondent number to the app_status.
-  * patent_num (text) - Patent number if granted
-  * grant_date (date) - Grant date
-  * type_code (text) - Application type. The valid values are: DES (design patent), UTL (utility patent), and PLT (meaning plant patent).
-  * class_num (text) - Classification number is the standard of Unite States Patent Classification. It is distinguished from CPC classification.
-  * examiner_name (text) - Examiner name (denormalized, prefer examiner table)
-  * customer_num (int) - Links to customer_add for firm information
-  * first_applicant_name, first_inventor_name (text) - Denormalized names
-  * status_code and app_status are corresponding to each other as follows (therefore, when you are asked to find the status of the application, you should use the status_code column for convenience):
-    - Missassigned Application Number = 1
-    - "Awaiting TC Resp, Issue Fee Payment Verified" = 100
-    - Appeal Ready for Review = 116
-    - TC Return of Appeal = 119
-    - Notice of Appeal Filed = 120
-    - Appeal Brief (or Supplemental Brief) Entered and Forwarded to Examiner = 121
-    - Examiner's Answer to Appeal Brief Counted = 122
-    - Examiner's Answer to Appeal Brief Mailed = 123
-    - On Appeal -- Awaiting Decision by the Board of Appeals = 124
-    - Amendment after notice of appeal = 127
-    - Reply Brief (or Supplemental Reply Brief) Forwarded to Examiner = 128
-    - Examiner's Answer to Reply Brief or Response to Remand Mailed = 130
-    - Reply Brief (or Supplemental Reply Brief) Filed - Not Entered = 131
-    - Appeal Awaiting BPAI Docketing = 132
-    - Reply Brief filed and forwarded to BPAI = 133
-    - Board of Appeals Decision Rendered = 135
-    - Amendment / Argument after Board of Appeals Decision = 136
-    - Appeal Dismissed / Withdrawn = 139
-    - Prosecution Suspended = 140
-    - Request Reconsideration after Board of Appeals Decision = 143
-    - Board of Appeals Decision Rendered after Request for Reconsideration = 144
-    - Patented Case = 150
-    - Patented File - (Old Case Added for File Tracking Purposes) = 151
-    - Abandoned  --  Incomplete Application (Pre-examination) = 160
-    - Abandoned  --  Failure to Respond to an Office Action = 161
-    - Expressly Abandoned  --  During Publication Process = 162
-    - Abandoned  --  After Examiner's Answer or Board of Appeals Decision = 163
-    - Abandoned  --  Failure to Pay Issue Fee = 164
-    - ABANDONED - RESTORED = 165
-    - Abandoned  --  File-Wrapper-Continuation Parent Application = 166
-    - Abandonment for Failure to Correct Drawings/Oath/NonPub Request = 167
-    - Expressly Abandoned  --  During Examination = 168
-    - Abandoned  --  Incomplete (Filing Date Under Rule 53 (b) - PreExam) = 169
-    - Sent to Classification contractor = 17
-    - Interference -- Initial Memorandum = 172
-    - Interference -- Declared by Board of Interferences = 174
-    - Application Returned back to Preexam = 18
-    - Interference -- Decision on Priority Rendered by Board of Interferences = 180
-    - Application Undergoing Preexam Processing = 19
-    - Application Involved in Court Proceedings = 195
-    - Court Proceedings Terminated = 197
-    - "Application Dispatched from Preexam, Not Yet Docketed" = 20
-    - Patent Expired Due to NonPayment of Maintenance Fees Under 37 CFR 1.362 = 250
-    - Proceedings Terminated = 3
-    - Docketed New Case - Ready for Examination = 30
-    - "AWAITING RESPONSE FOR INFORMALITY, FEE DEFICIENCY OR CRF ACTION" = 31
-    - Special New = 37
-    - Rocket Docket = 38
-    - "Non Final Action Counted, Not Yet Mailed" = 40
-    - Non Final Action Mailed = 41
-    - Non-Final Action Mailed = 423
-    - Response after Non-Final Action Entered (or Ready for Examiner Action) = 424
-    - Notice of Appeal Filed = 432
-    - Examiner's Answer Mailed = 435
-    - Reexamination forwarded to Board for Decision on Appeal = 439
-    - "Ex parte Quayle Action Counted, Not Yet Mailed" = 50
-    - Ex parte Quayle Action Mailed = 51
-    - "Final Rejection Counted, Not Yet Mailed" = 60
-    - Final Rejection Mailed = 61
-    - "Withdrawn Abandonment, awaiting examiner action" = 66
-    - Ready for Reexam -- Certificate in IFW = 660
-    - Response to Non-Final Office Action Entered and Forwarded to Examiner = 71
-    - Response to Ex parte Quayle Action Entered and Forwarded to Examiner = 77
-    - Response after Final Action Forwarded to Examiner = 80
-    - "Advisory Action Counted, Not Yet Mailed" = 82
-    - Advisory Action Mailed = 83
-    - Supplemental examiner's answer to appeal brief = 865
-    - Allowed -- Notice of Allowance Not Yet Mailed = 90
-    - Withdraw from issue awaiting action = 91
-    - Notice of Allowance Mailed -- Application Received in Office of Publications = 93
-    - Publications -- Issue Fee Payment Received = 94
-    - Publications -- Issue Fee Payment Verified = 95
-    - "Awaiting TC Resp., Issue Fee Not Paid" = 98
-    - "Awaiting TC Resp, Issue Fee Payment Received" = 99
-
-
-- attorney: Patent attorneys/agents (MASTER ATTORNEY DATA)
-  * id (serial, primary)
-  * reg_num (int, unique) - Registration number (USE THIS for attorney searches)
-  * first_name, middle_name, last_name (text) - Attorney name components
-  * practitioner_type (enum) - Attorney or agent
-  * active (boolean) - Active status
-  * gender (int), eth (text), nat (text) - Demographics
-  * org_id (int) - Organization reference
-
-- examiner: Patent examiners (PREFERRED for examiner queries)
-  * id (serial, primary)
-  * name (text) - Full examiner name in format: "Last, First Middle"
-  * gender (int), eth (text), nat (text) - Demographics
-
-- inventor: Patent inventors (MASTER INVENTOR DATA)
-  * id (serial, primary)
-  * first_name, middle_name, last_name, full_name (text) - Name components
-  * gender (int), nat (int), eth (text) - Demographics with probability scores
-  * city, country (text) - Geographic location
-
-- applicant: Patent applicants/organizations (MASTER APPLICANT DATA)
-  * id (serial, primary)
-  * org_name (text) - Organization name (USE THIS for company searches)
-  * org_norm (text) - Normalized organization name
-  * name_line_1, name_line_2 (text) - Name lines
-  * address_line_1, address_line_2 (text) - Address
-  * city, state, country, postal_code (text) - Location
-  * fingerprint (text, unique) - Unique identifier for linking
-  * type (postal_address_type) - Address type
-
-- customer_add: Customer/firm addresses (FIRM INFORMATION)
-  * id (serial, primary)
-  * customer_num (int, unique) - Customer number (links from application.customer_num)
-  * firm_name (text) - Law firm name (USE THIS for firm searches)
-  * url (text) - Firm website
-  * name_line_1, name_line_2 (text) - Contact names
-  * address_line_1, address_line_2 (text) - Address
-  * city, state, country, postal_code (text) - Location
-
-=== CRITICAL DISTINCTION: FILING vs REPRESENTATION ===
-
-**IMPORTANT: Choose the correct table based on the question intent:**
-
-1. **For "applications FILED BY attorney X" or "documents filed by attorney X":**
-   - USE: doc_attorney table (tracks actual document filing activity)
-   - This shows WHO FILED specific documents/applications
-   - JOIN: doc_attorney → attorney ON doc_attorney.attorney_num = attorney.reg_num
-
-2. **For "applications WHERE attorney X represents the applicant":**
-   - USE: app_attorney table (tracks representation relationships)
-   - This shows ongoing attorney-client relationships
-   - JOIN: app_attorney → attorney ON app_attorney.att_num = attorney.reg_num
-
-3. **For "applications by firm X" (most common):**
-   - USE: application → customer_add JOIN ON application.customer_num = customer_add.customer_num
-   - Search by customer_add.firm_name
-   - This shows applications where the firm is the customer of record
-
-=== RELATIONSHIP TABLES (Use carefully based on intent) ===
-
-- doc_attorney: FILING ACTIVITY (WHO FILED WHAT)
-  * id (serial, primary)
-  * app_num (int) - Application number
-  * doc_code (text) - Document type code
-  * doc_identifier (text) - Unique document identifier
-  * doc_date (date) - Filing date
-  * attorney_num (int) - Attorney registration number who FILED this document
-  * confidence_rate (double) - Data confidence score
-  ➤ USE THIS when asking about "filed by" or "submitted by" attorney
-
-- app_attorney: REPRESENTATION RELATIONSHIP (WHO REPRESENTS WHOM: which attorneys are in the Power of Attorney (POA) list. doesn't mean the attorney actually represents the applicant. doc_attorney table is the correct table to use for this.)
-  * app_num (int) - Application number
-  * att_num (int) - Attorney registration number
-  ➤ USE THIS when asking about attorney representation on applications
-
-- app_customer: APPLICATION-CUSTOMER LINKS. Customers are probably the law firms. Some of them are the law departments of the companies that filed the applications.
-  * app_num (int) - Application number  
-  * customer_num (int) - Customer number
-  ➤ Links applications to customers/firms
-
-- app_inventor: APPLICATION-INVENTOR LINKS. Inventors are the people who invented the invention.
-  * app_num (int) - Application number
-  * inventor_id (int) - Inventor ID
-  * add_fingerprint (text) - Address fingerprint
-  * add_type (postal_address_type) - Address type
-
-- app_applicant: APPLICATION-APPLICANT LINKS. Applicant is the entity that actually filed the application. most of them are represented by law firms (which are customers for the USPTO).
-  * app_num (int) - Application number
-  * applicant_fp (text) - Applicant fingerprint (links to applicant.fingerprint)
-
-=== CLASSIFICATION TABLES ===
-
-- app_cpc: Application CPC classifications (CURRENT CLASSIFICATIONS)
-  * app_num (int) - Application number
-  * cpc_class (text) - Full CPC classification
-  * category (text) - CPC category (e.g., A01B)
-  * top_level (text) - Top level classification
-  * level_0 (text) - Level 0 classification
-
-- cpc_class: CPC classification definitions (REFERENCE DATA)
-  * symbol (text, unique) - CPC symbol (e.g., A01B1/00)
-  * level (int) - Classification level
-  * title (text) - Classification title
-  * parent (text) - Parent classification
-  * class_desc (text) - Detailed description
-
-- uspc_class: US Patent Classification (LEGACY SYSTEM)
-  * id (text, primary) - USPC class ID
-  * number (text) - Class number
-  * title (text) - Class title
-  * description (text) - Detailed description
-
-=== OPTIMIZED MATERIALIZED VIEWS (Use for complex queries) ===
-
-- app_m_view: Comprehensive application view
-  ➤ Pre-joined application data with firm, applicant, and CPC info
-  ➤ USE THIS for complex queries needing multiple entity data
-
-- att_firm_m_view: Attorneys with their firms
-  ➤ Pre-joined attorney and firm information
-  ➤ USE THIS for "attorneys at firm X" queries
-
-- app_attorney_m_view: Applications with attorney and classification
-  ➤ Pre-joined application, attorney, and classification data
-  ➤ USE THIS for complex attorney-application analytics
+  "notes": {
+    "customers": "Customers are probably the law firms. Some are law departments of companies that filed applications.",
+    "inventors": "Inventors are the people who invented the invention.",
+    "applicants": "Applicant is the entity that actually filed the application. Most are represented by law firms (which are customers for the USPTO).",
+    "app_attorney_caveat": "app_attorney shows attorneys in the Power of Attorney (POA) list, doesn't mean the attorney actually represents the applicant. doc_attorney is the correct table for actual filing activity."
+  }
+}
 
 === QUERY GUIDANCE BY COMMON QUESTIONS ===
 
