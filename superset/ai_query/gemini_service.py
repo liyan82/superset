@@ -86,7 +86,7 @@ class GeminiService:
                 model_name="gemini-2.5-flash",
                 generation_config=genai.types.GenerationConfig(
                     temperature=0.1,
-                    max_output_tokens=1000,
+                    max_output_tokens=4000,
                 ),
                 safety_settings={
                     HarmCategory.HARM_CATEGORY_HARASSMENT: (
