@@ -425,7 +425,7 @@ export default function AIQuery() {
           Ask Your Question
         </h2>
         <textarea
-          placeholder="Example: Find all attorneys with last name Smith, or Show me patents filed in 2023..."
+          placeholder="Example: Find all patents filed by the attorney John Smith, or Show me patents filed in 2023..."
           value={description}
           onChange={e => setDescription(e.target.value)}
           style={{
@@ -550,7 +550,7 @@ export default function AIQuery() {
         )}
 
         {/* Warning message when execution exceeds 1 minute */}
-        {(loading || paginationLoading) && elapsedTime > 60000 && (
+        {(loading || paginationLoading) && elapsedTime > 30000 && (
           <div
             style={{
               background: '#fff7e6',
