@@ -1023,19 +1023,19 @@ PATENT APPLICATION DATABASE SCHEMA:
 ➤ USE: doc_attorney JOIN attorney WHERE attorney.reg_num = 12345
 
 ❓ "Applications where attorney John Smith represents the applicant"  
-➤ USE: app_attorney JOIN attorney WHERE attorney.first_name = 'John' AND attorney.last_name = 'Smith'
+➤ USE: app_attorney JOIN attorney WHERE attorney.first_name = 'JOHN' AND attorney.last_name = 'SMITH'
 
-❓ "Applications by firm 'ABC Law'"
-➤ USE: application JOIN customer_add WHERE customer_add.firm_name ILIKE '%ABC Law%'
+❓ "Applications by firm 'ABC, CDE & FGH Law'"
+➤ USE: application JOIN customer_add WHERE customer_add.firm_name ILIKE '%ABC%' and customer_add.firm_name ILIKE '%CDE%' and customer_add.firm_name ILIKE '%FGH%'
 
 ❓ "Patents filed in 2023"
 ➤ USE: application WHERE filing_date BETWEEN '2023-01-01' AND '2023-12-31'
 
 ❓ "Applications by inventor named David"
-➤ USE: app_inventor JOIN inventor WHERE inventor.first_name ILIKE '%David%'
+➤ USE: app_inventor JOIN inventor WHERE inventor.first_name ILIKE '%DAVID%'
 
 ❓ "Applications by Apple Inc"
-➤ USE: app_applicant JOIN applicant WHERE applicant.org_name ILIKE '%Apple%'
+➤ USE: app_applicant JOIN applicant WHERE applicant.org_name ILIKE '%APPLE%'
 
 ❓ "Applications in CPC class A01B"
 ➤ USE: app_cpc WHERE category = 'A01B' OR cpc_class LIKE 'A01B%'
