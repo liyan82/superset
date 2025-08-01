@@ -106,6 +106,10 @@ export default function AIQuery() {
   const [pageSize] = useState(50);
   const [paginationLoading, setPaginationLoading] = useState(false);
 
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   // Stopwatch state
   const [executionStartTime, setExecutionStartTime] = useState<number | null>(
     null,
@@ -152,6 +156,53 @@ export default function AIQuery() {
     return `${seconds}.${ms}s`;
   };
 
+  // Handle column sorting
+  const handleSort = (columnName: string) => {
+    if (sortColumn === columnName) {
+      // Toggle direction if same column
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column, start with ascending
+      setSortColumn(columnName);
+      setSortDirection('asc');
+    }
+    // Reset to first page when sorting changes
+    setCurrentPage(1);
+  };
+
+  // Sort data function
+  const sortData = (data: Record<string, any>[]) => {
+    if (!sortColumn || !data) return data;
+
+    return [...data].sort((a, b) => {
+      const aValue = a[sortColumn];
+      const bValue = b[sortColumn];
+
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortDirection === 'asc' ? 1 : -1;
+      if (bValue == null) return sortDirection === 'asc' ? -1 : 1;
+
+      // Convert to strings for comparison
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+
+      // Try numeric comparison first
+      const aNum = Number(aValue);
+      const bNum = Number(bValue);
+
+      if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+        // Both are numbers
+        return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+
+      // String comparison
+      if (aStr < bStr) return sortDirection === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
   // Fetch database configuration on component mount
   useEffect(() => {
     const fetchDatabaseConfig = async () => {
@@ -188,6 +239,9 @@ export default function AIQuery() {
     setExecutionResults(null);
     setGeneratedQuery('');
     setCurrentPage(1);
+    // Reset sorting when new query is executed
+    setSortColumn(null);
+    setSortDirection('asc');
 
     // Start the stopwatch
     startStopwatch();
@@ -305,14 +359,16 @@ export default function AIQuery() {
   const getCurrentPageData = () => {
     const pagination = executionResults?.pagination;
     if (pagination?.server_side) {
-      // Server-side pagination: data is already the current page
-      return executionResults?.data || [];
+      // Server-side pagination: data is already the current page, but we can still sort it
+      const data = executionResults?.data || [];
+      return sortData(data);
     }
-    // Client-side pagination: slice the data
+    // Client-side pagination: sort first, then slice the data
     if (!executionResults?.data) return [];
+    const sortedData = sortData(executionResults.data);
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    return executionResults.data.slice(startIndex, endIndex);
+    return sortedData.slice(startIndex, endIndex);
   };
 
   const getCurrentPage = () => {
@@ -462,22 +518,15 @@ export default function AIQuery() {
           flexDirection: 'column',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '15px',
-          }}
-        >
-          <h3 style={{ margin: '0', color: '#555' }}>
-            {loading
-              ? 'Processing your query...'
-              : paginationLoading
-                ? 'Loading page...'
-                : 'Results'}
-          </h3>
-          {(loading || paginationLoading) && executionStartTime && (
+        {(loading || paginationLoading) && executionStartTime && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              marginBottom: '15px',
+            }}
+          >
             <div
               style={{
                 display: 'flex',
@@ -497,8 +546,8 @@ export default function AIQuery() {
                 {formatElapsedTime(elapsedTime)}
               </span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Warning message when execution exceeds 1 minute */}
         {(loading || paginationLoading) && elapsedTime > 60000 && (
@@ -596,88 +645,150 @@ export default function AIQuery() {
                       background: 'white',
                       border: '1px solid #ddd',
                       borderRadius: '4px',
-                      flex: '1',
-                      minHeight: '300px',
-                      overflow: 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: '400px',
                       position: 'relative',
                     }}
                   >
-                    <table
+                    {/* Table with fixed header and scrollable body */}
+                    <div
                       style={{
-                        width: '100%',
-                        borderCollapse: 'collapse',
-                        fontSize: '14px',
+                        flex: '1',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
                       }}
                     >
-                      <thead>
-                        <tr
+                      <table
+                        style={{
+                          width: '100%',
+                          borderCollapse: 'collapse',
+                          fontSize: '14px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          height: '100%',
+                        }}
+                      >
+                        <thead
                           style={{
-                            position: 'sticky',
-                            top: 0,
-                            zIndex: 10,
+                            display: 'block',
                             background: '#f8f9fa',
+                            borderBottom: '2px solid #e0e0e0',
                           }}
                         >
-                          {executionResults.columns &&
-                            executionResults.columns.map(
-                              (col: Column, idx: number) => (
-                                <th
-                                  key={idx}
-                                  style={{
-                                    padding: '12px 16px',
-                                    textAlign: 'left',
-                                    fontWeight: 'bold',
-                                    background: '#f8f9fa',
-                                    fontSize: '14px',
-                                    borderBottom: '2px solid #e0e0e0',
-                                    borderRight:
-                                      idx < executionResults.columns!.length - 1
-                                        ? '1px solid #e0e0e0'
-                                        : 'none',
-                                    whiteSpace: 'nowrap',
-                                    boxShadow:
-                                      '0 2px 2px -1px rgba(0, 0, 0, 0.1)',
-                                  }}
-                                >
-                                  {col.name}
-                                </th>
-                              ),
-                            )}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {getCurrentPageData().map(
-                          (row: Record<string, any>, rowIdx: number) => (
-                            <tr
-                              key={rowIdx}
-                              style={{
-                                borderBottom: '1px solid #f0f0f0',
-                              }}
-                            >
-                              {executionResults.columns!.map(
-                                (col: Column, colIdx: number) => (
-                                  <td
-                                    key={colIdx}
+                          <tr
+                            style={{
+                              display: 'flex',
+                              width: '100%',
+                            }}
+                          >
+                            {executionResults.columns &&
+                              executionResults.columns.map(
+                                (col: Column, idx: number) => (
+                                  <th
+                                    key={idx}
+                                    onClick={() => handleSort(col.name)}
                                     style={{
+                                      flex: '1',
+                                      minWidth: '150px',
                                       padding: '12px 16px',
+                                      textAlign: 'left',
+                                      fontWeight: 'bold',
+                                      fontSize: '14px',
                                       borderRight:
-                                        colIdx <
+                                        idx <
                                         executionResults.columns!.length - 1
                                           ? '1px solid #e0e0e0'
                                           : 'none',
+                                      whiteSpace: 'nowrap',
+                                      cursor: 'pointer',
+                                      userSelect: 'none',
+                                      transition: 'background-color 0.2s',
+                                    }}
+                                    onMouseEnter={e => {
+                                      (
+                                        e.target as HTMLElement
+                                      ).style.backgroundColor = '#e9ecef';
+                                    }}
+                                    onMouseLeave={e => {
+                                      (
+                                        e.target as HTMLElement
+                                      ).style.backgroundColor = '#f8f9fa';
                                     }}
                                   >
-                                    <TruncatedCell value={row[col.name]} />
-                                  </td>
+                                    <div
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                      }}
+                                    >
+                                      <span>{col.name}</span>
+                                      <span
+                                        style={{
+                                          marginLeft: '8px',
+                                          opacity:
+                                            sortColumn === col.name ? 1 : 0.3,
+                                          fontSize: '12px',
+                                        }}
+                                      >
+                                        {sortColumn === col.name
+                                          ? sortDirection === 'asc'
+                                            ? '▲'
+                                            : '▼'
+                                          : '▲'}
+                                      </span>
+                                    </div>
+                                  </th>
                                 ),
                               )}
-                            </tr>
-                          ),
-                        )}
-                      </tbody>
-                    </table>
+                          </tr>
+                        </thead>
+                        <tbody
+                          style={{
+                            display: 'block',
+                            overflow: 'auto',
+                            flex: '1',
+                          }}
+                        >
+                          {getCurrentPageData().map(
+                            (row: Record<string, any>, rowIdx: number) => (
+                              <tr
+                                key={rowIdx}
+                                style={{
+                                  display: 'flex',
+                                  width: '100%',
+                                  borderBottom: '1px solid #f0f0f0',
+                                }}
+                              >
+                                {executionResults.columns!.map(
+                                  (col: Column, colIdx: number) => (
+                                    <td
+                                      key={colIdx}
+                                      style={{
+                                        flex: '1',
+                                        minWidth: '150px',
+                                        padding: '12px 16px',
+                                        borderRight:
+                                          colIdx <
+                                          executionResults.columns!.length - 1
+                                            ? '1px solid #e0e0e0'
+                                            : 'none',
+                                      }}
+                                    >
+                                      <TruncatedCell value={row[col.name]} />
+                                    </td>
+                                  ),
+                                )}
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
 
-                    {/* Pagination Controls */}
+                    {/* Fixed Pagination Controls */}
                     {getTotalPages() > 1 && (
                       <div
                         style={{
@@ -688,6 +799,7 @@ export default function AIQuery() {
                           alignItems: 'center',
                           background: '#fafafa',
                           fontSize: '14px',
+                          flexShrink: 0,
                         }}
                       >
                         <div style={{ color: '#666' }}>
@@ -720,15 +832,23 @@ export default function AIQuery() {
                           }}
                         >
                           {paginationLoading && (
-                            <span
+                            <div
                               style={{
-                                fontSize: '12px',
-                                color: '#999',
+                                display: 'flex',
+                                alignItems: 'center',
                                 marginRight: '8px',
                               }}
                             >
-                              Loading...
-                            </span>
+                              <img
+                                src={aiQueryGif}
+                                alt="Loading page..."
+                                style={{
+                                  width: '24px',
+                                  height: '24px',
+                                  borderRadius: '4px',
+                                }}
+                              />
+                            </div>
                           )}
                           <button
                             onClick={() => handlePageChange(1)}
