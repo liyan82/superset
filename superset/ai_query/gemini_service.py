@@ -54,17 +54,8 @@ class GeminiService:
                 self.excluded_columns = current_app.config.get(
                     "AI_QUERY_EXCLUDED_COLUMNS", []
                 )
-            except RuntimeError:
-                # Not in application context, try importing app
-                try:
-                    from superset import app
-                    self.api_key = app.config.get("GEMINI_API_KEY")
-                    self.schema_context = app.config.get("GEMINI_SCHEMA_CONTEXT")
-                    self.excluded_columns = app.config.get(
-                        "AI_QUERY_EXCLUDED_COLUMNS", []
-                    )
-                except Exception as e:
-                    logger.debug(f"Failed to load config from app: {e}")
+            except Exception as e:
+                logger.debug(f"Failed to load config from app: {e}")
 
         if not self.api_key:
             self.api_key = os.getenv("GEMINI_API_KEY")
@@ -86,7 +77,7 @@ class GeminiService:
                 model_name="gemini-2.5-flash",
                 generation_config=genai.types.GenerationConfig(
                     temperature=0.1,
-                    max_output_tokens=4000,
+                    max_output_tokens=10000,
                 ),
                 safety_settings={
                     HarmCategory.HARM_CATEGORY_HARASSMENT: (

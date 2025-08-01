@@ -574,7 +574,7 @@ class AIQueryView(BaseSupersetView):
             sql_json_executor = SynchronousSqlJsonExecutor(
                 query_dao,
                 get_sql_results,
-                getattr(config, "SQLLAB_TIMEOUT", 60),
+                getattr(config, "SQLLAB_TIMEOUT", 30),
                 is_feature_enabled("SQLLAB_BACKEND_PERSISTENCE"),
             )
 

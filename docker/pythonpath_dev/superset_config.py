@@ -850,7 +850,10 @@ PATENT APPLICATION DATABASE SCHEMA:
         },
         "add_type": {
           "type": "postal_address_type",
-          "description": "Address type"
+          "valid_values": ["POSTAL", "RESIDENCE"],
+          "description": "when joining to other tables, ONLY use POSTAL addresses type as the necessary default value.",
+          "default": "POSTAL",
+          "example": "... inventor join app_inventor on app_inventor.add_type = 'POSTAL' and app_inventor.inventor_id = inventor.id"
         }
       }
     },
