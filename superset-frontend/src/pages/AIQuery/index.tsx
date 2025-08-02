@@ -140,12 +140,11 @@ export default function AIQuery() {
 
   // Example questions
   const exampleQuestions = [
-    'Find all patents filed by the attorney John Smith',
-    "Show me patents filed in 2023 with status 'granted'",
-    "List patents containing 'artificial intelligence' in the title",
-    'Get patents filed by Apple Inc in the last 5 years',
+    'Find all patents filed by the attorney John Doe',
+    "Show me granted patents filed in 2023",
+    "List patents related to artificial intelligence filed in 2024",
+    'Get patents filed by Apple in the last 5 years',
     'Show me expired patents in the technology field',
-    'Find patents with more than 10 claims filed this year',
   ];
 
   // Timer management functions
