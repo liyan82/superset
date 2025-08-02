@@ -78,7 +78,7 @@ interface QueryHistory {
   cachedResults?: ExecutionResults;
 }
 
-const TruncatedCell = ({ value, maxWidth = '500px' }: TruncatedCellProps) => {
+const TruncatedCell = ({ value, maxWidth = '750px' }: TruncatedCellProps) => {
   const [ref, isTruncated] = useCSSTextTruncation<HTMLDivElement>();
   const displayValue =
     value !== null && value !== undefined ? String(value) : null;
