@@ -140,12 +140,12 @@ export default function AIQuery() {
 
   // Example questions
   const exampleQuestions = [
-    "Find all patents filed by the attorney John Smith",
+    'Find all patents filed by the attorney John Smith',
     "Show me patents filed in 2023 with status 'granted'",
     "List patents containing 'artificial intelligence' in the title",
-    "Get patents filed by Apple Inc in the last 5 years",
-    "Show me expired patents in the technology field",
-    "Find patents with more than 10 claims filed this year"
+    'Get patents filed by Apple Inc in the last 5 years',
+    'Show me expired patents in the technology field',
+    'Find patents with more than 10 claims filed this year',
   ];
 
   // Timer management functions
@@ -186,6 +186,7 @@ export default function AIQuery() {
       }, 3000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [description.length, isPlaceholderMode, exampleQuestions.length]);
 
   // Handle clicking example questions
@@ -199,7 +200,7 @@ export default function AIQuery() {
   // Handle textarea changes with placeholder mode
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
-    
+
     if (isPlaceholderMode) {
       // If in placeholder mode, any typing clears the placeholder and starts fresh
       setDescription(newValue);
@@ -227,7 +228,13 @@ export default function AIQuery() {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       const currentText = isPlaceholderMode ? lastSubmittedQuery : description;
-      if (!loading && !configLoading && databaseConfig?.success && !isFromHistory && currentText.trim()) {
+      if (
+        !loading &&
+        !configLoading &&
+        databaseConfig?.success &&
+        !isFromHistory &&
+        currentText.trim()
+      ) {
         // If in placeholder mode, we need to set the description before submitting
         if (isPlaceholderMode) {
           setDescription(lastSubmittedQuery);
@@ -250,7 +257,7 @@ export default function AIQuery() {
     setIsPlaceholderMode(false);
     setIsFromHistory(true);
     setOriginalHistoryQuestion(historyItem.question);
-    
+
     // Restore the cached results if available
     if (historyItem.cachedResults) {
       setExecutionResults(historyItem.cachedResults);
@@ -267,7 +274,7 @@ export default function AIQuery() {
     const date = new Date(timestamp);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
-    
+
     if (diffMs < 60 * 1000) {
       return 'Just now';
     } else if (diffMs < 60 * 60 * 1000) {
@@ -302,32 +309,40 @@ export default function AIQuery() {
     try {
       // Keep only the most recent items
       let trimmedHistory = history.slice(0, MAX_HISTORY_ITEMS);
-      
+
       // Try to save, if it fails due to size, reduce cache size
       let serializedData = JSON.stringify(trimmedHistory);
-      
+
       // If the serialized data is too large (>3MB), reduce cached results
       if (serializedData.length > 3 * 1024 * 1024) {
         trimmedHistory = trimmedHistory.map(item => ({
           ...item,
-          cachedResults: item.status === 'success' && item.cachedResults ? {
-            ...item.cachedResults,
-            data: item.cachedResults.data?.slice(0, 100) // Keep only first 100 rows
-          } : item.cachedResults
+          cachedResults:
+            item.status === 'success' && item.cachedResults
+              ? {
+                  ...item.cachedResults,
+                  data: item.cachedResults.data?.slice(0, 100), // Keep only first 100 rows
+                }
+              : item.cachedResults,
         }));
         serializedData = JSON.stringify(trimmedHistory);
       }
-      
+
       localStorage.setItem(HISTORY_STORAGE_KEY, serializedData);
     } catch (error) {
       console.warn('Failed to save query history to localStorage:', error);
       // If still failing, save without cached results
       try {
-        const historyWithoutCache = history.slice(0, MAX_HISTORY_ITEMS).map(item => ({
-          ...item,
-          cachedResults: undefined
-        }));
-        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyWithoutCache));
+        const historyWithoutCache = history
+          .slice(0, MAX_HISTORY_ITEMS)
+          .map(item => ({
+            ...item,
+            cachedResults: undefined,
+          }));
+        localStorage.setItem(
+          HISTORY_STORAGE_KEY,
+          JSON.stringify(historyWithoutCache),
+        );
       } catch (fallbackError) {
         console.warn('Failed to save even basic query history:', fallbackError);
       }
@@ -337,7 +352,9 @@ export default function AIQuery() {
   const addToHistory = (historyItem: QueryHistory) => {
     setQueryHistory(prev => {
       // Remove any existing entry with the same question to avoid duplicates
-      const filtered = prev.filter(item => item.question !== historyItem.question);
+      const filtered = prev.filter(
+        item => item.question !== historyItem.question,
+      );
       const newHistory = [historyItem, ...filtered];
       saveHistoryToStorage(newHistory);
       return newHistory;
@@ -451,8 +468,10 @@ export default function AIQuery() {
     }
 
     const queryStartTime = Date.now();
-    const currentQuery = (isPlaceholderMode ? lastSubmittedQuery : description).trim();
-    
+    const currentQuery = (
+      isPlaceholderMode ? lastSubmittedQuery : description
+    ).trim();
+
     setLoading(true);
     setExecutionResults(null);
     setGeneratedQuery('');
@@ -461,7 +480,7 @@ export default function AIQuery() {
     setSortColumn(null);
     setSortDirection('asc');
     setShowHistory(false);
-    
+
     // Set placeholder mode after submitting
     setLastSubmittedQuery(currentQuery);
     setDescription(''); // Clear the actual description
@@ -494,7 +513,7 @@ export default function AIQuery() {
           data: null,
         };
         setExecutionResults(errorResult);
-        
+
         // Save failed query to history
         addToHistory({
           id: `query_${Date.now()}`,
@@ -535,7 +554,8 @@ export default function AIQuery() {
           question: currentQuery,
           timestamp: queryStartTime,
           generatedSQL: sqlQuery,
-          resultCount: results.data?.length || results.pagination?.total_count || 0,
+          resultCount:
+            results.data?.length || results.pagination?.total_count || 0,
           status: 'success',
           executionTime: Date.now() - queryStartTime,
           cachedResults: results,
@@ -560,7 +580,7 @@ export default function AIQuery() {
         data: null,
       };
       setExecutionResults(errorResult);
-      
+
       // Save failed query to history
       addToHistory({
         id: `query_${Date.now()}`,
@@ -705,7 +725,9 @@ export default function AIQuery() {
           Ask questions about the patent database in plain English
         </p>
         <textarea
-          placeholder={isPlaceholderMode ? '' : exampleQuestions[currentPlaceholder]}
+          placeholder={
+            isPlaceholderMode ? '' : exampleQuestions[currentPlaceholder]
+          }
           value={isPlaceholderMode ? lastSubmittedQuery : description}
           onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
@@ -716,7 +738,8 @@ export default function AIQuery() {
           onBlur={e => (e.target.style.borderColor = '#e1e5e9')}
           style={{
             width: '100%',
-            height: (description.length > 0 || isPlaceholderMode) ? '100px' : '60px',
+            height:
+              description.length > 0 || isPlaceholderMode ? '100px' : '60px',
             padding: '12px',
             border: '2px solid #e1e5e9',
             borderRadius: '6px',
@@ -728,9 +751,17 @@ export default function AIQuery() {
             fontStyle: isPlaceholderMode ? 'italic' : 'normal',
           }}
         />
-        
+
         <div style={{ marginTop: '15px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', minHeight: '18px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '10px',
+              minHeight: '18px',
+            }}
+          >
             <div>
               {description.length === 0 && !isPlaceholderMode && (
                 <p style={{ margin: '0', color: '#666', fontSize: '13px' }}>
@@ -769,16 +800,18 @@ export default function AIQuery() {
 
           {showHistory && queryHistory.length > 0 ? (
             <div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '8px 12px',
-                background: '#f5f5f5',
-                borderBottom: '1px solid #e8e8e8',
-                fontSize: '12px',
-                color: '#666',
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '8px 12px',
+                  background: '#f5f5f5',
+                  borderBottom: '1px solid #e8e8e8',
+                  fontSize: '12px',
+                  color: '#666',
+                }}
+              >
                 <span>Recent Queries</span>
                 <button
                   onClick={clearAllHistory}
@@ -804,14 +837,16 @@ export default function AIQuery() {
                   Clear All
                 </button>
               </div>
-              <div style={{
-                maxHeight: '200px',
-                overflowY: 'auto',
-                border: '1px solid #e8e8e8',
-                borderRadius: '0 0 4px 4px',
-                background: '#fafafa',
-              }}>
-                {queryHistory.slice(0, 10).map((item) => (
+              <div
+                style={{
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  border: '1px solid #e8e8e8',
+                  borderRadius: '0 0 4px 4px',
+                  background: '#fafafa',
+                }}
+              >
+                {queryHistory.slice(0, 10).map(item => (
                   <div
                     key={item.id}
                     style={{
@@ -827,40 +862,53 @@ export default function AIQuery() {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '8px' }}>
-                      <div 
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'start',
+                        gap: '8px',
+                      }}
+                    >
+                      <div
                         style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
                         onClick={() => handleHistorySelect(item)}
                       >
-                        <div style={{
-                          fontSize: '13px',
-                          color: '#333',
-                          marginBottom: '2px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}>
+                        <div
+                          style={{
+                            fontSize: '13px',
+                            color: '#333',
+                            marginBottom: '2px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {item.question}
                         </div>
-                        <div style={{
-                          fontSize: '11px',
-                          color: '#999',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}>
+                        <div
+                          style={{
+                            fontSize: '11px',
+                            color: '#999',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
                           <span>{formatTimestamp(item.timestamp)}</span>
                           {item.status === 'success' ? (
                             <span style={{ color: '#52c41a' }}>
                               ✓ {item.resultCount} results (cached)
                             </span>
                           ) : (
-                            <span style={{ color: '#ff4d4f' }}>✗ Failed (cached)</span>
+                            <span style={{ color: '#ff4d4f' }}>
+                              ✗ Failed (cached)
+                            </span>
                           )}
                         </div>
                       </div>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           deleteHistoryItem(item.id);
                         }}
@@ -892,36 +940,36 @@ export default function AIQuery() {
                 ))}
               </div>
             </div>
-            ) : description.length === 0 && !isPlaceholderMode ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {exampleQuestions.slice(0, 3).map((example, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleExampleClick(example)}
-                    style={{
-                      padding: '6px 12px',
-                      background: '#f0f8ff',
-                      border: '1px solid #d6e4ff',
-                      borderRadius: '20px',
-                      color: '#1890ff',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = '#e6f4ff';
-                      e.currentTarget.style.borderColor = '#91caff';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = '#f0f8ff';
-                      e.currentTarget.style.borderColor = '#d6e4ff';
-                    }}
-                  >
-                    {example.length > 50 ? `${example.slice(0, 47)}...` : example}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+          ) : description.length === 0 && !isPlaceholderMode ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {exampleQuestions.slice(0, 3).map((example, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleExampleClick(example)}
+                  style={{
+                    padding: '6px 12px',
+                    background: '#f0f8ff',
+                    border: '1px solid #d6e4ff',
+                    borderRadius: '20px',
+                    color: '#1890ff',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#e6f4ff';
+                    e.currentTarget.style.borderColor = '#91caff';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = '#f0f8ff';
+                    e.currentTarget.style.borderColor = '#d6e4ff';
+                  }}
+                >
+                  {example.length > 50 ? `${example.slice(0, 47)}...` : example}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div
           style={{
@@ -929,7 +977,7 @@ export default function AIQuery() {
             justifyContent: 'flex-end',
             marginTop: '5px',
             fontSize: '12px',
-            color: isPlaceholderMode 
+            color: isPlaceholderMode
               ? '#ccc'
               : description.length > 720
                 ? '#ff4d4f'
@@ -938,26 +986,43 @@ export default function AIQuery() {
                   : '#999',
           }}
         >
-          {isPlaceholderMode 
+          {isPlaceholderMode
             ? `${lastSubmittedQuery.length} characters (previous query)`
-            : `${800 - description.length} characters remaining`
-          }
+            : `${800 - description.length} characters remaining`}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '15px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginTop: '15px',
+          }}
+        >
           <button
             onClick={handleGenerateAndExecuteQuery}
-            disabled={loading || configLoading || !databaseConfig?.success || isFromHistory}
+            disabled={
+              loading ||
+              configLoading ||
+              !databaseConfig?.success ||
+              isFromHistory
+            }
             style={{
               padding: '12px 24px',
               background:
-                loading || configLoading || !databaseConfig?.success || isFromHistory
+                loading ||
+                configLoading ||
+                !databaseConfig?.success ||
+                isFromHistory
                   ? '#ccc'
                   : '#1890ff',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
               cursor:
-                loading || configLoading || !databaseConfig?.success || isFromHistory
+                loading ||
+                configLoading ||
+                !databaseConfig?.success ||
+                isFromHistory
                   ? 'not-allowed'
                   : 'pointer',
               fontSize: '16px',
@@ -974,11 +1039,15 @@ export default function AIQuery() {
                     ? 'Modify to Ask Again'
                     : 'Ask AI'}
           </button>
-          {!loading && !configLoading && databaseConfig?.success && !isFromHistory && (
-            <span style={{ fontSize: '12px', color: '#999' }}>
-              or press {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
-            </span>
-          )}
+          {!loading &&
+            !configLoading &&
+            databaseConfig?.success &&
+            !isFromHistory && (
+              <span style={{ fontSize: '12px', color: '#999' }}>
+                or press {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}
+                +Enter
+              </span>
+            )}
         </div>
 
         {databaseConfig && !databaseConfig.success && (
