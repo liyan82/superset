@@ -66,6 +66,18 @@ interface TruncatedCellProps {
   maxWidth?: string;
 }
 
+interface QueryHistory {
+  id: string;
+  question: string;
+  timestamp: number;
+  generatedSQL?: string;
+  resultCount?: number;
+  executionTime?: number;
+  status: 'success' | 'error';
+  error?: string;
+  cachedResults?: ExecutionResults;
+}
+
 const TruncatedCell = ({ value, maxWidth = '250px' }: TruncatedCellProps) => {
   const [ref, isTruncated] = useCSSTextTruncation<HTMLDivElement>();
   const displayValue =
@@ -94,6 +106,13 @@ const TruncatedCell = ({ value, maxWidth = '250px' }: TruncatedCellProps) => {
 
 export default function AIQuery() {
   const [description, setDescription] = useState('');
+  const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
+  const [queryHistory, setQueryHistory] = useState<QueryHistory[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [lastSubmittedQuery, setLastSubmittedQuery] = useState('');
+  const [isPlaceholderMode, setIsPlaceholderMode] = useState(false);
+  const [isFromHistory, setIsFromHistory] = useState(false);
+  const [originalHistoryQuestion, setOriginalHistoryQuestion] = useState('');
   const [generatedQuery, setGeneratedQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [executionResults, setExecutionResults] =
@@ -118,6 +137,16 @@ export default function AIQuery() {
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(
     null,
   );
+
+  // Example questions
+  const exampleQuestions = [
+    "Find all patents filed by the attorney John Smith",
+    "Show me patents filed in 2023 with status 'granted'",
+    "List patents containing 'artificial intelligence' in the title",
+    "Get patents filed by Apple Inc in the last 5 years",
+    "Show me expired patents in the technology field",
+    "Find patents with more than 10 claims filed this year"
+  ];
 
   // Timer management functions
   const startStopwatch = () => {
@@ -148,6 +177,186 @@ export default function AIQuery() {
     },
     [timerInterval],
   );
+
+  // Rotate placeholder examples
+  useEffect(() => {
+    if (description.length === 0 && !isPlaceholderMode) {
+      const interval = setInterval(() => {
+        setCurrentPlaceholder(prev => (prev + 1) % exampleQuestions.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [description.length, isPlaceholderMode, exampleQuestions.length]);
+
+  // Handle clicking example questions
+  const handleExampleClick = (example: string) => {
+    setDescription(example);
+    setIsPlaceholderMode(false);
+    setIsFromHistory(false);
+    setOriginalHistoryQuestion('');
+  };
+
+  // Handle textarea changes with placeholder mode
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    
+    if (isPlaceholderMode) {
+      // If in placeholder mode, any typing clears the placeholder and starts fresh
+      setDescription(newValue);
+      setIsPlaceholderMode(false);
+      setIsFromHistory(false);
+    } else {
+      setDescription(newValue);
+      // Check if user has modified the history question
+      if (isFromHistory && newValue !== originalHistoryQuestion) {
+        setIsFromHistory(false);
+      }
+    }
+  };
+
+  // Handle textarea focus
+  const handleTextareaFocus = () => {
+    if (isPlaceholderMode) {
+      // Don't clear immediately on focus, wait for typing
+      return;
+    }
+  };
+
+  // Handle keyboard shortcuts
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      const currentText = isPlaceholderMode ? lastSubmittedQuery : description;
+      if (!loading && !configLoading && databaseConfig?.success && !isFromHistory && currentText.trim()) {
+        // If in placeholder mode, we need to set the description before submitting
+        if (isPlaceholderMode) {
+          setDescription(lastSubmittedQuery);
+          setIsPlaceholderMode(false);
+        }
+        handleGenerateAndExecuteQuery();
+      }
+    } else if (isPlaceholderMode && e.key.length === 1) {
+      // Handle regular typing in placeholder mode
+      e.preventDefault();
+      setDescription(e.key);
+      setIsPlaceholderMode(false);
+    }
+  };
+
+  // Handle selecting from history
+  const handleHistorySelect = (historyItem: QueryHistory) => {
+    setDescription(historyItem.question);
+    setShowHistory(false);
+    setIsPlaceholderMode(false);
+    setIsFromHistory(true);
+    setOriginalHistoryQuestion(historyItem.question);
+    
+    // Restore the cached results if available
+    if (historyItem.cachedResults) {
+      setExecutionResults(historyItem.cachedResults);
+      setGeneratedQuery(historyItem.generatedSQL || '');
+      // Reset pagination and sorting to match original query
+      setCurrentPage(1);
+      setSortColumn(null);
+      setSortDirection('asc');
+    }
+  };
+
+  // Format timestamp for display
+  const formatTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    
+    if (diffMs < 60 * 1000) {
+      return 'Just now';
+    } else if (diffMs < 60 * 60 * 1000) {
+      const minutes = Math.floor(diffMs / (60 * 1000));
+      return `${minutes}m ago`;
+    } else if (diffMs < 24 * 60 * 60 * 1000) {
+      const hours = Math.floor(diffMs / (60 * 60 * 1000));
+      return `${hours}h ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  // LocalStorage utilities for query history
+  const HISTORY_STORAGE_KEY = 'ai-query-history';
+  const MAX_HISTORY_ITEMS = 50;
+
+  const loadHistoryFromStorage = (): QueryHistory[] => {
+    try {
+      const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+    } catch (error) {
+      console.warn('Failed to load query history from localStorage:', error);
+    }
+    return [];
+  };
+
+  const saveHistoryToStorage = (history: QueryHistory[]) => {
+    try {
+      // Keep only the most recent items
+      let trimmedHistory = history.slice(0, MAX_HISTORY_ITEMS);
+      
+      // Try to save, if it fails due to size, reduce cache size
+      let serializedData = JSON.stringify(trimmedHistory);
+      
+      // If the serialized data is too large (>3MB), reduce cached results
+      if (serializedData.length > 3 * 1024 * 1024) {
+        trimmedHistory = trimmedHistory.map(item => ({
+          ...item,
+          cachedResults: item.status === 'success' && item.cachedResults ? {
+            ...item.cachedResults,
+            data: item.cachedResults.data?.slice(0, 100) // Keep only first 100 rows
+          } : item.cachedResults
+        }));
+        serializedData = JSON.stringify(trimmedHistory);
+      }
+      
+      localStorage.setItem(HISTORY_STORAGE_KEY, serializedData);
+    } catch (error) {
+      console.warn('Failed to save query history to localStorage:', error);
+      // If still failing, save without cached results
+      try {
+        const historyWithoutCache = history.slice(0, MAX_HISTORY_ITEMS).map(item => ({
+          ...item,
+          cachedResults: undefined
+        }));
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyWithoutCache));
+      } catch (fallbackError) {
+        console.warn('Failed to save even basic query history:', fallbackError);
+      }
+    }
+  };
+
+  const addToHistory = (historyItem: QueryHistory) => {
+    setQueryHistory(prev => {
+      // Remove any existing entry with the same question to avoid duplicates
+      const filtered = prev.filter(item => item.question !== historyItem.question);
+      const newHistory = [historyItem, ...filtered];
+      saveHistoryToStorage(newHistory);
+      return newHistory;
+    });
+  };
+
+  const deleteHistoryItem = (itemId: string) => {
+    setQueryHistory(prev => {
+      const filtered = prev.filter(item => item.id !== itemId);
+      saveHistoryToStorage(filtered);
+      return filtered;
+    });
+  };
+
+  const clearAllHistory = () => {
+    setQueryHistory([]);
+    localStorage.removeItem(HISTORY_STORAGE_KEY);
+    setShowHistory(false);
+  };
 
   // Format elapsed time for display
   const formatElapsedTime = (milliseconds: number) => {
@@ -203,6 +412,12 @@ export default function AIQuery() {
     });
   };
 
+  // Load query history from localStorage on component mount
+  useEffect(() => {
+    const history = loadHistoryFromStorage();
+    setQueryHistory(history);
+  }, []);
+
   // Fetch database configuration on component mount
   useEffect(() => {
     const fetchDatabaseConfig = async () => {
@@ -235,6 +450,9 @@ export default function AIQuery() {
       return;
     }
 
+    const queryStartTime = Date.now();
+    const currentQuery = (isPlaceholderMode ? lastSubmittedQuery : description).trim();
+    
     setLoading(true);
     setExecutionResults(null);
     setGeneratedQuery('');
@@ -242,6 +460,14 @@ export default function AIQuery() {
     // Reset sorting when new query is executed
     setSortColumn(null);
     setSortDirection('asc');
+    setShowHistory(false);
+    
+    // Set placeholder mode after submitting
+    setLastSubmittedQuery(currentQuery);
+    setDescription(''); // Clear the actual description
+    setIsPlaceholderMode(true);
+    setIsFromHistory(false);
+    setOriginalHistoryQuestion('');
 
     // Start the stopwatch
     startStopwatch();
@@ -250,7 +476,7 @@ export default function AIQuery() {
       // Step 1: Generate SQL query
       const generateResponse = await SupersetClient.post({
         endpoint: '/ai-query/generate',
-        body: JSON.stringify({ description }),
+        body: JSON.stringify({ description: currentQuery }),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -260,12 +486,24 @@ export default function AIQuery() {
       setGeneratedQuery(sqlQuery || 'No query generated');
 
       if (!sqlQuery || generateResponse.json.success === false) {
-        setExecutionResults({
+        const errorResult = {
           success: false,
           error:
             generateResponse.json.error ||
             "I'm having trouble understanding that. Could you try asking differently?",
           data: null,
+        };
+        setExecutionResults(errorResult);
+        
+        // Save failed query to history
+        addToHistory({
+          id: `query_${Date.now()}`,
+          question: currentQuery,
+          timestamp: queryStartTime,
+          status: 'error',
+          error: errorResult.error,
+          executionTime: Date.now() - queryStartTime,
+          cachedResults: errorResult,
         });
         return;
       }
@@ -287,12 +525,51 @@ export default function AIQuery() {
         },
       });
 
-      setExecutionResults(executeResponse.json);
+      const results = executeResponse.json;
+      setExecutionResults(results);
+
+      // Save successful query to history
+      if (results.success !== false) {
+        addToHistory({
+          id: `query_${Date.now()}`,
+          question: currentQuery,
+          timestamp: queryStartTime,
+          generatedSQL: sqlQuery,
+          resultCount: results.data?.length || results.pagination?.total_count || 0,
+          status: 'success',
+          executionTime: Date.now() - queryStartTime,
+          cachedResults: results,
+        });
+      } else {
+        // Save failed execution to history
+        addToHistory({
+          id: `query_${Date.now()}`,
+          question: currentQuery,
+          timestamp: queryStartTime,
+          generatedSQL: sqlQuery,
+          status: 'error',
+          error: results.error,
+          executionTime: Date.now() - queryStartTime,
+          cachedResults: results,
+        });
+      }
     } catch (error) {
-      setExecutionResults({
+      const errorResult = {
         success: false,
         error: error.message,
         data: null,
+      };
+      setExecutionResults(errorResult);
+      
+      // Save failed query to history
+      addToHistory({
+        id: `query_${Date.now()}`,
+        question: currentQuery,
+        timestamp: queryStartTime,
+        status: 'error',
+        error: error.message,
+        executionTime: Date.now() - queryStartTime,
+        cachedResults: errorResult,
       });
     } finally {
       setLoading(false);
@@ -421,72 +698,288 @@ export default function AIQuery() {
           flexShrink: 0,
         }}
       >
-        <h2 style={{ marginTop: '0', marginBottom: '15px', color: '#444' }}>
-          Ask Your Question
+        <h2 style={{ marginTop: '0', marginBottom: '8px', color: '#444' }}>
+          What would you like to know?
         </h2>
+        <p style={{ margin: '0 0 15px 0', color: '#666', fontSize: '14px' }}>
+          Ask questions about the patent database in plain English
+        </p>
         <textarea
-          placeholder="Example: Find all patents filed by the attorney John Smith, or Show me patents filed in 2023..."
-          value={description}
-          onChange={e => setDescription(e.target.value)}
+          placeholder={isPlaceholderMode ? '' : exampleQuestions[currentPlaceholder]}
+          value={isPlaceholderMode ? lastSubmittedQuery : description}
+          onChange={handleTextareaChange}
+          onKeyDown={handleKeyDown}
+          onFocus={e => {
+            e.target.style.borderColor = '#1890ff';
+            handleTextareaFocus();
+          }}
+          onBlur={e => (e.target.style.borderColor = '#e1e5e9')}
           style={{
             width: '100%',
-            height: '100px',
+            height: (description.length > 0 || isPlaceholderMode) ? '100px' : '60px',
             padding: '12px',
             border: '2px solid #e1e5e9',
             borderRadius: '6px',
             fontSize: '14px',
             resize: 'vertical',
             outline: 'none',
-            transition: 'border-color 0.2s',
+            transition: 'border-color 0.2s, height 0.2s',
+            color: isPlaceholderMode ? '#999' : '#333',
+            fontStyle: isPlaceholderMode ? 'italic' : 'normal',
           }}
-          onFocus={e => (e.target.style.borderColor = '#1890ff')}
-          onBlur={e => (e.target.style.borderColor = '#e1e5e9')}
         />
+        
+        <div style={{ marginTop: '15px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', minHeight: '18px' }}>
+            <div>
+              {description.length === 0 && !isPlaceholderMode && (
+                <p style={{ margin: '0', color: '#666', fontSize: '13px' }}>
+                  💡 Try these examples:
+                </p>
+              )}
+            </div>
+            <div>
+              {queryHistory.length > 0 && (
+                <button
+                  onClick={() => setShowHistory(!showHistory)}
+                  style={{
+                    padding: '4px 8px',
+                    background: 'transparent',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '4px',
+                    color: '#666',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = '#1890ff';
+                    e.currentTarget.style.color = '#1890ff';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = '#d9d9d9';
+                    e.currentTarget.style.color = '#666';
+                  }}
+                >
+                  📝 History ({queryHistory.length})
+                </button>
+              )}
+            </div>
+          </div>
+
+          {showHistory && queryHistory.length > 0 ? (
+            <div>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 12px',
+                background: '#f5f5f5',
+                borderBottom: '1px solid #e8e8e8',
+                fontSize: '12px',
+                color: '#666',
+              }}>
+                <span>Recent Queries</span>
+                <button
+                  onClick={clearAllHistory}
+                  style={{
+                    padding: '2px 6px',
+                    background: 'transparent',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '3px',
+                    color: '#666',
+                    fontSize: '11px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = '#ff4d4f';
+                    e.currentTarget.style.color = '#ff4d4f';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = '#d9d9d9';
+                    e.currentTarget.style.color = '#666';
+                  }}
+                >
+                  Clear All
+                </button>
+              </div>
+              <div style={{
+                maxHeight: '200px',
+                overflowY: 'auto',
+                border: '1px solid #e8e8e8',
+                borderRadius: '0 0 4px 4px',
+                background: '#fafafa',
+              }}>
+                {queryHistory.slice(0, 10).map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      padding: '8px 12px',
+                      borderBottom: '1px solid #f0f0f0',
+                      transition: 'background-color 0.2s',
+                      position: 'relative',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.backgroundColor = '#e6f4ff';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '8px' }}>
+                      <div 
+                        style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+                        onClick={() => handleHistorySelect(item)}
+                      >
+                        <div style={{
+                          fontSize: '13px',
+                          color: '#333',
+                          marginBottom: '2px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {item.question}
+                        </div>
+                        <div style={{
+                          fontSize: '11px',
+                          color: '#999',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}>
+                          <span>{formatTimestamp(item.timestamp)}</span>
+                          {item.status === 'success' ? (
+                            <span style={{ color: '#52c41a' }}>
+                              ✓ {item.resultCount} results (cached)
+                            </span>
+                          ) : (
+                            <span style={{ color: '#ff4d4f' }}>✗ Failed (cached)</span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteHistoryItem(item.id);
+                        }}
+                        style={{
+                          padding: '2px 4px',
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#999',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          borderRadius: '2px',
+                          transition: 'all 0.2s',
+                          flexShrink: 0,
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.background = '#fff2f0';
+                          e.currentTarget.style.color = '#ff4d4f';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.color = '#999';
+                        }}
+                        title="Delete this query"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            ) : description.length === 0 && !isPlaceholderMode ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {exampleQuestions.slice(0, 3).map((example, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleExampleClick(example)}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#f0f8ff',
+                      border: '1px solid #d6e4ff',
+                      borderRadius: '20px',
+                      color: '#1890ff',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#e6f4ff';
+                      e.currentTarget.style.borderColor = '#91caff';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = '#f0f8ff';
+                      e.currentTarget.style.borderColor = '#d6e4ff';
+                    }}
+                  >
+                    {example.length > 50 ? `${example.slice(0, 47)}...` : example}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+        </div>
         <div
           style={{
             display: 'flex',
             justifyContent: 'flex-end',
             marginTop: '5px',
             fontSize: '12px',
-            color:
-              description.length > 720
+            color: isPlaceholderMode 
+              ? '#ccc'
+              : description.length > 720
                 ? '#ff4d4f'
                 : description.length > 640
                   ? '#fa8c16'
                   : '#999',
           }}
         >
-          {800 - description.length} characters remaining
+          {isPlaceholderMode 
+            ? `${lastSubmittedQuery.length} characters (previous query)`
+            : `${800 - description.length} characters remaining`
+          }
         </div>
-        <button
-          onClick={handleGenerateAndExecuteQuery}
-          disabled={loading || configLoading || !databaseConfig?.success}
-          style={{
-            marginTop: '15px',
-            padding: '12px 24px',
-            background:
-              loading || configLoading || !databaseConfig?.success
-                ? '#ccc'
-                : '#1890ff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor:
-              loading || configLoading || !databaseConfig?.success
-                ? 'not-allowed'
-                : 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold',
-          }}
-        >
-          {loading
-            ? 'Processing...'
-            : configLoading
-              ? 'Loading...'
-              : !databaseConfig?.success
-                ? 'Database Unavailable'
-                : 'Ask AI'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '15px' }}>
+          <button
+            onClick={handleGenerateAndExecuteQuery}
+            disabled={loading || configLoading || !databaseConfig?.success || isFromHistory}
+            style={{
+              padding: '12px 24px',
+              background:
+                loading || configLoading || !databaseConfig?.success || isFromHistory
+                  ? '#ccc'
+                  : '#1890ff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor:
+                loading || configLoading || !databaseConfig?.success || isFromHistory
+                  ? 'not-allowed'
+                  : 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold',
+            }}
+          >
+            {loading
+              ? 'Processing...'
+              : configLoading
+                ? 'Loading...'
+                : !databaseConfig?.success
+                  ? 'Database Unavailable'
+                  : isFromHistory
+                    ? 'Modify to Ask Again'
+                    : 'Ask AI'}
+          </button>
+          {!loading && !configLoading && databaseConfig?.success && !isFromHistory && (
+            <span style={{ fontSize: '12px', color: '#999' }}>
+              or press {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
+            </span>
+          )}
+        </div>
 
         {databaseConfig && !databaseConfig.success && (
           <div
@@ -651,13 +1144,12 @@ export default function AIQuery() {
                       position: 'relative',
                     }}
                   >
-                    {/* Table with fixed header and scrollable body */}
+                    {/* Table with sticky header and scrollable content */}
                     <div
                       style={{
                         flex: '1',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        flexDirection: 'column',
+                        overflow: 'auto',
+                        display: 'block',
                       }}
                     >
                       <table
@@ -665,24 +1157,19 @@ export default function AIQuery() {
                           width: '100%',
                           borderCollapse: 'collapse',
                           fontSize: '14px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          height: '100%',
+                          minWidth: `${(executionResults.columns?.length || 0) * 150}px`,
                         }}
                       >
                         <thead
                           style={{
-                            display: 'block',
+                            position: 'sticky',
+                            top: 0,
                             background: '#f8f9fa',
                             borderBottom: '2px solid #e0e0e0',
+                            zIndex: 1,
                           }}
                         >
-                          <tr
-                            style={{
-                              display: 'flex',
-                              width: '100%',
-                            }}
-                          >
+                          <tr>
                             {executionResults.columns &&
                               executionResults.columns.map(
                                 (col: Column, idx: number) => (
@@ -690,7 +1177,6 @@ export default function AIQuery() {
                                     key={idx}
                                     onClick={() => handleSort(col.name)}
                                     style={{
-                                      flex: '1',
                                       minWidth: '150px',
                                       padding: '12px 16px',
                                       textAlign: 'left',
@@ -705,6 +1191,7 @@ export default function AIQuery() {
                                       cursor: 'pointer',
                                       userSelect: 'none',
                                       transition: 'background-color 0.2s',
+                                      background: '#f8f9fa',
                                     }}
                                     onMouseEnter={e => {
                                       (
@@ -745,20 +1232,12 @@ export default function AIQuery() {
                               )}
                           </tr>
                         </thead>
-                        <tbody
-                          style={{
-                            display: 'block',
-                            overflow: 'auto',
-                            flex: '1',
-                          }}
-                        >
+                        <tbody>
                           {getCurrentPageData().map(
                             (row: Record<string, any>, rowIdx: number) => (
                               <tr
                                 key={rowIdx}
                                 style={{
-                                  display: 'flex',
-                                  width: '100%',
                                   borderBottom: '1px solid #f0f0f0',
                                 }}
                               >
@@ -767,7 +1246,6 @@ export default function AIQuery() {
                                     <td
                                       key={colIdx}
                                       style={{
-                                        flex: '1',
                                         minWidth: '150px',
                                         padding: '12px 16px',
                                         borderRight:
