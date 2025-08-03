@@ -202,7 +202,11 @@ export function Menu({
   }, [location.pathname]);
 
   const standalone =
-    getUrlParam(URL_PARAMS.standalone) || location.pathname === '/login/';
+    getUrlParam(URL_PARAMS.standalone) || 
+    location.pathname === '/login/' ||
+    location.pathname === '/forgot-password/' ||
+    location.pathname === '/reset-password/';
+
   if (standalone || uiConfig.hideNav) return <></>;
 
   const renderSubMenu = ({

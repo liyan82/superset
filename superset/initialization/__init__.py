@@ -160,6 +160,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             SecurityRestApi,
             UserRegistrationsRestAPI,
         )
+        from superset.views.password_reset_api import PasswordResetApi
         from superset.sqllab.api import SqlLabRestApi
         from superset.sqllab.permalink.api import SqlLabPermalinkRestApi
         from superset.tags.api import TagRestApi
@@ -491,6 +492,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             ),
         )
         appbuilder.add_api(SecurityRestApi)
+        appbuilder.add_api(PasswordResetApi)
         #
         # Conditionally setup email views
         #
@@ -911,6 +913,42 @@ class SupersetIndexView(IndexView):
         # Render public index page directly without checking authentication
         if g.user is not None and g.user.is_authenticated:
             return redirect(url_for("Superset.welcome"))
+        return render_template("superset/public_index.html")
+
+    @expose("/forgot-password/")
+    def forgot_password(self) -> FlaskResponse:
+        """Forgot password page"""
+        from superset.utils import json
+        from superset.views.base import common_bootstrap_payload
+        
+        payload = {
+            "common": common_bootstrap_payload(),
+        }
+        return self.render_template(
+            "superset/spa.html",
+            entry="spa",
+            bootstrap_data=json.dumps(payload, default=json.pessimistic_json_iso_dttm_ser),
+        )
+
+    @expose("/reset-password/")
+    def reset_password(self) -> FlaskResponse:
+        """Reset password page"""
+        from superset.utils import json
+        from superset.views.base import common_bootstrap_payload
+        
+        payload = {
+            "common": common_bootstrap_payload(),
+        }
+        return self.render_template(
+            "superset/spa.html",
+            entry="spa",
+            bootstrap_data=json.dumps(payload, default=json.pessimistic_json_iso_dttm_ser),
+        )
+
+    @expose("/test-reset/")
+    def test_reset(self) -> FlaskResponse:
+        """Test reset password page"""
+        from flask import render_template
         return render_template("superset/public_index.html")
 
     @expose("/lang/<string:locale>")

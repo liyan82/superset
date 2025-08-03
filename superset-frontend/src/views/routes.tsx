@@ -158,6 +158,20 @@ const Login = lazy(
     import(/* webpackChunkName: "CustomLogin" */ 'src/custom-pages/Login'),
 );
 
+const ForgotPassword = lazy(
+  () =>
+    import(
+      /* webpackChunkName: "ForgotPassword" */ 'src/custom-pages/ForgotPassword'
+    ),
+);
+
+const ResetPassword = lazy(
+  () =>
+    import(
+      /* webpackChunkName: "ResetPassword" */ 'src/custom-pages/ResetPassword'
+    ),
+);
+
 const Register = lazy(
   () => import(/* webpackChunkName: "Register" */ 'src/pages/Register'),
 );
@@ -199,6 +213,14 @@ export const routes: Routes = [
   {
     path: '/login/',
     Component: Login,
+  },
+  {
+    path: '/reset-password/',
+    Component: ResetPassword,
+  },
+  {
+    path: '/forgot-password/',
+    Component: ForgotPassword,
   },
   {
     path: '/register/activation/:activationHash',
