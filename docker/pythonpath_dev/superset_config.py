@@ -24,9 +24,9 @@ import logging
 import os
 import sys
 from datetime import timedelta
-from celery.schedules import crontab
+
 from cachelib.file import FileSystemCache
-from flask_caching.backends.base import BaseCache
+from celery.schedules import crontab
 
 logger = logging.getLogger()
 
@@ -36,6 +36,10 @@ APP_NAME = "Patent 1024"
 APP_ICON = "/static/assets/images/patent-1024.png"
 
 FAVICONS = [{"href": "/static/assets/images/p4-favicon.png"}]
+
+# Webserver address for email links and external references
+# Can be overridden by environment variable or superset_config_docker.py
+SUPERSET_WEBSERVER_ADDRESS = os.getenv("SUPERSET_WEBSERVER_ADDRESS", "https://patent1024.com")
 
 # Enable user registration
 AUTH_USER_REGISTRATION = True
@@ -194,17 +198,36 @@ SQLLAB_CTAS_NO_LIMIT = True
 # These columns will be explicitly excluded from AI-generated SELECT statements
 AI_QUERY_EXCLUDED_COLUMNS = [
     # Sensitive personal identifiers
-    'ssn', 'social_security_number', 'tax_id', 'passport_number',
+    "ssn",
+    "social_security_number",
+    "tax_id",
+    "passport_number",
     # Internal system fields
-    'password', 'password_hash', 'salt', 'token', 'api_key', 'secret',
+    "password",
+    "password_hash",
+    "salt",
+    "token",
+    "api_key",
+    "secret",
     # Financial information
-    'credit_card', 'bank_account', 'routing_number', 'payment_info',
+    "credit_card",
+    "bank_account",
+    "routing_number",
+    "payment_info",
     # Internal IDs that shouldn't be exposed
-    'internal_id', 'system_id', 'uuid', 'guid',
+    "internal_id",
+    "system_id",
+    "uuid",
+    "guid",
     # Audit/tracking fields that are not user-relevant
-    'created_by_system', 'modified_by_system', 'internal_notes',
+    "created_by_system",
+    "modified_by_system",
+    "internal_notes",
     # Large binary/text fields that would clutter results
-    'full_text_content', 'blob_data', 'binary_content', 'raw_data'
+    "full_text_content",
+    "blob_data",
+    "binary_content",
+    "raw_data",
 ]
 
 # Patent Database Schema for AI Query Generation
@@ -1025,7 +1048,7 @@ PATENT APPLICATION DATABASE SCHEMA:
 ❓ "Applications filed by attorney with reg number 12345"
 ➤ USE: doc_attorney JOIN attorney WHERE attorney.reg_num = 12345
 
-❓ "Applications where attorney John Smith represents the applicant"  
+❓ "Applications where attorney John Smith represents the applicant"
 ➤ USE: app_attorney JOIN attorney WHERE attorney.first_name = 'JOHN' AND attorney.last_name = 'SMITH'
 
 ❓ "Applications by firm 'ABC, CDE & FGH Law'"

@@ -172,8 +172,10 @@ class RequestPasswordResetCommand(BaseCommand):
 
     def _build_reset_url(self, token: str) -> str:
         """Build the password reset URL"""
-        # Use the correct base URL for the nginx proxy setup
-        base_url = "http://localhost"  # nginx serves on port 80
+        # Use configured base URL instead of hardcoded localhost
+        base_url = current_app.config.get(
+            "SUPERSET_WEBSERVER_ADDRESS", "https://patent1024.com"
+        ).rstrip("/")
         return f"{base_url}/reset-password/?token={token}"
 
     def _render_email_template(self, user: User, reset_url: str) -> str:
