@@ -123,6 +123,10 @@ const AIQuery = lazy(
   () => import(/* webpackChunkName: "AIQuery" */ 'src/pages/AIQuery'),
 );
 
+const Newsletter = lazy(
+  () => import(/* webpackChunkName: "Newsletter" */ 'src/pages/Newsletter'),
+);
+
 const AllEntities = lazy(
   () => import(/* webpackChunkName: "AllEntities" */ 'src/pages/AllEntities'),
 );
@@ -336,6 +340,10 @@ export const routes: Routes = [
   {
     path: '/ai-query/',
     Component: AIQuery,
+  },
+  {
+    path: '/newsletter/',
+    Component: Newsletter,
   },
   { path: '/user_info/', Component: UserInfo },
   {

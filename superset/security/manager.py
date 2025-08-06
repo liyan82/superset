@@ -372,6 +372,7 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         ("can_export_csv", "SQLLab"),
         ("can_read", "SQLLab"),
         ("can_read", "AIQuery"),
+        ("can_read", "Newsletter"),
         ("can_sqllab_history", "Superset"),
         ("can_sqllab", "Superset"),
         ("can_test_conn", "Superset"),  # Deprecated permission remove on 3.0.0
@@ -385,6 +386,7 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         ("menu_access", "SQL Lab"),
         ("menu_access", "SQL Editor"),
         ("menu_access", "AI Query"),
+        ("menu_access", "Newsletter"),
         ("menu_access", "Saved Queries"),
         ("menu_access", "Query Search"),
         ("can_read", "SqlLabPermalinkRestApi"),

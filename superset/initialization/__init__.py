@@ -197,6 +197,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         )
         from superset.views.sqllab import SqllabView
         from superset.views.ai_query import AIQueryView
+        from superset.views.newsletter import NewsletterView, NewsletterApi
         from superset.views.tags import TagModelView, TagView
         from superset.views.themes import ThemeModelView
         from superset.views.user_info import UserInfoView
@@ -251,6 +252,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         appbuilder.add_api(SqlLabRestApi)
         appbuilder.add_api(SqlLabPermalinkRestApi)
         appbuilder.add_api(LogRestApi)
+        appbuilder.add_api(NewsletterApi)
         #
         # Setup regular views
         #
@@ -422,6 +424,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         appbuilder.add_view_no_menu(SavedQueryView)
         appbuilder.add_view_no_menu(SqllabView)
         appbuilder.add_view_no_menu(AIQueryView)
+        appbuilder.add_view_no_menu(NewsletterView)
         appbuilder.add_view_no_menu(Superset)
         appbuilder.add_view_no_menu(TableModelView)
         appbuilder.add_view_no_menu(TableSchemaView)
@@ -450,6 +453,12 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             label=_("AI Query"),
             href=f"{app_root}/ai-query/",
             icon="fa-robot",
+        )
+        appbuilder.add_link(
+            "Newsletter",
+            label=_("Newsletter"),
+            href=f"{app_root}/newsletter/",
+            icon="fa-newspaper",
         )
         appbuilder.add_link(
             "Saved Queries",
