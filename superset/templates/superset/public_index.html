@@ -12,7 +12,95 @@
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Advanced patent analytics platform with AI-powered USPTO data insights. Analyze attorney performance, track patent portfolios, and discover competitive intelligence. Serving IP professionals in Silicon Valley, New York, Boston, and worldwide. Free beta access.">
+  <meta name="keywords" content="patent analytics, USPTO data, patent attorney performance, patent portfolio analysis, competitive intelligence, patent analytics software, IP analytics platform, Silicon Valley patent analytics, patent law firm analytics">
+  <meta name="author" content="Patent 1024">
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow">
+  <meta name="google" content="notranslate">
+  <meta name="google-site-verification" content="google-site-verification=google-site-verification">
+  <meta name="google-site-verification" content="google-site-verification">
   <title>Patent 1024 - Advanced Patent Data Analytics</title>
+  
+  <!-- Open Graph tags for social sharing -->
+  <meta property="og:title" content="Patent 1024 - Advanced Patent Data Analytics">
+  <meta property="og:description" content="Advanced patent analytics platform with AI-powered USPTO data insights. Analyze attorney performance, track patent portfolios, and discover competitive intelligence. Free beta access.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://patent1024.com">
+  <meta property="og:image" content="https://patent1024.com/static/assets/images/patent-1024-og.png">
+  <meta property="og:site_name" content="Patent 1024">
+  <meta property="og:locale" content="en_US">
+  
+  <!-- Twitter Card tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Patent 1024 - Advanced Patent Data Analytics">
+  <meta name="twitter:description" content="Advanced patent analytics platform with AI-powered USPTO data insights. Free beta access.">
+  <meta name="twitter:image" content="https://patent1024.com/static/assets/images/patent-1024-og.png">
+  
+  <!-- Schema.org markup for Software Application -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Patent 1024",
+    "description": "Advanced patent analytics platform with AI-powered USPTO data insights for analyzing attorney performance, tracking patent portfolios, and discovering competitive intelligence.",
+    "url": "https://patent1024.com",
+    "applicationCategory": "BusinessApplication",
+    "applicationSubCategory": "Data Analytics",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free beta access available"
+    },
+    "provider": {
+      "@type": "Organization",
+      "name": "Patent 1024, LLC",
+      "url": "https://patent1024.com"
+    },
+    "featureList": [
+      "AI-powered patent search",
+      "Attorney performance analytics",
+      "Patent portfolio intelligence",
+      "USPTO data analysis",
+      "Interactive dashboards",
+      "Competitive intelligence"
+    ],
+    "screenshot": "https://patent1024.com/static/assets/images/patent-1024-screenshot.png",
+    "serviceArea": {
+      "@type": "GeoCircle",
+      "geoMidpoint": {
+        "@type": "GeoCoordinates",
+        "latitude": "37.7749",
+        "longitude": "-122.4194"
+      },
+      "geoRadius": "50000"
+    },
+    "areaServed": [
+      {
+        "@type": "Country",
+        "name": "United States"
+      },
+      {
+        "@type": "AdministrativeArea", 
+        "name": "California"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "New York" 
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Massachusetts"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Texas"
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -70,8 +158,63 @@
     .navbar { display: flex; justify-content: space-between; align-items: center; }
     .logo img { height: 40px; }
     nav ul { display: flex; list-style: none; gap: 2.5rem; }
+    nav li { position: relative; }
     nav li a { font-weight: 500; transition: color 0.3s ease; font-size: 1rem; color: var(--p4-dark-gray); }
     nav li a:hover { color: var(--p4-dark-blue); }
+    
+    /* Dropdown styles */
+    .dropdown { position: relative; }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: var(--white);
+      min-width: 280px;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.15);
+      border-radius: 8px;
+      z-index: 1001;
+      border: 1px solid #e7e7e7;
+      margin-top: 0;
+      padding-top: 0.5rem;
+    }
+    .dropdown:hover .dropdown-content { display: block; }
+    
+    /* Add invisible bridge to prevent hover break */
+    .dropdown::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      height: 0.5rem;
+      background: transparent;
+      z-index: 1000;
+    }
+    .dropdown-content a {
+      color: var(--p4-dark-gray) !important;
+      padding: 0.8rem 1.2rem;
+      text-decoration: none;
+      display: block;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    .dropdown-content a:last-child { border-bottom: none; }
+    .dropdown-content a:hover {
+      background-color: var(--p4-light-gray);
+      color: var(--p4-dark-blue) !important;
+      padding-left: 1.5rem;
+    }
+    .dropdown-content a:first-child { border-radius: 8px 8px 0 0; }
+    .dropdown-content a:last-child { border-radius: 0 0 8px 8px; }
+    .dropdown-arrow {
+      font-size: 0.7rem;
+      margin-left: 0.3rem;
+      transition: transform 0.3s ease;
+    }
+    .dropdown:hover .dropdown-arrow { transform: rotate(180deg); }
     .nav-buttons { display: flex; gap: 1rem; }
     .hero {
       padding: 6rem 0 8rem;
@@ -289,7 +432,7 @@
     .cta .btn-white { background-color: var(--white); color: var(--p4-dark-blue); }
     .cta .btn-white:hover { background-color: var(--p4-light-gray); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); }
     footer { padding: 5rem 0 2rem; background-color: var(--p4-light-gray); color: var(--p4-dark-blue); }
-    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 2.5rem; margin-bottom: 3rem; }
     .footer-section h4 { font-size: 1.2rem; margin-bottom: 1.5rem; font-weight: 600; }
     .footer-links { list-style: none; }
     .footer-links li { margin-bottom: 0.8rem; }
@@ -298,12 +441,15 @@
     .copyright { text-align: center; padding-top: 3rem; border-top: 1px solid #dce4e8; color: var(--p4-blue); font-size: 0.9rem; }
     .copyright a { color: var(--p4-dark-blue); text-decoration: underline; cursor: pointer; }
     .copyright a:hover { color: var(--p4-accent); }
-    @media (max-width: 992px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 992px) { .footer-grid { grid-template-columns: 1fr 1fr 1fr; gap: 2rem; } }
+    @media (max-width: 640px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 768px) {
       .hero h1 { font-size: 2.8rem; }
       .navbar { flex-direction: column; gap: 1rem; }
       nav ul { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
       .nav-buttons { display: none; }
+      .dropdown-content { position: static; display: none; box-shadow: none; border: none; margin: 0; background: var(--p4-light-gray); border-radius: 8px; margin-top: 0.5rem; }
+      .dropdown:hover .dropdown-content { display: block; }
       .footer-grid { grid-template-columns: 1fr; text-align: center; }
       
       .hero-container {
@@ -1142,7 +1288,17 @@
         </a>
         <nav>
           <ul>
+            <li class="dropdown">
+              <a href="#features">Solutions<span class="dropdown-arrow">▼</span></a>
+              <div class="dropdown-content">
+                <a href="/patent-analytics-software/">Patent Analytics Software</a>
+                <a href="/uspto-data-analysis/">USPTO Data Analysis Tools</a>
+                <a href="/patent-portfolio-intelligence/">Patent Portfolio Intelligence</a>
+                <a href="/ai-patent-search/">AI Patent Search Platform</a>
+              </div>
+            </li>
             <li><a href="#features">Features</a></li>
+            <li><a href="/blog/">Blog</a></li>
             <li><a href="#pricing">Pricing</a></li>
             <li><a href="#about">About</a></li>
           </ul>
@@ -1789,6 +1945,15 @@
             <li><a href="#features">Features</a></li>
             <li><a href="#pricing">Pricing</a></li>
             <li><a href="/login/">Dashboard</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Solutions</h4>
+          <ul class="footer-links">
+            <li><a href="/patent-analytics-software/">Patent Analytics Software</a></li>
+            <li><a href="/uspto-data-analysis/">USPTO Data Analysis Tools</a></li>
+            <li><a href="/patent-portfolio-intelligence/">Patent Portfolio Intelligence</a></li>
+            <li><a href="/ai-patent-search/">AI Patent Search Platform</a></li>
           </ul>
         </div>
         <div class="footer-section">

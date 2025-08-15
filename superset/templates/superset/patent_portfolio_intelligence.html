@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SZZLY9BGNG"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-SZZLY9BGNG');
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patent Portfolio Intelligence Platform - IP Portfolio Analytics | Patent 1024</title>
+  <meta name="description" content="Advanced patent portfolio intelligence platform for comprehensive IP portfolio analysis. Track patent portfolios, analyze competitive strategies, and optimize intellectual property investments.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="canonical" href="https://patent1024.com/patent-portfolio-intelligence">
+  <style>
+    :root {
+      --p4-dark-blue: #283E53;
+      --p4-blue: #3A5A7E;
+      --p4-accent: #00A8E8;
+      --p4-light-gray: #f2f4f7;
+      --p4-dark-gray: #333333;
+      --white: #ffffff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      color: var(--p4-dark-gray);
+      background-color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    html { scroll-behavior: smooth; }
+    a { text-decoration: none; color: inherit; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.8rem 1.8rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+    .btn-primary { background-color: var(--p4-dark-blue); color: var(--white); }
+    .btn-primary:hover {
+      background-color: var(--p4-blue);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(40, 62, 83, 0.2);
+      color: var(--white);
+    }
+    .btn-outline { background-color: transparent; color: var(--p4-dark-blue); border-color: var(--p4-dark-blue); }
+    .btn-outline:hover { background-color: var(--p4-dark-blue); color: var(--white); }
+    .btn-lg { padding: 1rem 2.2rem; font-size: 1.1rem; }
+    header {
+      padding: 1.2rem 0;
+      position: sticky;
+      top: 0;
+      background-color: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      border-bottom: 1px solid #e7e7e7;
+    }
+    .navbar { display: flex; justify-content: space-between; align-items: center; }
+    .logo img { height: 40px; }
+    nav ul { display: flex; list-style: none; gap: 2.5rem; }
+    nav li { position: relative; }
+    nav li a { font-weight: 500; transition: color 0.3s ease; font-size: 1rem; color: var(--p4-dark-gray); }
+    nav li a:hover { color: var(--p4-dark-blue); }
+    
+    /* Dropdown styles */
+    .dropdown { position: relative; }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: var(--white);
+      min-width: 280px;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.15);
+      border-radius: 8px;
+      z-index: 1001;
+      border: 1px solid #e7e7e7;
+      margin-top: 0;
+      padding-top: 0.5rem;
+    }
+    .dropdown:hover .dropdown-content { display: block; }
+    
+    /* Add invisible bridge to prevent hover break */
+    .dropdown::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      height: 0.5rem;
+      background: transparent;
+      z-index: 1000;
+    }
+    .dropdown-content a {
+      color: var(--p4-dark-gray) !important;
+      padding: 0.8rem 1.2rem;
+      text-decoration: none;
+      display: block;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    .dropdown-content a:last-child { border-bottom: none; }
+    .dropdown-content a:hover {
+      background-color: var(--p4-light-gray);
+      color: var(--p4-dark-blue) !important;
+      padding-left: 1.5rem;
+    }
+    .dropdown-content a:first-child { border-radius: 8px 8px 0 0; }
+    .dropdown-content a:last-child { border-radius: 0 0 8px 8px; }
+    .dropdown-arrow {
+      font-size: 0.7rem;
+      margin-left: 0.3rem;
+      transition: transform 0.3s ease;
+    }
+    .dropdown:hover .dropdown-arrow { transform: rotate(180deg); }
+    .nav-buttons { display: flex; gap: 1rem; }
+    .hero {
+      padding: 6rem 0 4rem;
+      background: linear-gradient(135deg, var(--p4-light-gray) 0%, #ffffff 100%);
+    }
+    .hero-content { text-align: center; max-width: 800px; margin: 0 auto; }
+    .hero h1 { 
+      font-size: 3.5rem; 
+      line-height: 1.1; 
+      font-weight: 800; 
+      margin-bottom: 1.5rem; 
+      color: var(--p4-dark-blue); 
+    }
+    .hero p { font-size: 1.25rem; color: var(--p4-blue); margin-bottom: 2.5rem; }
+    .hero-buttons { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+    .section {
+      padding: 4rem 0;
+    }
+    .section-header { text-align: center; margin-bottom: 3rem; }
+    .section-header h2 { font-size: 2.4rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--p4-dark-blue); }
+    .section-header p { font-size: 1.1rem; color: var(--p4-blue); max-width: 700px; margin: 0 auto; }
+    .portfolio-metrics {
+      background: var(--p4-light-gray);
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .metric-card {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.1);
+      border-left: 4px solid var(--p4-accent);
+      transition: transform 0.3s ease;
+    }
+    .metric-card:hover {
+      transform: translateY(-5px);
+    }
+    .metric-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .metric-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--p4-dark-blue);
+      margin-bottom: 0.5rem;
+    }
+    .metric-description {
+      color: var(--p4-blue);
+      font-size: 0.9rem;
+    }
+    .features-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+      gap: 2.5rem; 
+      margin-top: 3rem;
+    }
+    .feature-card { 
+      background-color: var(--white); 
+      border-radius: 16px; 
+      padding: 2.5rem; 
+      transition: transform 0.3s ease, box-shadow 0.3s ease; 
+      border: 1px solid #e7e7e7; 
+      text-align: left; 
+    }
+    .feature-card:hover { 
+      transform: translateY(-8px); 
+      box-shadow: 0 15px 35px rgba(40, 62, 83, 0.15); 
+    }
+    .feature-icon { 
+      display: inline-flex; 
+      align-items: center; 
+      justify-content: center; 
+      width: 64px; 
+      height: 64px; 
+      border-radius: 50%; 
+      margin-bottom: 1.5rem; 
+      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
+      color: var(--white); 
+      font-size: 1.8rem; 
+    }
+    .feature-card h3 { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 600; color: var(--p4-dark-blue); }
+    .feature-card p { color: var(--p4-blue); margin-bottom: 1.5rem; }
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+    .feature-list li {
+      color: var(--p4-blue);
+      margin-bottom: 0.5rem;
+      padding-left: 1.5rem;
+      position: relative;
+      font-size: 0.95rem;
+    }
+    .feature-list li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--p4-accent);
+      font-weight: bold;
+    }
+    .benefits-section {
+      background: var(--white);
+    }
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .benefit-card {
+      background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%);
+      border: 1px solid #e7e7e7;
+      border-radius: 16px;
+      padding: 2.5rem;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .benefit-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(40, 62, 83, 0.1);
+    }
+    .benefit-number {
+      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 0 auto 1.5rem;
+    }
+    .benefit-card h3 {
+      color: var(--p4-dark-blue);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .benefit-card p {
+      color: var(--p4-blue);
+      line-height: 1.6;
+    }
+    .competitive-analysis {
+      background: var(--p4-light-gray);
+    }
+    .competitor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .competitor-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .competitor-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--p4-accent), var(--p4-dark-blue));
+    }
+    .competitor-logo {
+      width: 60px;
+      height: 60px;
+      background: var(--p4-light-gray);
+      border-radius: 12px;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--p4-dark-blue);
+    }
+    .competitor-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--p4-dark-blue);
+      margin-bottom: 0.5rem;
+    }
+    .competitor-stats {
+      color: var(--p4-blue);
+      font-size: 0.9rem;
+    }
+    .cta {
+      padding: 6rem 0;
+      background: linear-gradient(135deg, var(--p4-dark-blue) 0%, var(--p4-blue) 100%);
+      color: var(--white);
+      text-align: center;
+    }
+    .cta h2 { font-size: 2.8rem; font-weight: 700; margin-bottom: 1.5rem; }
+    .cta p { font-size: 1.2rem; max-width: 700px; margin: 0 auto 2.5rem; opacity: 0.9; }
+    .cta .btn-white { background-color: var(--white); color: var(--p4-dark-blue); }
+    .cta .btn-white:hover { 
+      background-color: var(--p4-light-gray); 
+      transform: translateY(-3px); 
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); 
+      color: var(--p4-dark-blue);
+    }
+    .breadcrumb {
+      padding: 1rem 0;
+      background: var(--p4-light-gray);
+      font-size: 0.9rem;
+    }
+    .breadcrumb a {
+      color: var(--p4-blue);
+      text-decoration: underline;
+    }
+    .breadcrumb a:hover {
+      color: var(--p4-dark-blue);
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.5rem; }
+      .navbar { flex-direction: column; gap: 1rem; }
+      nav ul { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+      .nav-buttons { display: none; }
+      .dropdown-content { position: static; display: none; box-shadow: none; border: none; margin: 0; background: var(--p4-light-gray); border-radius: 8px; margin-top: 0.5rem; }
+      .dropdown:hover .dropdown-content { display: block; }
+      .hero-buttons { justify-content: center; }
+      .features-grid { grid-template-columns: 1fr; }
+      .metrics-grid { grid-template-columns: 1fr; }
+      .benefits-grid { grid-template-columns: 1fr; }
+      .competitor-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="navbar">
+        <a href="/" class="logo">
+          <img src="/static/assets/images/patent-1024.png" alt="Patent 1024 Logo">
+        </a>
+        <nav>
+          <ul>
+            <li class="dropdown">
+              <a href="/#features">Solutions<span class="dropdown-arrow">▼</span></a>
+              <div class="dropdown-content">
+                <a href="/patent-analytics-software/">Patent Analytics Software</a>
+                <a href="/uspto-data-analysis/">USPTO Data Analysis Tools</a>
+                <a href="/patent-portfolio-intelligence/">Patent Portfolio Intelligence</a>
+                <a href="/ai-patent-search/">AI Patent Search Platform</a>
+              </div>
+            </li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#pricing">Pricing</a></li>
+            <li><a href="/#about">About</a></li>
+          </ul>
+        </nav>
+        <div class="nav-buttons">
+          <a href="/login/" class="btn btn-outline">Log In</a>
+          <a href="/register/form" class="btn btn-primary">Get Started FREE</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <a href="/">Home</a> › <strong>Patent Portfolio Intelligence</strong>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1>Advanced Patent Portfolio Intelligence Platform</h1>
+          <p>Comprehensive patent portfolio analytics with AI-powered insights, competitive analysis, and strategic IP intelligence. Optimize your intellectual property investments with data-driven decisions.</p>
+          <div class="hero-buttons">
+            <a href="/register/form" class="btn btn-primary btn-lg">Analyze Your Portfolio</a>
+            <a href="#features" class="btn btn-outline btn-lg">Explore Features</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Portfolio Metrics Section -->
+    <section class="section portfolio-metrics">
+      <div class="container">
+        <div class="section-header">
+          <h2>Comprehensive Portfolio Intelligence Metrics</h2>
+          <p>Track every aspect of your patent portfolio performance with advanced analytics and real-time insights.</p>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">📊</div>
+            <div class="metric-title">Portfolio Health Score</div>
+            <div class="metric-description">Overall portfolio performance and strategic value assessment</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">💰</div>
+            <div class="metric-title">IP Asset Valuation</div>
+            <div class="metric-description">Market-based patent valuation and ROI analysis</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-title">Technology Focus</div>
+            <div class="metric-description">Analysis of patent distribution across technology areas</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-title">Grant Rate Analysis</div>
+            <div class="metric-description">Success rates and prosecution efficiency metrics</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">🌍</div>
+            <div class="metric-title">Geographic Coverage</div>
+            <div class="metric-description">International filing patterns and market protection</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">📈</div>
+            <div class="metric-title">Competitive Position</div>
+            <div class="metric-description">Market positioning relative to key competitors</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-header">
+          <h2>Advanced Patent Portfolio Intelligence Features</h2>
+          <p>Powerful tools to analyze, optimize, and strategically manage your intellectual property portfolio.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3>AI-Powered Portfolio Analysis</h3>
+            <p>Advanced machine learning algorithms analyze portfolio strength, identify gaps, and recommend strategic actions.</p>
+            <ul class="feature-list">
+              <li>Automated patent quality assessment</li>
+              <li>Technology trend identification</li>
+              <li>Investment priority recommendations</li>
+              <li>Risk assessment and mitigation</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🏆</div>
+            <h3>Competitive Intelligence</h3>
+            <p>Deep insights into competitor patent strategies and market positioning to inform your IP decisions.</p>
+            <ul class="feature-list">
+              <li>Competitor portfolio benchmarking</li>
+              <li>Filing pattern analysis</li>
+              <li>Technology overlap identification</li>
+              <li>Market opportunity mapping</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Interactive Portfolio Dashboards</h3>
+            <p>Real-time visualization of portfolio metrics with drill-down capabilities for detailed analysis.</p>
+            <ul class="feature-list">
+              <li>Customizable analytics dashboards</li>
+              <li>Multi-dimensional data filtering</li>
+              <li>Historical trend analysis</li>
+              <li>Export and reporting tools</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3>Strategic Planning Tools</h3>
+            <p>Data-driven insights to support strategic patent portfolio planning and optimization decisions.</p>
+            <ul class="feature-list">
+              <li>Portfolio gap analysis</li>
+              <li>Technology roadmap alignment</li>
+              <li>Budget optimization recommendations</li>
+              <li>Timeline and milestone tracking</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚖️</div>
+            <h3>Legal Intelligence</h3>
+            <p>Comprehensive analysis of legal aspects including prosecution success rates and attorney performance.</p>
+            <ul class="feature-list">
+              <li>Attorney performance tracking</li>
+              <li>Examiner pattern analysis</li>
+              <li>Prosecution strategy optimization</li>
+              <li>Legal cost management</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <h3>Portfolio Lifecycle Management</h3>
+            <p>End-to-end portfolio management from conception through maintenance and monetization.</p>
+            <ul class="feature-list">
+              <li>Innovation capture tracking</li>
+              <li>Filing decision support</li>
+              <li>Maintenance optimization</li>
+              <li>Monetization opportunities</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="section benefits-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Transform Your Patent Portfolio Strategy</h2>
+          <p>Discover how our patent portfolio intelligence platform delivers measurable business value.</p>
+        </div>
+        <div class="benefits-grid">
+          <div class="benefit-card">
+            <div class="benefit-number">1</div>
+            <h3>Optimize IP Investments</h3>
+            <p>Make data-driven decisions about patent filing, maintenance, and abandonment to maximize ROI on intellectual property investments.</p>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-number">2</div>
+            <h3>Identify Market Opportunities</h3>
+            <p>Discover white spaces, emerging technologies, and untapped markets through comprehensive portfolio and competitive analysis.</p>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-number">3</div>
+            <h3>Strengthen Competitive Position</h3>
+            <p>Understand competitor strategies and market positioning to build stronger, more defensible patent portfolios.</p>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-number">4</div>
+            <h3>Reduce Legal Costs</h3>
+            <p>Optimize attorney selection, improve prosecution strategies, and eliminate unnecessary costs through data-driven insights.</p>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-number">5</div>
+            <h3>Accelerate Innovation</h3>
+            <p>Align patent strategy with R&D initiatives and technology roadmaps to support faster, more strategic innovation.</p>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-number">6</div>
+            <h3>Enhance Due Diligence</h3>
+            <p>Streamline M&A, licensing, and partnership evaluations with comprehensive portfolio intelligence and valuation data.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Portfolio Analytics Section -->
+    <section class="section competitive-analysis">
+      <div class="container">
+        <div class="section-header">
+          <h2>Analyze Any Company's Patent Portfolio</h2>
+          <p>Get comprehensive intelligence on major technology companies and their patent strategies with our analytics platform.</p>
+        </div>
+        <div class="competitor-grid">
+          <div class="competitor-card">
+            <div class="competitor-logo">AAPL</div>
+            <div class="competitor-name">Apple Inc.</div>
+            <div class="competitor-stats">25,000+ patents in database<br>Technology focus: Hardware, AI</div>
+          </div>
+          <div class="competitor-card">
+            <div class="competitor-logo">GOOGL</div>
+            <div class="competitor-name">Google LLC</div>
+            <div class="competitor-stats">18,000+ patents available<br>Focus: Search, Cloud, AI/ML</div>
+          </div>
+          <div class="competitor-card">
+            <div class="competitor-logo">MSFT</div>
+            <div class="competitor-name">Microsoft Corp.</div>
+            <div class="competitor-stats">22,000+ patents tracked<br>Focus: Software, Cloud computing</div>
+          </div>
+          <div class="competitor-card">
+            <div class="competitor-logo">TSLA</div>
+            <div class="competitor-name">Tesla Inc.</div>
+            <div class="competitor-stats">3,500+ patents analyzed<br>Focus: Electric vehicles, batteries</div>
+          </div>
+          <div class="competitor-card">
+            <div class="competitor-logo">NVDA</div>
+            <div class="competitor-name">NVIDIA Corp.</div>
+            <div class="competitor-stats">8,000+ patents in system<br>Focus: GPU, AI computing</div>
+          </div>
+          <div class="competitor-card">
+            <div class="competitor-logo">AMZN</div>
+            <div class="competitor-name">Amazon Inc.</div>
+            <div class="competitor-stats">12,000+ patents available<br>Focus: E-commerce, AWS, logistics</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+      <div class="container">
+        <h2>Unlock Your Portfolio's Strategic Potential</h2>
+        <p>Join leading companies using our patent portfolio intelligence platform to make smarter IP decisions and drive competitive advantage. Start your free analysis today.</p>
+        <a href="/register/form" class="btn btn-lg btn-white">Start Portfolio Analysis</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Simple analytics tracking
+    document.addEventListener('DOMContentLoaded', () => {
+      // Track CTA clicks
+      const ctaButtons = document.querySelectorAll('a[href="/register/form"]');
+      ctaButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          if (typeof gtag !== 'undefined') {
+            gtag('event', 'click', {
+              event_category: 'CTA',
+              event_label: 'Patent Portfolio Intelligence Page'
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

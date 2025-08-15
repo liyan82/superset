@@ -960,6 +960,75 @@ class SupersetIndexView(IndexView):
         from flask import render_template
         return render_template("superset/public_index.html")
 
+    @expose("/patent-analytics-software/")
+    def patent_analytics_software(self) -> FlaskResponse:
+        """Patent Analytics Software SEO landing page"""
+        from flask import render_template
+        return render_template("superset/patent_analytics_software.html")
+
+    @expose("/uspto-data-analysis/")
+    def uspto_data_analysis(self) -> FlaskResponse:
+        """USPTO Data Analysis Tools SEO landing page"""
+        from flask import render_template
+        return render_template("superset/uspto_data_analysis.html")
+
+    @expose("/patent-portfolio-intelligence/")
+    def patent_portfolio_intelligence(self) -> FlaskResponse:
+        """Patent Portfolio Intelligence SEO landing page"""
+        from flask import render_template
+        return render_template("superset/patent_portfolio_intelligence.html")
+
+    @expose("/ai-patent-search/")
+    def ai_patent_search(self) -> FlaskResponse:
+        """AI Patent Search Platform SEO landing page"""
+        from flask import render_template
+        return render_template("superset/ai_patent_search.html")
+
+    @expose("/blog/")
+    def blog_index(self) -> FlaskResponse:
+        """Blog index page"""
+        from flask import render_template
+        return render_template("superset/blog_index.html")
+
+    @expose("/blog/<string:slug>/")
+    def blog_post(self, slug: str) -> FlaskResponse:
+        """Individual blog post page"""
+        from flask import render_template, abort
+        
+        # Blog post metadata
+        blog_posts = {
+            "patent-filing-trends-2024": {
+                "title": "USPTO Patent Filing Trends & Statistics for 2024",
+                "date": "2025-01-15",
+                "excerpt": "Comprehensive analysis of 2024 patent filing patterns, technology trends, and USPTO statistics revealing key insights for IP professionals.",
+                "template": "blog_patent_trends.html"
+            },
+            "top-patent-law-firms-rankings": {
+                "title": "Top Patent Law Firms Rankings: Performance Analysis 2024",
+                "date": "2025-01-15", 
+                "excerpt": "Data-driven analysis of leading patent law firms, success rates, and prosecution strategies based on USPTO filing data.",
+                "template": "blog_law_firm_rankings.html"
+            },
+            "ai-technology-patent-landscape": {
+                "title": "AI Technology Patent Landscape: Innovation Trends & Key Players",
+                "date": "2025-01-15",
+                "excerpt": "Deep dive into artificial intelligence patent filings, major companies, and emerging technology trends shaping the IP landscape.",
+                "template": "blog_ai_patents.html"
+            }
+        }
+        
+        if slug not in blog_posts:
+            abort(404)
+            
+        post = blog_posts[slug]
+        return render_template(f"superset/{post['template']}", post=post, slug=slug)
+
+    @expose("/free-patent-analytics-report/")
+    def patent_report(self) -> FlaskResponse:
+        """Free patent analytics report landing page"""
+        from flask import render_template
+        return render_template("superset/report_landing.html")
+
     @expose("/lang/<string:locale>")
     @safe
     def patch_flask_locale(self, locale: str) -> FlaskResponse:

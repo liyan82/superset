@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SZZLY9BGNG"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-SZZLY9BGNG');
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patent Analytics Blog - Expert Insights & USPTO Data Analysis | Patent 1024</title>
+  <meta name="description" content="Expert insights on patent analytics, USPTO trends, law firm performance, and IP strategy. Weekly analysis of patent data, technology landscapes, and prosecution strategies.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="canonical" href="https://patent1024.com/blog/">
+  
+  <!-- Open Graph tags -->
+  <meta property="og:title" content="Patent Analytics Blog - Expert Insights | Patent 1024">
+  <meta property="og:description" content="Expert insights on patent analytics, USPTO trends, and IP strategy from the Patent 1024 team.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://patent1024.com/blog/">
+  <meta property="og:image" content="https://patent1024.com/static/assets/images/blog-og.png">
+  
+  <style>
+    :root {
+      --p4-dark-blue: #283E53;
+      --p4-blue: #3A5A7E;
+      --p4-accent: #00A8E8;
+      --p4-light-gray: #f2f4f7;
+      --p4-dark-gray: #333333;
+      --white: #ffffff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      color: var(--p4-dark-gray);
+      background-color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    html { scroll-behavior: smooth; }
+    a { text-decoration: none; color: inherit; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.8rem 1.8rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+    .btn-primary { background-color: var(--p4-dark-blue); color: var(--white); }
+    .btn-primary:hover {
+      background-color: var(--p4-blue);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(40, 62, 83, 0.2);
+      color: var(--white);
+    }
+    .btn-outline { background-color: transparent; color: var(--p4-dark-blue); border-color: var(--p4-dark-blue); }
+    .btn-outline:hover { background-color: var(--p4-dark-blue); color: var(--white); }
+    header {
+      padding: 1.2rem 0;
+      position: sticky;
+      top: 0;
+      background-color: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      border-bottom: 1px solid #e7e7e7;
+    }
+    .navbar { display: flex; justify-content: space-between; align-items: center; }
+    .logo img { height: 40px; }
+    nav ul { display: flex; list-style: none; gap: 2.5rem; }
+    nav li { position: relative; }
+    nav li a { font-weight: 500; transition: color 0.3s ease; font-size: 1rem; color: var(--p4-dark-gray); }
+    nav li a:hover { color: var(--p4-dark-blue); }
+    
+    /* Dropdown styles */
+    .dropdown { position: relative; }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: var(--white);
+      min-width: 280px;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.15);
+      border-radius: 8px;
+      z-index: 1001;
+      border: 1px solid #e7e7e7;
+      margin-top: 0;
+      padding-top: 0.5rem;
+    }
+    .dropdown:hover .dropdown-content { display: block; }
+    .dropdown::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      height: 0.5rem;
+      background: transparent;
+      z-index: 1000;
+    }
+    .dropdown-content a {
+      color: var(--p4-dark-gray) !important;
+      padding: 0.8rem 1.2rem;
+      text-decoration: none;
+      display: block;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    .dropdown-content a:last-child { border-bottom: none; }
+    .dropdown-content a:hover {
+      background-color: var(--p4-light-gray);
+      color: var(--p4-dark-blue) !important;
+      padding-left: 1.5rem;
+    }
+    .dropdown-arrow {
+      font-size: 0.7rem;
+      margin-left: 0.3rem;
+      transition: transform 0.3s ease;
+    }
+    .dropdown:hover .dropdown-arrow { transform: rotate(180deg); }
+    
+    .nav-buttons { display: flex; gap: 1rem; }
+    .hero {
+      padding: 4rem 0;
+      background: linear-gradient(135deg, var(--p4-light-gray) 0%, #ffffff 100%);
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--p4-dark-blue);
+      margin-bottom: 1rem;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--p4-blue);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2.5rem;
+      padding: 4rem 0;
+    }
+    .blog-card {
+      background: var(--white);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid #e7e7e7;
+    }
+    .blog-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 35px rgba(40, 62, 83, 0.15);
+    }
+    .blog-image {
+      height: 200px;
+      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: var(--white);
+    }
+    .blog-content {
+      padding: 2rem;
+    }
+    .blog-date {
+      font-size: 0.9rem;
+      color: var(--p4-blue);
+      margin-bottom: 1rem;
+    }
+    .blog-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--p4-dark-blue);
+      margin-bottom: 1rem;
+      line-height: 1.3;
+    }
+    .blog-excerpt {
+      color: var(--p4-blue);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .read-more {
+      color: var(--p4-accent);
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+    .read-more:hover {
+      color: var(--p4-dark-blue);
+    }
+    .breadcrumb {
+      padding: 1rem 0;
+      background: var(--p4-light-gray);
+      font-size: 0.9rem;
+    }
+    .breadcrumb a {
+      color: var(--p4-blue);
+      text-decoration: underline;
+    }
+    .breadcrumb a:hover {
+      color: var(--p4-dark-blue);
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.2rem; }
+      .navbar { flex-direction: column; gap: 1rem; }
+      nav ul { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+      .nav-buttons { display: none; }
+      .blog-grid { grid-template-columns: 1fr; }
+      .dropdown-content { position: static; display: none; box-shadow: none; border: none; margin: 0; background: var(--p4-light-gray); border-radius: 8px; margin-top: 0.5rem; }
+      .dropdown:hover .dropdown-content { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="navbar">
+        <a href="/" class="logo">
+          <img src="/static/assets/images/patent-1024.png" alt="Patent 1024 Logo">
+        </a>
+        <nav>
+          <ul>
+            <li class="dropdown">
+              <a href="/#features">Solutions<span class="dropdown-arrow">▼</span></a>
+              <div class="dropdown-content">
+                <a href="/patent-analytics-software/">Patent Analytics Software</a>
+                <a href="/uspto-data-analysis/">USPTO Data Analysis Tools</a>
+                <a href="/patent-portfolio-intelligence/">Patent Portfolio Intelligence</a>
+                <a href="/ai-patent-search/">AI Patent Search Platform</a>
+              </div>
+            </li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/blog/">Blog</a></li>
+            <li><a href="/#pricing">Pricing</a></li>
+            <li><a href="/#about">About</a></li>
+          </ul>
+        </nav>
+        <div class="nav-buttons">
+          <a href="/login/" class="btn btn-outline">Log In</a>
+          <a href="/register/form" class="btn btn-primary">Get Started FREE</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <a href="/">Home</a> › <strong>Blog</strong>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h1>Patent Analytics Insights</h1>
+        <p>Expert analysis of USPTO trends, patent law firm performance, technology landscapes, and IP strategy insights from our data science team.</p>
+      </div>
+    </section>
+
+    <!-- Blog Posts -->
+    <section class="container">
+      <div class="blog-grid">
+        <article class="blog-card">
+          <div class="blog-image">📊</div>
+          <div class="blog-content">
+            <div class="blog-date">January 15, 2025</div>
+            <h2 class="blog-title">USPTO Patent Filing Trends & Statistics for 2024</h2>
+            <p class="blog-excerpt">Comprehensive analysis of 2024 patent filing patterns, technology trends, and USPTO statistics revealing key insights for IP professionals and innovators.</p>
+            <a href="/blog/patent-filing-trends-2024/" class="read-more">Read More →</a>
+          </div>
+        </article>
+
+        <article class="blog-card">
+          <div class="blog-image">⚖️</div>
+          <div class="blog-content">
+            <div class="blog-date">January 15, 2025</div>
+            <h2 class="blog-title">Top Patent Law Firms Rankings: Performance Analysis 2024</h2>
+            <p class="blog-excerpt">Data-driven analysis of leading patent law firms, success rates, and prosecution strategies based on comprehensive USPTO filing data.</p>
+            <a href="/blog/top-patent-law-firms-rankings/" class="read-more">Read More →</a>
+          </div>
+        </article>
+
+        <article class="blog-card">
+          <div class="blog-image">🤖</div>
+          <div class="blog-content">
+            <div class="blog-date">January 15, 2025</div>
+            <h2 class="blog-title">AI Technology Patent Landscape: Innovation Trends & Key Players</h2>
+            <p class="blog-excerpt">Deep dive into artificial intelligence patent filings, major companies, and emerging technology trends shaping the intellectual property landscape.</p>
+            <a href="/blog/ai-technology-patent-landscape/" class="read-more">Read More →</a>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Track blog engagement
+      const blogCards = document.querySelectorAll('.blog-card');
+      blogCards.forEach(card => {
+        card.addEventListener('click', () => {
+          if (typeof gtag !== 'undefined') {
+            gtag('event', 'click', {
+              event_category: 'Blog',
+              event_label: 'Blog Card Click'
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

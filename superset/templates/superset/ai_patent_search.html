@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SZZLY9BGNG"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-SZZLY9BGNG');
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Patent Search Platform - Natural Language Patent Discovery | Patent 1024</title>
+  <meta name="description" content="Revolutionary AI patent search platform using natural language processing. Search millions of USPTO patents with plain English queries. Advanced patent discovery and prior art research.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="canonical" href="https://patent1024.com/ai-patent-search">
+  <style>
+    :root {
+      --p4-dark-blue: #283E53;
+      --p4-blue: #3A5A7E;
+      --p4-accent: #00A8E8;
+      --p4-light-gray: #f2f4f7;
+      --p4-dark-gray: #333333;
+      --white: #ffffff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      color: var(--p4-dark-gray);
+      background-color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    html { scroll-behavior: smooth; }
+    a { text-decoration: none; color: inherit; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.8rem 1.8rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+    .btn-primary { background-color: var(--p4-dark-blue); color: var(--white); }
+    .btn-primary:hover {
+      background-color: var(--p4-blue);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(40, 62, 83, 0.2);
+      color: var(--white);
+    }
+    .btn-outline { background-color: transparent; color: var(--p4-dark-blue); border-color: var(--p4-dark-blue); }
+    .btn-outline:hover { background-color: var(--p4-dark-blue); color: var(--white); }
+    .btn-lg { padding: 1rem 2.2rem; font-size: 1.1rem; }
+    .btn-ai {
+      background: linear-gradient(45deg, var(--p4-accent), var(--p4-dark-blue));
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-ai:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 168, 232, 0.3);
+      color: var(--white);
+    }
+    .btn-ai::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    .btn-ai:hover::before {
+      left: 100%;
+    }
+    header {
+      padding: 1.2rem 0;
+      position: sticky;
+      top: 0;
+      background-color: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      border-bottom: 1px solid #e7e7e7;
+    }
+    .navbar { display: flex; justify-content: space-between; align-items: center; }
+    .logo img { height: 40px; }
+    nav ul { display: flex; list-style: none; gap: 2.5rem; }
+    nav li { position: relative; }
+    nav li a { font-weight: 500; transition: color 0.3s ease; font-size: 1rem; color: var(--p4-dark-gray); }
+    nav li a:hover { color: var(--p4-dark-blue); }
+    
+    /* Dropdown styles */
+    .dropdown { position: relative; }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: var(--white);
+      min-width: 280px;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.15);
+      border-radius: 8px;
+      z-index: 1001;
+      border: 1px solid #e7e7e7;
+      margin-top: 0;
+      padding-top: 0.5rem;
+    }
+    .dropdown:hover .dropdown-content { display: block; }
+    
+    /* Add invisible bridge to prevent hover break */
+    .dropdown::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      height: 0.5rem;
+      background: transparent;
+      z-index: 1000;
+    }
+    .dropdown-content a {
+      color: var(--p4-dark-gray) !important;
+      padding: 0.8rem 1.2rem;
+      text-decoration: none;
+      display: block;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    .dropdown-content a:last-child { border-bottom: none; }
+    .dropdown-content a:hover {
+      background-color: var(--p4-light-gray);
+      color: var(--p4-dark-blue) !important;
+      padding-left: 1.5rem;
+    }
+    .dropdown-content a:first-child { border-radius: 8px 8px 0 0; }
+    .dropdown-content a:last-child { border-radius: 0 0 8px 8px; }
+    .dropdown-arrow {
+      font-size: 0.7rem;
+      margin-left: 0.3rem;
+      transition: transform 0.3s ease;
+    }
+    .dropdown:hover .dropdown-arrow { transform: rotate(180deg); }
+    .nav-buttons { display: flex; gap: 1rem; }
+    .hero {
+      padding: 6rem 0 4rem;
+      background: linear-gradient(135deg, var(--p4-light-gray) 0%, #ffffff 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(0, 168, 232, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-content { 
+      text-align: center; 
+      max-width: 900px; 
+      margin: 0 auto; 
+      position: relative; 
+      z-index: 2; 
+    }
+    .hero h1 { 
+      font-size: 3.8rem; 
+      line-height: 1.1; 
+      font-weight: 800; 
+      margin-bottom: 1.5rem; 
+      color: var(--p4-dark-blue); 
+    }
+    .hero p { font-size: 1.3rem; color: var(--p4-blue); margin-bottom: 2.5rem; }
+    .hero-buttons { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+    .ai-demo {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 2rem;
+      margin: 3rem 0;
+      box-shadow: 0 15px 40px rgba(40, 62, 83, 0.1);
+      border: 2px solid #e7e7e7;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .search-box {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+    .search-input {
+      flex: 1;
+      padding: 1rem 1.5rem;
+      border: 2px solid #e7e7e7;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.3s ease;
+      background: var(--p4-light-gray);
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--p4-accent);
+    }
+    .search-btn {
+      padding: 1rem 1.5rem;
+      background: linear-gradient(45deg, var(--p4-accent), var(--p4-dark-blue));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    .search-btn:hover {
+      transform: scale(1.05);
+    }
+    .example-queries {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.8rem;
+    }
+    .example-query {
+      background: var(--p4-light-gray);
+      padding: 0.8rem 1rem;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      color: var(--p4-blue);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      border: 1px solid transparent;
+    }
+    .example-query:hover {
+      background: var(--p4-accent);
+      color: white;
+      transform: translateY(-2px);
+    }
+    .section {
+      padding: 4rem 0;
+    }
+    .section-header { text-align: center; margin-bottom: 3rem; }
+    .section-header h2 { font-size: 2.4rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--p4-dark-blue); }
+    .section-header p { font-size: 1.1rem; color: var(--p4-blue); max-width: 700px; margin: 0 auto; }
+    .features-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+      gap: 2.5rem; 
+      margin-top: 3rem;
+    }
+    .feature-card { 
+      background-color: var(--white); 
+      border-radius: 16px; 
+      padding: 2.5rem; 
+      transition: transform 0.3s ease, box-shadow 0.3s ease; 
+      border: 1px solid #e7e7e7; 
+      text-align: left; 
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--p4-accent), var(--p4-dark-blue));
+    }
+    .feature-card:hover { 
+      transform: translateY(-8px); 
+      box-shadow: 0 15px 35px rgba(40, 62, 83, 0.15); 
+    }
+    .feature-icon { 
+      display: inline-flex; 
+      align-items: center; 
+      justify-content: center; 
+      width: 64px; 
+      height: 64px; 
+      border-radius: 50%; 
+      margin-bottom: 1.5rem; 
+      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
+      color: var(--white); 
+      font-size: 1.8rem; 
+    }
+    .feature-card h3 { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 600; color: var(--p4-dark-blue); }
+    .feature-card p { color: var(--p4-blue); margin-bottom: 1.5rem; }
+    .feature-highlight {
+      background: var(--p4-light-gray);
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--p4-blue);
+      font-style: italic;
+      border-left: 3px solid var(--p4-accent);
+    }
+    .how-it-works {
+      background: var(--p4-light-gray);
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .step-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.1);
+    }
+    .step-number {
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .step-icon {
+      font-size: 2.5rem;
+      margin: 1rem 0;
+    }
+    .step-card h3 {
+      color: var(--p4-dark-blue);
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .step-card p {
+      color: var(--p4-blue);
+      line-height: 1.6;
+    }
+    .comparison {
+      background: var(--white);
+    }
+    .comparison-table {
+      overflow-x: auto;
+      margin-top: 2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.1);
+    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e7e7e7;
+    }
+    th {
+      background: var(--p4-dark-blue);
+      color: var(--white);
+      font-weight: 600;
+    }
+    .check-mark {
+      color: #28a745;
+      font-weight: bold;
+      text-align: center;
+    }
+    .x-mark {
+      color: #dc3545;
+      font-weight: bold;
+      text-align: center;
+    }
+    .limited-mark {
+      color: #ffc107;
+      font-weight: bold;
+      text-align: center;
+    }
+    .cta {
+      padding: 6rem 0;
+      background: linear-gradient(135deg, var(--p4-dark-blue) 0%, var(--p4-blue) 100%);
+      color: var(--white);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    .cta h2 { font-size: 2.8rem; font-weight: 700; margin-bottom: 1.5rem; position: relative; z-index: 2; }
+    .cta p { font-size: 1.2rem; max-width: 700px; margin: 0 auto 2.5rem; opacity: 0.9; position: relative; z-index: 2; }
+    .breadcrumb {
+      padding: 1rem 0;
+      background: var(--p4-light-gray);
+      font-size: 0.9rem;
+    }
+    .breadcrumb a {
+      color: var(--p4-blue);
+      text-decoration: underline;
+    }
+    .breadcrumb a:hover {
+      color: var(--p4-dark-blue);
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.8rem; }
+      .navbar { flex-direction: column; gap: 1rem; }
+      nav ul { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+      .nav-buttons { display: none; }
+      .dropdown-content { position: static; display: none; box-shadow: none; border: none; margin: 0; background: var(--p4-light-gray); border-radius: 8px; margin-top: 0.5rem; }
+      .dropdown:hover .dropdown-content { display: block; }
+      .hero-buttons { justify-content: center; }
+      .features-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .search-box { flex-direction: column; }
+      .example-queries { grid-template-columns: 1fr; }
+      .ai-demo { margin: 2rem 0; padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="navbar">
+        <a href="/" class="logo">
+          <img src="/static/assets/images/patent-1024.png" alt="Patent 1024 Logo">
+        </a>
+        <nav>
+          <ul>
+            <li class="dropdown">
+              <a href="/#features">Solutions<span class="dropdown-arrow">▼</span></a>
+              <div class="dropdown-content">
+                <a href="/patent-analytics-software/">Patent Analytics Software</a>
+                <a href="/uspto-data-analysis/">USPTO Data Analysis Tools</a>
+                <a href="/patent-portfolio-intelligence/">Patent Portfolio Intelligence</a>
+                <a href="/ai-patent-search/">AI Patent Search Platform</a>
+              </div>
+            </li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#pricing">Pricing</a></li>
+            <li><a href="/#about">About</a></li>
+          </ul>
+        </nav>
+        <div class="nav-buttons">
+          <a href="/login/" class="btn btn-outline">Log In</a>
+          <a href="/register/form" class="btn btn-primary">Get Started FREE</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <a href="/">Home</a> › <strong>AI Patent Search Platform</strong>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1>Revolutionary AI Patent Search Platform</h1>
+          <p>Transform patent research with natural language AI. Search millions of USPTO patents using plain English queries - no complex syntax or technical expertise required.</p>
+          <div class="hero-buttons">
+            <a href="/register/form" class="btn btn-ai btn-lg">🤖 Try AI Search Free</a>
+            <a href="#demo" class="btn btn-outline btn-lg">See Demo</a>
+          </div>
+          
+          <!-- AI Search Demo -->
+          <div class="ai-demo" id="demo">
+            <div class="search-box">
+              <input type="text" class="search-input" placeholder="Try: 'Show me Apple's machine learning patents from 2024'" readonly>
+              <button class="search-btn">🔍 AI Search</button>
+            </div>
+            <p style="color: var(--p4-blue); text-align: center; margin-bottom: 1rem; font-size: 0.9rem;">
+              <strong>Try these example queries:</strong>
+            </p>
+            <div class="example-queries">
+              <div class="example-query">"Tesla's battery technology patents"</div>
+              <div class="example-query">"AI patents filed in 2024"</div>
+              <div class="example-query">"Google's quantum computing research"</div>
+              <div class="example-query">"Drug delivery system innovations"</div>
+              <div class="example-query">"5G telecommunications patents"</div>
+              <div class="example-query">"Solar panel efficiency improvements"</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="section how-it-works">
+      <div class="container">
+        <div class="section-header">
+          <h2>How AI Patent Search Works</h2>
+          <p>Our advanced natural language processing understands your intent and delivers precise patent results.</p>
+        </div>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-icon">💬</div>
+            <h3>Ask in Plain English</h3>
+            <p>Type your question or describe what you're looking for using natural language - no complex search syntax needed.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-icon">🧠</div>
+            <h3>AI Understanding</h3>
+            <p>Our AI engine analyzes your query, understands context, and identifies relevant patent concepts and relationships.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-icon">🔍</div>
+            <h3>Intelligent Search</h3>
+            <p>Advanced algorithms search millions of patent records using semantic matching and relevance scoring.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">4</div>
+            <div class="step-icon">📊</div>
+            <h3>Interactive Results</h3>
+            <p>Get comprehensive results with interactive visualizations, detailed analytics, and drill-down capabilities.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-header">
+          <h2>Advanced AI Patent Search Features</h2>
+          <p>Powerful artificial intelligence capabilities that revolutionize how you discover and analyze patents.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3>Natural Language Processing</h3>
+            <p>Advanced NLP understands complex queries, technical terminology, and research intent with human-like comprehension.</p>
+            <div class="feature-highlight">
+              "Find patents about machine learning algorithms for image recognition filed by Google in 2023"
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3>Semantic Search Technology</h3>
+            <p>Goes beyond keyword matching to understand meaning, context, and relationships between technical concepts.</p>
+            <div class="feature-highlight">
+              Finds relevant patents even when they use different terminology or technical language
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Real-Time Query Processing</h3>
+            <p>Lightning-fast AI processing delivers results in seconds, not minutes, with comprehensive coverage.</p>
+            <div class="feature-highlight">
+              Search 11M+ patents and get results in under 3 seconds
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📈</div>
+            <h3>Intelligent Result Ranking</h3>
+            <p>AI-powered relevance scoring ensures the most important and related patents appear first in your results.</p>
+            <div class="feature-highlight">
+              Machine learning algorithms continuously improve result accuracy
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <h3>Context-Aware Suggestions</h3>
+            <p>Smart suggestions and query refinements help you discover related patents and research directions.</p>
+            <div class="feature-highlight">
+              "Users searching for this also looked at..." recommendations
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎨</div>
+            <h3>Multi-Modal Search</h3>
+            <p>Search patents using text, images, or even upload documents for similar patent discovery.</p>
+            <div class="feature-highlight">
+              Upload a research paper and find all related patents automatically
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison Section -->
+    <section class="section comparison">
+      <div class="container">
+        <div class="section-header">
+          <h2>AI Patent Search vs Traditional Tools</h2>
+          <p>See how our AI-powered approach compares to traditional patent search methods.</p>
+        </div>
+        <div class="comparison-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Patent 1024 AI</th>
+                <th>Google Patents</th>
+                <th>USPTO Search</th>
+                <th>Traditional Tools</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Natural Language Queries</td>
+                <td class="check-mark">✓ Full Support</td>
+                <td class="limited-mark">⚠ Basic</td>
+                <td class="x-mark">✗</td>
+                <td class="x-mark">✗</td>
+              </tr>
+              <tr>
+                <td>Semantic Understanding</td>
+                <td class="check-mark">✓ Advanced AI</td>
+                <td class="limited-mark">⚠ Limited</td>
+                <td class="x-mark">✗</td>
+                <td class="x-mark">✗</td>
+              </tr>
+              <tr>
+                <td>Context-Aware Results</td>
+                <td class="check-mark">✓ AI-Powered</td>
+                <td class="limited-mark">⚠ Basic</td>
+                <td class="x-mark">✗</td>
+                <td class="x-mark">✗</td>
+              </tr>
+              <tr>
+                <td>Real-Time Processing</td>
+                <td class="check-mark">✓ &lt;3 seconds</td>
+                <td class="check-mark">✓ Fast</td>
+                <td class="limited-mark">⚠ Slow</td>
+                <td class="limited-mark">⚠ Varies</td>
+              </tr>
+              <tr>
+                <td>Technical Expertise Required</td>
+                <td class="check-mark">✓ None</td>
+                <td class="limited-mark">⚠ Some</td>
+                <td class="x-mark">✗ High</td>
+                <td class="x-mark">✗ High</td>
+              </tr>
+              <tr>
+                <td>Interactive Analytics</td>
+                <td class="check-mark">✓ Advanced</td>
+                <td class="limited-mark">⚠ Basic</td>
+                <td class="x-mark">✗</td>
+                <td class="limited-mark">⚠ Limited</td>
+              </tr>
+              <tr>
+                <td>Multi-Modal Search</td>
+                <td class="check-mark">✓ Text/Image/Doc</td>
+                <td class="limited-mark">⚠ Text Only</td>
+                <td class="limited-mark">⚠ Text Only</td>
+                <td class="x-mark">✗</td>
+              </tr>
+              <tr>
+                <td>Cost</td>
+                <td class="check-mark">✓ Free Trial</td>
+                <td class="check-mark">✓ Free</td>
+                <td class="check-mark">✓ Free</td>
+                <td class="x-mark">✗ Expensive</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+      <div class="container">
+        <h2>Experience the Future of Patent Search</h2>
+        <p>Join thousands of researchers, attorneys, and innovators using AI-powered patent search to accelerate discovery and gain competitive intelligence. Start searching with natural language today.</p>
+        <a href="/register/form" class="btn btn-ai btn-lg">🚀 Start AI Patent Search Free</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Simple demo interaction
+    document.addEventListener('DOMContentLoaded', () => {
+      const exampleQueries = document.querySelectorAll('.example-query');
+      const searchInput = document.querySelector('.search-input');
+      const searchBtn = document.querySelector('.search-btn');
+      
+      // Make example queries interactive
+      exampleQueries.forEach(query => {
+        query.addEventListener('click', () => {
+          if (searchInput) {
+            searchInput.value = query.textContent;
+            searchInput.removeAttribute('readonly');
+          }
+        });
+      });
+      
+      // Search button interaction
+      if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+          window.location.href = '/register/form';
+        });
+      }
+      
+      // Track CTA clicks
+      const ctaButtons = document.querySelectorAll('a[href="/register/form"]');
+      ctaButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          if (typeof gtag !== 'undefined') {
+            gtag('event', 'click', {
+              event_category: 'CTA',
+              event_label: 'AI Patent Search Page'
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

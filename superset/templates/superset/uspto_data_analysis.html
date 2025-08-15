@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SZZLY9BGNG"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-SZZLY9BGNG');
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USPTO Data Analysis Tools - Advanced Patent Database Analytics | Patent 1024</title>
+  <meta name="description" content="Professional USPTO data analysis tools for patent research. Interactive patent database exploration, real-time USPTO data insights, and comprehensive analytics platform. Free trial available.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="canonical" href="https://patent1024.com/uspto-data-analysis">
+  <style>
+    :root {
+      --p4-dark-blue: #283E53;
+      --p4-blue: #3A5A7E;
+      --p4-accent: #00A8E8;
+      --p4-light-gray: #f2f4f7;
+      --p4-dark-gray: #333333;
+      --white: #ffffff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      color: var(--p4-dark-gray);
+      background-color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    html { scroll-behavior: smooth; }
+    a { text-decoration: none; color: inherit; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.8rem 1.8rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+    .btn-primary { background-color: var(--p4-dark-blue); color: var(--white); }
+    .btn-primary:hover {
+      background-color: var(--p4-blue);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(40, 62, 83, 0.2);
+      color: var(--white);
+    }
+    .btn-outline { background-color: transparent; color: var(--p4-dark-blue); border-color: var(--p4-dark-blue); }
+    .btn-outline:hover { background-color: var(--p4-dark-blue); color: var(--white); }
+    .btn-lg { padding: 1rem 2.2rem; font-size: 1.1rem; }
+    header {
+      padding: 1.2rem 0;
+      position: sticky;
+      top: 0;
+      background-color: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      border-bottom: 1px solid #e7e7e7;
+    }
+    .navbar { display: flex; justify-content: space-between; align-items: center; }
+    .logo img { height: 40px; }
+    nav ul { display: flex; list-style: none; gap: 2.5rem; }
+    nav li { position: relative; }
+    nav li a { font-weight: 500; transition: color 0.3s ease; font-size: 1rem; color: var(--p4-dark-gray); }
+    nav li a:hover { color: var(--p4-dark-blue); }
+    
+    /* Dropdown styles */
+    .dropdown { position: relative; }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: var(--white);
+      min-width: 280px;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.15);
+      border-radius: 8px;
+      z-index: 1001;
+      border: 1px solid #e7e7e7;
+      margin-top: 0;
+      padding-top: 0.5rem;
+    }
+    .dropdown:hover .dropdown-content { display: block; }
+    
+    /* Add invisible bridge to prevent hover break */
+    .dropdown::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      height: 0.5rem;
+      background: transparent;
+      z-index: 1000;
+    }
+    .dropdown-content a {
+      color: var(--p4-dark-gray) !important;
+      padding: 0.8rem 1.2rem;
+      text-decoration: none;
+      display: block;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    .dropdown-content a:last-child { border-bottom: none; }
+    .dropdown-content a:hover {
+      background-color: var(--p4-light-gray);
+      color: var(--p4-dark-blue) !important;
+      padding-left: 1.5rem;
+    }
+    .dropdown-content a:first-child { border-radius: 8px 8px 0 0; }
+    .dropdown-content a:last-child { border-radius: 0 0 8px 8px; }
+    .dropdown-arrow {
+      font-size: 0.7rem;
+      margin-left: 0.3rem;
+      transition: transform 0.3s ease;
+    }
+    .dropdown:hover .dropdown-arrow { transform: rotate(180deg); }
+    .nav-buttons { display: flex; gap: 1rem; }
+    .hero {
+      padding: 6rem 0 4rem;
+      background: linear-gradient(135deg, var(--p4-light-gray) 0%, #ffffff 100%);
+    }
+    .hero-content { text-align: center; max-width: 800px; margin: 0 auto; }
+    .hero h1 { 
+      font-size: 3.5rem; 
+      line-height: 1.1; 
+      font-weight: 800; 
+      margin-bottom: 1.5rem; 
+      color: var(--p4-dark-blue); 
+    }
+    .hero p { font-size: 1.25rem; color: var(--p4-blue); margin-bottom: 2.5rem; }
+    .hero-buttons { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+    .section {
+      padding: 4rem 0;
+    }
+    .section-header { text-align: center; margin-bottom: 3rem; }
+    .section-header h2 { font-size: 2.4rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--p4-dark-blue); }
+    .section-header p { font-size: 1.1rem; color: var(--p4-blue); max-width: 700px; margin: 0 auto; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+    .stat-card {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.1);
+      border: 1px solid #e7e7e7;
+    }
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--p4-dark-blue);
+      margin-bottom: 0.5rem;
+    }
+    .stat-label {
+      color: var(--p4-blue);
+      font-weight: 500;
+    }
+    .features-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+      gap: 2.5rem; 
+      margin-top: 3rem;
+    }
+    .feature-card { 
+      background-color: var(--white); 
+      border-radius: 16px; 
+      padding: 2.5rem; 
+      transition: transform 0.3s ease, box-shadow 0.3s ease; 
+      border: 1px solid #e7e7e7; 
+      text-align: center; 
+    }
+    .feature-card:hover { 
+      transform: translateY(-8px); 
+      box-shadow: 0 15px 35px rgba(40, 62, 83, 0.15); 
+    }
+    .feature-icon { 
+      display: inline-flex; 
+      align-items: center; 
+      justify-content: center; 
+      width: 64px; 
+      height: 64px; 
+      border-radius: 50%; 
+      margin-bottom: 1.5rem; 
+      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
+      color: var(--white); 
+      font-size: 1.8rem; 
+    }
+    .feature-card h3 { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 600; color: var(--p4-dark-blue); }
+    .feature-card p { color: var(--p4-blue); }
+    .data-sources {
+      background: var(--p4-light-gray);
+    }
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .source-item {
+      background: var(--white);
+      padding: 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 4px 15px rgba(40, 62, 83, 0.05);
+    }
+    .source-icon {
+      background: var(--p4-accent);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .source-text h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--p4-dark-blue);
+      margin-bottom: 0.2rem;
+    }
+    .source-text p {
+      color: var(--p4-blue);
+      font-size: 0.85rem;
+    }
+    .use-cases {
+      background: var(--white);
+    }
+    .use-case-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .use-case-card {
+      background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%);
+      border: 1px solid #e7e7e7;
+      border-radius: 16px;
+      padding: 2rem;
+      transition: transform 0.3s ease;
+    }
+    .use-case-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(40, 62, 83, 0.1);
+    }
+    .use-case-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .use-case-card h3 {
+      color: var(--p4-dark-blue);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .use-case-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .use-case-card li {
+      color: var(--p4-blue);
+      margin-bottom: 0.5rem;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+    .use-case-card li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--p4-accent);
+      font-weight: bold;
+    }
+    .cta {
+      padding: 6rem 0;
+      background: linear-gradient(135deg, var(--p4-dark-blue) 0%, var(--p4-blue) 100%);
+      color: var(--white);
+      text-align: center;
+    }
+    .cta h2 { font-size: 2.8rem; font-weight: 700; margin-bottom: 1.5rem; }
+    .cta p { font-size: 1.2rem; max-width: 700px; margin: 0 auto 2.5rem; opacity: 0.9; }
+    .cta .btn-white { background-color: var(--white); color: var(--p4-dark-blue); }
+    .cta .btn-white:hover { 
+      background-color: var(--p4-light-gray); 
+      transform: translateY(-3px); 
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); 
+      color: var(--p4-dark-blue);
+    }
+    .breadcrumb {
+      padding: 1rem 0;
+      background: var(--p4-light-gray);
+      font-size: 0.9rem;
+    }
+    .breadcrumb a {
+      color: var(--p4-blue);
+      text-decoration: underline;
+    }
+    .breadcrumb a:hover {
+      color: var(--p4-dark-blue);
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.5rem; }
+      .navbar { flex-direction: column; gap: 1rem; }
+      nav ul { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+      .nav-buttons { display: none; }
+      .dropdown-content { position: static; display: none; box-shadow: none; border: none; margin: 0; background: var(--p4-light-gray); border-radius: 8px; margin-top: 0.5rem; }
+      .dropdown:hover .dropdown-content { display: block; }
+      .hero-buttons { justify-content: center; }
+      .features-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .use-case-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="navbar">
+        <a href="/" class="logo">
+          <img src="/static/assets/images/patent-1024.png" alt="Patent 1024 Logo">
+        </a>
+        <nav>
+          <ul>
+            <li class="dropdown">
+              <a href="/#features">Solutions<span class="dropdown-arrow">▼</span></a>
+              <div class="dropdown-content">
+                <a href="/patent-analytics-software/">Patent Analytics Software</a>
+                <a href="/uspto-data-analysis/">USPTO Data Analysis Tools</a>
+                <a href="/patent-portfolio-intelligence/">Patent Portfolio Intelligence</a>
+                <a href="/ai-patent-search/">AI Patent Search Platform</a>
+              </div>
+            </li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#pricing">Pricing</a></li>
+            <li><a href="/#about">About</a></li>
+          </ul>
+        </nav>
+        <div class="nav-buttons">
+          <a href="/login/" class="btn btn-outline">Log In</a>
+          <a href="/register/form" class="btn btn-primary">Get Started FREE</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <a href="/">Home</a> › <strong>USPTO Data Analysis Tools</strong>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1>Advanced USPTO Data Analysis Tools for Patent Research</h1>
+          <p>Comprehensive USPTO database analytics platform with real-time data updates, interactive exploration, and AI-powered insights. Access millions of patent records with professional-grade analysis tools.</p>
+          <div class="hero-buttons">
+            <a href="/register/form" class="btn btn-primary btn-lg">Explore USPTO Data Free</a>
+            <a href="#features" class="btn btn-outline btn-lg">View Analytics Tools</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Stats Section -->
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Complete USPTO Database Coverage</h2>
+          <p>Access the most comprehensive patent database with real-time updates and historical records dating back decades.</p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number">11M+</div>
+            <div class="stat-label">Patent Records</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">500K+</div>
+            <div class="stat-label">Annual Applications</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">50K+</div>
+            <div class="stat-label">Active Attorneys</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Data Updates</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Sources Section -->
+    <section class="section data-sources">
+      <div class="container">
+        <div class="section-header">
+          <h2>Comprehensive USPTO Data Sources</h2>
+          <p>Our platform integrates multiple USPTO data streams for complete patent intelligence coverage.</p>
+        </div>
+        <div class="source-grid">
+          <div class="source-item">
+            <div class="source-icon">📋</div>
+            <div class="source-text">
+              <h4>Patent Applications</h4>
+              <p>Complete filing records and prosecution history</p>
+            </div>
+          </div>
+          <div class="source-item">
+            <div class="source-icon">✅</div>
+            <div class="source-text">
+              <h4>Granted Patents</h4>
+              <p>Full patent grants with detailed classifications</p>
+            </div>
+          </div>
+          <div class="source-item">
+            <div class="source-icon">⚖️</div>
+            <div class="source-text">
+              <h4>Attorney Records</h4>
+              <p>Complete practitioner database and performance</p>
+            </div>
+          </div>
+          <div class="source-item">
+            <div class="source-icon">👨‍💼</div>
+            <div class="source-text">
+              <h4>Examiner Data</h4>
+              <p>Patent examiner assignments and statistics</p>
+            </div>
+          </div>
+          <div class="source-item">
+            <div class="source-icon">🏢</div>
+            <div class="source-text">
+              <h4>Assignee Information</h4>
+              <p>Company ownership and transfer records</p>
+            </div>
+          </div>
+          <div class="source-item">
+            <div class="source-icon">🔄</div>
+            <div class="source-text">
+              <h4>Prosecution History</h4>
+              <p>Complete file wrapper and examination records</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-header">
+          <h2>Advanced USPTO Data Analysis Features</h2>
+          <p>Professional-grade tools for comprehensive patent database analysis and research.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🔍</div>
+            <h3>AI-Powered Patent Search</h3>
+            <p>Natural language queries that understand complex patent searches across the entire USPTO database with semantic matching.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Interactive Data Dashboards</h3>
+            <p>Real-time visualization of USPTO data trends with drill-down capabilities for detailed analysis and custom filtering.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📈</div>
+            <h3>Trend Analysis Tools</h3>
+            <p>Historical and predictive analysis of patent filing trends, technology patterns, and market intelligence.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Real-Time Data Updates</h3>
+            <p>Automatic synchronization with USPTO databases ensuring access to the latest patent information and filings.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📋</div>
+            <h3>Custom Report Generation</h3>
+            <p>Generate comprehensive reports on patent portfolios, attorney performance, and competitive landscape analysis.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h3>Enterprise Security</h3>
+            <p>Bank-level security for sensitive patent research with role-based access controls and audit trails.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="section use-cases">
+      <div class="container">
+        <div class="section-header">
+          <h2>USPTO Data Analysis Use Cases</h2>
+          <p>Discover how professionals leverage our USPTO data analysis tools for strategic advantage.</p>
+        </div>
+        <div class="use-case-grid">
+          <div class="use-case-card">
+            <div class="use-case-icon">⚖️</div>
+            <h3>Patent Attorneys</h3>
+            <ul>
+              <li>Analyze prosecution strategies and success rates</li>
+              <li>Research examiner patterns and preferences</li>
+              <li>Track competitor patent activities</li>
+              <li>Identify prior art and patent landscapes</li>
+            </ul>
+          </div>
+          <div class="use-case-card">
+            <div class="use-case-icon">🏢</div>
+            <h3>Corporate IP Teams</h3>
+            <ul>
+              <li>Monitor patent portfolio performance</li>
+              <li>Conduct competitive intelligence research</li>
+              <li>Analyze technology trend patterns</li>
+              <li>Optimize IP strategy decisions</li>
+            </ul>
+          </div>
+          <div class="use-case-card">
+            <div class="use-case-icon">🔬</div>
+            <h3>Research Organizations</h3>
+            <ul>
+              <li>Study innovation patterns and trends</li>
+              <li>Analyze technology transfer activities</li>
+              <li>Research funding impact on patents</li>
+              <li>Benchmark research productivity</li>
+            </ul>
+          </div>
+          <div class="use-case-card">
+            <div class="use-case-icon">💼</div>
+            <h3>Business Intelligence</h3>
+            <ul>
+              <li>Market opportunity identification</li>
+              <li>Investment due diligence support</li>
+              <li>Technology landscape mapping</li>
+              <li>Strategic partnership analysis</li>
+            </ul>
+          </div>
+          <div class="use-case-card">
+            <div class="use-case-icon">📚</div>
+            <h3>Academic Research</h3>
+            <ul>
+              <li>Innovation studies and analysis</li>
+              <li>Patent system effectiveness research</li>
+              <li>Technology diffusion studies</li>
+              <li>Economic impact assessments</li>
+            </ul>
+          </div>
+          <div class="use-case-card">
+            <div class="use-case-icon">🏛️</div>
+            <h3>Policy Analysis</h3>
+            <ul>
+              <li>Patent system performance metrics</li>
+              <li>Regulatory impact assessments</li>
+              <li>Innovation policy effectiveness</li>
+              <li>Economic development studies</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+      <div class="container">
+        <h2>Start Analyzing USPTO Data Today</h2>
+        <p>Access the most comprehensive USPTO data analysis platform with professional-grade tools and AI-powered insights. Free trial includes full database access - no credit card required.</p>
+        <a href="/register/form" class="btn btn-lg btn-white">Get Free USPTO Data Access</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Simple analytics tracking
+    document.addEventListener('DOMContentLoaded', () => {
+      // Track CTA clicks
+      const ctaButtons = document.querySelectorAll('a[href="/register/form"]');
+      ctaButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          if (typeof gtag !== 'undefined') {
+            gtag('event', 'click', {
+              event_category: 'CTA',
+              event_label: 'USPTO Data Analysis Page'
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
