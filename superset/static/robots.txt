@@ -1,0 +1,35 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /static/
+Disallow: /login/
+Disallow: /register/
+Disallow: /forgot-password/
+Disallow: /reset-password/
+Disallow: /api/
+Disallow: /superset/
+Disallow: /tablemodelview/
+Disallow: /databaseview/
+Disallow: /slicemodelview/
+Disallow: /dashboardmodelview/
+Disallow: /datasourcemodelview/
+Disallow: /users/
+Disallow: /roles/
+Disallow: /logs/
+Disallow: /health
+Disallow: /*?*
+
+# Allow SEO landing pages
+Allow: /patent-analytics-software/
+Allow: /uspto-data-analysis/
+Allow: /patent-portfolio-intelligence/
+Allow: /ai-patent-search/
+
+# Allow rankings pages
+Allow: /rankings/
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://patent1024.com/sitemap.xml

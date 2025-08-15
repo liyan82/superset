@@ -1074,6 +1074,24 @@ class SupersetIndexView(IndexView):
         from flask import render_template
         return render_template("superset/report_landing.html")
 
+    @expose("/robots.txt")
+    def robots_txt(self) -> FlaskResponse:
+        """Serve robots.txt file"""
+        from flask import send_from_directory, current_app
+        import os
+        
+        static_dir = os.path.join(current_app.root_path, 'static')
+        return send_from_directory(static_dir, 'robots.txt', mimetype='text/plain')
+
+    @expose("/sitemap.xml")
+    def sitemap_xml(self) -> FlaskResponse:
+        """Serve sitemap.xml file"""
+        from flask import send_from_directory, current_app
+        import os
+        
+        static_dir = os.path.join(current_app.root_path, 'static')
+        return send_from_directory(static_dir, 'sitemap.xml', mimetype='application/xml')
+
     @expose("/lang/<string:locale>")
     @safe
     def patch_flask_locale(self, locale: str) -> FlaskResponse:
