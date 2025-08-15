@@ -24,8 +24,9 @@ import {
   FormLabel,
   Alert,
   Input,
-  Modal,
 } from '@superset-ui/core/components';
+// eslint-disable-next-line no-restricted-imports
+import { Modal } from 'antd';
 import ProgressBar from '@superset-ui/core/components/ProgressBar';
 import { Icons } from '@superset-ui/core/components/Icons';
 import { Space } from '@superset-ui/core/components/Space';
@@ -268,9 +269,8 @@ export default function Newsletter() {
     {
       name: t('Send Newsletter'),
       buttonStyle: 'primary',
-      onClick: handleSendNewsletter,
+      onClick: loading.users ? undefined : handleSendNewsletter,
       loading: loading.sending,
-      disabled: loading.users,
       icon: <Icons.MailOutlined iconSize="m" />,
       'data-test': 'send-newsletter-button',
     },
@@ -320,20 +320,30 @@ export default function Newsletter() {
             placeholder={t('Select users to send newsletter to')}
             value={recipients.map(r => r.value)}
             onChange={selectedValues => {
-              const selectedOptions = selectedValues.map(value => {
-                const user = userOptions.find(opt => opt.value === value);
-                return user || { label: 'Unknown', value };
-              });
-              setRecipients(selectedOptions);
+              if (Array.isArray(selectedValues)) {
+                const selectedOptions = selectedValues.map(value => {
+                  const numValue =
+                    typeof value === 'object' && 'value' in value
+                      ? (value.value as number)
+                      : (value as number);
+                  const user = userOptions.find(opt => opt.value === numValue);
+                  return user || { label: 'Unknown', value: numValue };
+                });
+                setRecipients(selectedOptions);
+              }
             }}
             options={userOptions}
             loading={loading.users}
             showSearch
             filterOption={(input, option) =>
-              option?.label?.toLowerCase().includes(input.toLowerCase()) ??
+              (typeof option?.label === 'string' &&
+                option.label.toLowerCase().includes(input.toLowerCase())) ||
               false
             }
-            style={{ marginTop: theme.sizeUnit * 2, width: '100%' }}
+            css={css`
+              margin-top: ${theme.sizeUnit * 2}px;
+              width: 100%;
+            `}
             maxTagCount="responsive"
           />
           {errors.recipients && (
