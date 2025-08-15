@@ -948,4 +948,85 @@ When development and production Docker builds have different outcomes, the issue
 4. **Understand the type system** - In this case, distinguishing between DatabaseObject (backend) and DatabaseValue (frontend UI) was crucial
 5. **Fix incrementally and test** - Make changes in small batches and re-run the build to verify progress
 
-**Most Important Lesson:** TypeScript strict mode catches real issues that could cause runtime problems. While unused imports seem harmless, type mismatches like the DatabaseValue issue could lead to API call failures or component crashes. Production builds serve as a valuable quality check that shouldn't be bypassed by loosening TypeScript settings. 
+**Most Important Lesson:** TypeScript strict mode catches real issues that could cause runtime problems. While unused imports seem harmless, type mismatches like the DatabaseValue issue could lead to API call failures or component crashes. Production builds serve as a valuable quality check that shouldn't be bypassed by loosening TypeScript settings.
+
+## Issue: Database Migration Failed Due to App Initialization Using Non-Existent Columns
+
+**Date:** 2025-08-15
+
+### The Problem
+
+Migration file `c233f5365c9e_is_system_default_is_system_dark.py` couldn't run because the application initialization process (theme seeding) was trying to use the new `is_system_default` and `is_system_dark` columns before the migration could create them. This created a chicken-and-egg problem where:
+
+1. The app couldn't start because columns didn't exist  
+2. The migration couldn't run because the app couldn't start
+3. Error: `column themes.is_system_default does not exist`
+
+### The Goal
+
+To complete the database migration and add the required `is_system_default` and `is_system_dark` columns to the `themes` table without breaking the application startup process.
+
+### The Solution Journey
+
+#### Attempt 1: Standard Migration Commands Failed
+
+Tried running the standard migration commands:
+```bash
+superset db upgrade
+python -m flask db upgrade
+```
+
+Both failed with the same error because the app initialization process in `SeedSystemThemesCommand` was querying for columns that didn't exist yet.
+
+#### Attempt 2: Bypassing App Initialization with Direct SQL
+
+Since the migration couldn't run due to app initialization failures, manually applied the database changes using direct SQL commands:
+
+```python
+# Direct database manipulation to add missing columns
+engine = create_engine(SQLALCHEMY_DATABASE_URI)
+with engine.connect() as conn:
+    # Add the columns
+    conn.execute(text('ALTER TABLE themes ADD COLUMN is_system_default BOOLEAN'))
+    conn.execute(text('ALTER TABLE themes ADD COLUMN is_system_dark BOOLEAN'))
+    
+    # Update NULL values to FALSE
+    conn.execute(text('UPDATE themes SET is_system_default = FALSE WHERE is_system_default IS NULL'))
+    conn.execute(text('UPDATE themes SET is_system_dark = FALSE WHERE is_system_dark IS NULL'))
+    
+    # Make columns NOT NULL
+    conn.execute(text('ALTER TABLE themes ALTER COLUMN is_system_default SET NOT NULL'))
+    conn.execute(text('ALTER TABLE themes ALTER COLUMN is_system_dark SET NOT NULL'))
+```
+
+### The Final Fix
+
+1. **Manually created the missing columns** using direct SQL to bypass the app initialization issue
+2. **Set appropriate default values** (FALSE) for existing rows
+3. **Applied NOT NULL constraints** as specified in the migration
+4. **Ran the migration command** which then completed successfully, adding the required indexes:
+
+```bash
+superset db upgrade
+# Result: Migration completed, indexes created
+```
+
+**Final Migration Output:**
+```
+INFO  [alembic.env] Column is_system_default already present on table themes. Skipping...
+INFO  [alembic.env] Column is_system_dark already present on table themes. Skipping...
+INFO  [alembic.env] Creating index idx_theme_is_system_default on table themes
+INFO  [alembic.env] Creating index idx_theme_is_system_dark on table themes
+```
+
+### Key Takeaway
+
+When migrations fail due to application startup dependencies, the issue often requires **bypassing the normal application initialization process**. The migration system assumes the app can start to run migrations, but sometimes new code expects database schema changes that haven't been applied yet.
+
+**Solution Strategy:**
+1. **Identify the chicken-and-egg problem** - App needs columns to start, but migration needs app to start
+2. **Apply schema changes manually** using direct SQL to break the dependency cycle  
+3. **Run the migration** to complete the process and mark it as applied in the migration history
+4. **Verify the result** by confirming the app starts successfully
+
+This approach ensures both the database schema and migration history remain consistent while resolving circular dependency issues between code and database state. 

@@ -17,7 +17,7 @@
 """is_system_default-is_system_dark
 
 Revision ID: c233f5365c9e
-Revises: cd1fb11291f2
+Revises: eb095c5d054f
 Create Date: 2025-08-05 14:38:55.782777
 
 """
@@ -35,7 +35,7 @@ from superset.migrations.shared.utils import (
 
 # revision identifiers, used by Alembic.
 revision = "c233f5365c9e"
-down_revision = "cd1fb11291f2"
+down_revision = "eb095c5d054f"
 
 
 def upgrade():
