@@ -16,22 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { DataMaskStateWithId, PartialFilters } from '@superset-ui/core';
+import {
+  DataMaskStateWithId,
+  DataMaskWithId,
+  JsonObject,
+  PartialFilters,
+} from '@superset-ui/core';
 import { ActiveFilters, ChartConfiguration } from '../types';
 
 export const getRelevantDataMask = (
   dataMask: DataMaskStateWithId,
-  property: string,
-): DataMaskStateWithId => {
-  const result: DataMaskStateWithId = {};
-  Object.keys(dataMask).forEach(chartId => {
-    const chartData = dataMask[chartId];
-    if (chartData && (chartData as any)[property]) {
-      result[chartId] = chartData;
-    }
-  });
-  return result;
-};
+  prop: keyof DataMaskWithId,
+): JsonObject =>
+  Object.fromEntries(
+    Object.values(dataMask)
+      .filter(item => item[prop])
+      .map(item => [item.id, item[prop]]),
+  );
 
 interface LayerInfo {
   layerMap: { [chartId: number]: number[] };

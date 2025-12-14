@@ -30,7 +30,8 @@ import {
 } from 'react';
 
 import { Global } from '@emotion/react';
-import { css, t, useTheme, usePrevious } from '@superset-ui/core';
+import { t, usePrevious } from '@superset-ui/core';
+import { css, useTheme } from '@apache-superset/core/ui';
 import { useResizeDetector } from 'react-resize-detector';
 import { Badge, Icons, Button, Tooltip, Popover } from '..';
 import { DropdownContainerProps, DropdownItem, DropdownRef } from './types';
@@ -325,13 +326,13 @@ export const DropdownContainer = forwardRef(
                   }
                   ::-webkit-scrollbar-thumb {
                     border-radius: 9px;
-                    background-color: ${theme.colors.grayscale.light1};
+                    background-color: ${theme.colorFillSecondary};
                     border: 3px solid transparent;
                     background-clip: content-box;
                   }
                   ::-webkit-scrollbar-track {
-                    background-color: ${theme.colors.grayscale.light4};
-                    border-left: 1px solid ${theme.colors.grayscale.light2};
+                    background-color: ${theme.colorFillQuaternary};
+                    border-left: 1px solid ${theme.colorFillTertiary};
                   }
                 }
               `}
@@ -368,7 +369,7 @@ export const DropdownContainer = forwardRef(
                     color={
                       (dropdownTriggerCount ?? overflowingCount) > 0
                         ? theme.colorPrimary
-                        : theme.colors.grayscale.light1
+                        : theme.colorTextSecondary
                     }
                     showZero
                     css={css`
@@ -377,7 +378,7 @@ export const DropdownContainer = forwardRef(
                   />
                   <Icons.DownOutlined
                     iconSize="m"
-                    iconColor={theme.colors.grayscale.light1}
+                    iconColor={theme.colorIcon}
                     css={css`
                       .anticon {
                         display: flex;

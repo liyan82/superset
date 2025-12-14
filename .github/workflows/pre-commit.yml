@@ -21,7 +21,7 @@ jobs:
         python-version: ["current", "previous", "next"]
     steps:
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           submodules: recursive
@@ -39,7 +39,7 @@ jobs:
           echo "HOMEBREW_REPOSITORY=$HOMEBREW_REPOSITORY" >>"${GITHUB_ENV}"
           brew install norwoodj/tap/helm-docs
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
 
@@ -54,7 +54,7 @@ jobs:
           yarn install --immutable
 
       - name: Cache pre-commit environments
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-v2-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -71,7 +71,9 @@ jobs:
           GIT_DIFF_EXIT_CODE=$?
           if [ "${PRE_COMMIT_EXIT_CODE}" -ne 0 ] || [ "${GIT_DIFF_EXIT_CODE}" -ne 0 ]; then
             if [ "${PRE_COMMIT_EXIT_CODE}" -ne 0 ]; then
-              echo "❌ Pre-commit check failed (exit code: ${EXIT_CODE})."
+              echo "❌ Pre-commit check failed (exit code: ${PRE_COMMIT_EXIT_CODE})."
+              echo "🔍 Modified files:"
+              git diff --name-only
             else
               echo "❌ Git working directory is dirty."
               echo "📌 This likely means that pre-commit made changes that were not committed."

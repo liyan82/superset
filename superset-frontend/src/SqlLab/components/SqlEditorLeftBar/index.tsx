@@ -34,7 +34,8 @@ import {
 } from 'src/SqlLab/actions/sqlLab';
 import { Button, EmptyState, Icons } from '@superset-ui/core/components';
 import { type DatabaseObject } from 'src/components';
-import { t, styled, css } from '@superset-ui/core';
+import { t } from '@superset-ui/core';
+import { styled, css } from '@apache-superset/core/ui';
 import { TableSelectorMultiple } from 'src/components/TableSelector';
 import useQueryEditor from 'src/SqlLab/hooks/useQueryEditor';
 import {
@@ -47,8 +48,6 @@ import TableElement from '../TableElement';
 
 export interface SqlEditorLeftBarProps {
   queryEditorId: string;
-  height?: number;
-  database?: DatabaseObject;
 }
 
 const StyledScrollbarContainer = styled.div`
@@ -69,11 +68,11 @@ const LeftBarStyles = styled.div`
   `}
 `;
 
-const SqlEditorLeftBar = ({
-  database,
-  queryEditorId,
-  height = 500,
-}: SqlEditorLeftBarProps) => {
+const SqlEditorLeftBar = ({ queryEditorId }: SqlEditorLeftBarProps) => {
+  const databases = useSelector<
+    SqlLabRootState,
+    SqlLabRootState['sqlLab']['databases']
+  >(({ sqlLab }) => sqlLab.databases);
   const allSelectedTables = useSelector<SqlLabRootState, Table[]>(
     ({ sqlLab }) =>
       sqlLab.tables.filter(table => table.queryEditorId === queryEditorId),
@@ -84,7 +83,12 @@ const SqlEditorLeftBar = ({
     'dbId',
     'catalog',
     'schema',
+    'tabViewId',
   ]);
+  const database = useMemo(
+    () => (queryEditor.dbId ? databases[queryEditor.dbId] : undefined),
+    [databases, queryEditor.dbId],
+  );
 
   const [_emptyResultsWithSearch, setEmptyResultsWithSearch] = useState(false);
   const [userSelectedDb, setUserSelected] = useState<DatabaseObject | null>(
@@ -170,7 +174,6 @@ const SqlEditorLeftBar = ({
   };
 
   const shouldShowReset = window.location.search === '?reset=1';
-  const tableMetaDataHeight = height - 130; // 130 is the height of the selects above
 
   const handleCatalogChange = useCallback(
     (catalog: string | null) => {
@@ -231,22 +234,16 @@ const SqlEditorLeftBar = ({
       />
       <div className="divider" />
       <StyledScrollbarContainer>
-        <div
-          css={css`
-            height: ${tableMetaDataHeight}px;
-          `}
-        >
-          {tables.map(table => (
-            <TableElement
-              table={table}
-              key={table.id}
-              activeKey={tables
-                .filter(({ expanded }) => expanded)
-                .map(({ id }) => id)}
-              onChange={onToggleTable}
-            />
-          ))}
-        </div>
+        {tables.map(table => (
+          <TableElement
+            table={table}
+            key={table.id}
+            activeKey={tables
+              .filter(({ expanded }) => expanded)
+              .map(({ id }) => id)}
+            onChange={onToggleTable}
+          />
+        ))}
       </StyledScrollbarContainer>
       {shouldShowReset && (
         <Button

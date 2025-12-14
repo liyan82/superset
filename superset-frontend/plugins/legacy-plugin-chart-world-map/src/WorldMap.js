@@ -31,6 +31,7 @@ const propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
       country: PropTypes.string,
+      code: PropTypes.string,
       latitude: PropTypes.number,
       longitude: PropTypes.number,
       name: PropTypes.string,
@@ -116,7 +117,7 @@ function WorldMap(element, props) {
     const selected = Object.values(filterState.selectedValues || {});
     const key = source.id || source.country;
     const country =
-      countryFieldtype === 'name' ? mapData[key]?.name : mapData[key]?.country;
+      countryFieldtype === 'name' ? mapData[key]?.name : mapData[key]?.code;
 
     if (!country) {
       return undefined;
@@ -170,7 +171,7 @@ function WorldMap(element, props) {
     pointerEvent.preventDefault();
     const key = source.id || source.country;
     const val =
-      countryFieldtype === 'name' ? mapData[key]?.name : mapData[key]?.country;
+      countryFieldtype === 'name' ? mapData[key]?.name : mapData[key]?.code;
     let drillToDetailFilters;
     let drillByFilters;
     if (val) {
@@ -203,14 +204,14 @@ function WorldMap(element, props) {
     height,
     data: processedData,
     fills: {
-      defaultFill: theme.colors.grayscale.light2,
+      defaultFill: theme.colorBorder,
     },
     geographyConfig: {
       popupOnHover: !inContextMenu,
       highlightOnHover: !inContextMenu,
       borderWidth: 1,
       borderColor: theme.colorSplit,
-      highlightBorderColor: theme.colors.grayscale.light5,
+      highlightBorderColor: theme.colorIcon,
       highlightFillColor: color,
       highlightBorderWidth: 1,
       popupTemplate: (geo, d) =>
@@ -232,7 +233,7 @@ function WorldMap(element, props) {
       animate: true,
       highlightOnHover: !inContextMenu,
       highlightFillColor: color,
-      highlightBorderColor: theme.colors.grayscale.dark2,
+      highlightBorderColor: theme.colorTextSecondary,
       highlightBorderWidth: 2,
       highlightBorderOpacity: 1,
       highlightFillOpacity: 0.85,

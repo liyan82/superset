@@ -43,11 +43,10 @@ import {
 import {
   ensureIsArray,
   FeatureFlag,
-  GenericDataType,
   isAdhocColumn,
   isFeatureEnabled,
   isPhysicalColumn,
-  legacyValidateInteger,
+  validateInteger,
   QueryFormColumn,
   QueryMode,
   SMART_DATE_ID,
@@ -55,7 +54,7 @@ import {
   validateMaxValue,
   validateServerPagination,
 } from '@superset-ui/core';
-
+import { GenericDataType } from '@apache-superset/core/api/core';
 import { isEmpty, last } from 'lodash';
 import { PAGE_SIZE_OPTIONS, SERVER_PAGE_SIZE_OPTIONS } from './consts';
 import { ColorSchemeEnum } from './types';
@@ -156,8 +155,8 @@ const allColumnsControl: typeof sharedControls.groupby = {
   freeForm: true,
   allowAll: true,
   commaChoosesOption: false,
-  optionRenderer: c => <ColumnOption showType column={c} />,
-  valueRenderer: c => <ColumnOption column={c} />,
+  optionRenderer: c => <ColumnOption showType column={c as ColumnMeta} />,
+  valueRenderer: c => <ColumnOption column={c as ColumnMeta} />,
   valueKey: 'column_name',
   mapStateToProps: ({ datasource, controls }, controlState) => ({
     options: datasource?.columns || [],
@@ -387,6 +386,7 @@ const config: ControlPanelConfig = {
               description: t('Rows per page, 0 means no pagination'),
               visibility: ({ controls }: ControlPanelsContainerProps) =>
                 Boolean(controls?.server_pagination?.value),
+              validators: [validateInteger],
             },
           },
         ],
@@ -405,7 +405,7 @@ const config: ControlPanelConfig = {
                   state?.common?.conf?.SQL_MAX_ROW,
               }),
               validators: [
-                legacyValidateInteger,
+                validateInteger,
                 (v, state) =>
                   validateMaxValue(
                     v,
@@ -722,6 +722,8 @@ const config: ControlPanelConfig = {
                           label: Array.isArray(verboseMap)
                             ? colname
                             : (verboseMap[colname] ?? colname),
+                          dataType:
+                            colnames && coltypes[colnames?.indexOf(colname)],
                         }))
                     : [];
                 const columnOptions = explore?.controls?.time_compare?.value
