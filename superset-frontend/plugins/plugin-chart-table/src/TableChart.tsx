@@ -1265,7 +1265,8 @@ export default function TableChart<D extends DataRecord = DataRecord>(
       };
       updateTableOwnState(setDataMask, modifiedOwnState);
     },
-    [serverPaginationData, setDataMask],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [setDataMask],
   );
 
   useEffect(() => {
@@ -1277,10 +1278,10 @@ export default function TableChart<D extends DataRecord = DataRecord>(
       };
       updateTableOwnState(setDataMask, modifiedOwnState);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     hasServerPageLengthChanged,
     serverPageLength,
-    serverPaginationData,
     setDataMask,
   ]);
 
@@ -1328,7 +1329,8 @@ export default function TableChart<D extends DataRecord = DataRecord>(
       };
       updateTableOwnState(setDataMask, modifiedOwnState);
     },
-    [serverPagination, serverPaginationData, setDataMask],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [serverPagination, setDataMask],
   );
 
   const handleSearch = (searchText: string) => {
@@ -1372,31 +1374,51 @@ export default function TableChart<D extends DataRecord = DataRecord>(
     rows: DataRecord[];
     columns: typeof exportColumns;
   } | null>(null);
+
+  // Debounce the clientView updates to prevent rapid firing
+  const updateClientViewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (serverPagination) return; // only for client-side mode
+
     const prev = prevClientViewRef.current;
     const rowsChanged = !prev || !isEqual(prev.rows, clientViewRows);
     const columnsChanged = !prev || !isEqual(prev.columns, exportColumns);
+
     if (rowsChanged || columnsChanged) {
-      prevClientViewRef.current = {
-        rows: clientViewRows,
-        columns: exportColumns,
-      };
-      updateTableOwnState(setDataMask, {
-        ...serverPaginationData,
-        clientView: {
+      // Clear any pending update
+      if (updateClientViewTimeoutRef.current) {
+        clearTimeout(updateClientViewTimeoutRef.current);
+      }
+
+      // Debounce the update to prevent rapid successive calls
+      updateClientViewTimeoutRef.current = setTimeout(() => {
+        prevClientViewRef.current = {
           rows: clientViewRows,
           columns: exportColumns,
-          count: clientViewRows.length,
-        },
-      });
+        };
+        updateTableOwnState(setDataMask, {
+          ...serverPaginationData,
+          clientView: {
+            rows: clientViewRows,
+            columns: exportColumns,
+            count: clientViewRows.length,
+          },
+        });
+      }, 100); // 100ms debounce
     }
+
+    return () => {
+      if (updateClientViewTimeoutRef.current) {
+        clearTimeout(updateClientViewTimeoutRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     clientViewRows,
     exportColumns,
     serverPagination,
     setDataMask,
-    serverPaginationData,
   ]);
 
   return (
