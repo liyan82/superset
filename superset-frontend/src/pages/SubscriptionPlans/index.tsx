@@ -19,7 +19,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { t, styled } from '@superset-ui/core';
+import { t } from '@superset-ui/core';
+import { styled } from '@apache-superset/core/ui';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';

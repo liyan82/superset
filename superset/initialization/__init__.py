@@ -277,6 +277,8 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         appbuilder.add_api(LogRestApi)
         appbuilder.add_api(NewsletterApi)
 
+        from flask import current_app
+
         if feature_flag_manager.is_feature_enabled("ENABLE_EXTENSIONS"):
             from superset.extensions.api import ExtensionsRestApi
 

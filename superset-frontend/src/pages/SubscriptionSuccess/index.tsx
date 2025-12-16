@@ -18,7 +18,8 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { css, t, styled } from '@superset-ui/core';
+import { t } from '@superset-ui/core';
+import { css, styled } from '@apache-superset/core/ui';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';

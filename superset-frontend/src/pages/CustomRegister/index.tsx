@@ -18,7 +18,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { styled, t } from '@superset-ui/core';
+import { t } from '@superset-ui/core';
+import { styled } from '@apache-superset/core/ui';
 import getBootstrapData from 'src/utils/getBootstrapData';
 import ReactCAPTCHA from 'react-google-recaptcha';
 

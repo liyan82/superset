@@ -17,7 +17,8 @@
  * under the License.
  */
 import { useState, useEffect, useCallback } from 'react';
-import { SupersetClient, t, styled, css, useTheme } from '@superset-ui/core';
+import { SupersetClient, t } from '@superset-ui/core';
+import { styled, css, useTheme } from '@apache-superset/core/ui';
 import {
   Button,
   Select,
