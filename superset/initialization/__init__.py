@@ -450,15 +450,10 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         # Register subscription views
         appbuilder.add_view(
             SubscriptionView,
-            "Tasks",
-            label=_("Tasks"),
             "Subscription",
-            category="",
-            category_label=_("Manage"),
-            menu_cond=lambda: g.user is not None and g.user.is_authenticated
-                "GLOBAL_TASK_FRAMEWORK"
-            ),
+            category="Account"
         )
+
         appbuilder.add_view(
             SubscriptionPlanAdmin,
             "Subscription Plans",
