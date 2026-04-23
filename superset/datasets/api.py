@@ -167,6 +167,7 @@ class DatasetRestApi(BaseSupersetModelRestApi):
         "schema",
         "description",
         "main_dttm_col",
+        "currency_code_column",
         "normalize_columns",
         "always_filter_main_dttm",
         "offset",
@@ -250,6 +251,7 @@ class DatasetRestApi(BaseSupersetModelRestApi):
         "schema",
         "description",
         "main_dttm_col",
+        "currency_code_column",
         "normalize_columns",
         "always_filter_main_dttm",
         "offset",
@@ -1255,7 +1257,7 @@ class DatasetRestApi(BaseSupersetModelRestApi):
 
         if parse_boolean_string(request.args.get("include_rendered_sql")):
             try:
-                processor = get_template_processor(database=table.database)
+                processor = get_template_processor(database=table.database, table=table)
                 response["result"] = self.render_dataset_fields(
                     response["result"], processor
                 )

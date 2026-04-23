@@ -17,8 +17,8 @@
  * under the License.
  */
 import { useEffect, useState } from 'react';
-import { t } from '@superset-ui/core';
-import { styled, css } from '@apache-superset/core/ui';
+import { t } from '@apache-superset/core/translation';
+import { styled, css } from '@apache-superset/core/theme';
 import { Comparator } from '@superset-ui/chart-controls';
 import { Icons } from '@superset-ui/core/components/Icons';
 import ControlHeader from 'src/explore/components/ControlHeader';
@@ -74,7 +74,7 @@ const ConditionalFormattingControl = ({
   verboseMap,
   removeIrrelevantConditions,
   extraColorChoices,
-  conditionalFormattingFlag,
+  allColumns,
   ...props
 }: ConditionalFormattingControlProps) => {
   const [conditionalFormattingConfigs, setConditionalFormattingConfigs] =
@@ -136,6 +136,11 @@ const ConditionalFormattingControl = ({
         return `${targetValueLeft} ${Comparator.LessOrEqual} ${columnName} ${Comparator.LessThan} ${targetValueRight}`;
       case Comparator.BetweenOrRightEqual:
         return `${targetValueLeft} ${Comparator.LessThan} ${columnName} ${Comparator.LessOrEqual} ${targetValueRight}`;
+      case Comparator.IsTrue:
+      case Comparator.IsFalse:
+      case Comparator.IsNull:
+      case Comparator.IsNotNull:
+        return `${columnName} ${operator}`;
       default:
         return `${columnName} ${operator} ${targetValue}`;
     }
@@ -159,6 +164,7 @@ const ConditionalFormattingControl = ({
               }
               destroyTooltipOnHide
               extraColorChoices={extraColorChoices}
+              allColumns={allColumns}
             >
               <OptionControlContainer withCaret>
                 <Label>{createLabel(config)}</Label>
@@ -175,7 +181,7 @@ const ConditionalFormattingControl = ({
           onChange={onSave}
           destroyTooltipOnHide
           extraColorChoices={extraColorChoices}
-          conditionalFormattingFlag={conditionalFormattingFlag}
+          allColumns={allColumns}
         >
           <AddControlLabel>
             <Icons.PlusOutlined

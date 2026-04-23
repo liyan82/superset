@@ -28,6 +28,7 @@ from superset.mcp_service.chart.schemas import (
     ChartFilter,
     ListChartsRequest,
 )
+from superset.mcp_service.constants import MAX_PAGE_SIZE
 
 
 @pytest.fixture
@@ -45,6 +46,8 @@ def mock_chart():
     chart.datasource_name = "test_dataset"
     chart.datasource_type = "table"
     chart.description = "Test chart"
+    chart.certified_by = None
+    chart.certification_details = None
     chart.url = "/chart/1"
     chart.changed_by_name = "admin"
     chart.changed_on = None
@@ -65,13 +68,17 @@ class TestListChartsRequestSchema:
     """Test the ListChartsRequest schema validation."""
 
     def test_default_request(self):
-        """Test creating request with all defaults."""
+        """Test creating request with all defaults.
+
+        Note: select_columns defaults to empty list, which triggers
+        minimal default columns (id, slice_name, viz_type, url,
+        changed_on_humanized) in the tool.
+        """
         request = ListChartsRequest()
 
         assert request.filters == []
-        assert len(request.select_columns) > 0  # Has default columns
-        assert "id" in request.select_columns
-        assert "slice_name" in request.select_columns
+        # select_columns is empty by default - tool applies minimal defaults
+        assert request.select_columns == []
         assert request.search is None
         assert request.order_column is None
         assert request.order_direction == "asc"
@@ -129,6 +136,19 @@ class TestListChartsRequestSchema:
         with pytest.raises(ValueError, match="Input should be greater than 0"):
             ListChartsRequest(page_size=0)
 
+    def test_page_size_exceeds_max(self):
+        """Test that page_size over MAX_PAGE_SIZE raises validation error."""
+        with pytest.raises(
+            ValueError,
+            match=f"Input should be less than or equal to {MAX_PAGE_SIZE}",
+        ):
+            ListChartsRequest(page_size=MAX_PAGE_SIZE + 1)
+
+    def test_page_size_at_max(self):
+        """Test that page_size at MAX_PAGE_SIZE is accepted."""
+        request = ListChartsRequest(page_size=MAX_PAGE_SIZE)
+        assert request.page_size == MAX_PAGE_SIZE
+
     def test_filter_validation(self):
         """Test that filter validation works correctly."""
         # Valid filter
@@ -170,3 +190,48 @@ class TestListChartsRequestSchema:
         assert "page_size" in data
         assert data["filters"][0]["col"] == "slice_name"
         assert data["select_columns"] == ["id", "slice_name"]
+
+
+class TestChartDefaultColumnFiltering:
+    """Test default column filtering behavior for charts."""
+
+    def test_minimal_default_columns_constant(self):
+        """Test that minimal default columns are properly defined."""
+        from superset.mcp_service.common.schema_discovery import CHART_DEFAULT_COLUMNS
+
+        assert set(CHART_DEFAULT_COLUMNS) == {
+            "id",
+            "slice_name",
+            "viz_type",
+            "description",
+            "certified_by",
+            "certification_details",
+            "url",
+            "changed_on",
+            "changed_on_humanized",
+        }
+
+        # Heavy columns should NOT be in defaults
+        assert "form_data" not in CHART_DEFAULT_COLUMNS
+        assert "query_context" not in CHART_DEFAULT_COLUMNS
+        assert "datasource_name" not in CHART_DEFAULT_COLUMNS
+        assert "uuid" not in CHART_DEFAULT_COLUMNS
+
+    def test_empty_select_columns_default(self):
+        """Test that select_columns defaults to empty list which triggers
+        minimal defaults in tool."""
+        request = ListChartsRequest()
+        assert request.select_columns == []
+
+    def test_explicit_select_columns(self):
+        """Test that explicit select_columns can include non-default columns."""
+        request = ListChartsRequest(
+            select_columns=["id", "slice_name", "description", "cache_timeout"]
+        )
+        # Verify exact columns are present - explicit request should match exactly
+        assert set(request.select_columns) == {
+            "id",
+            "slice_name",
+            "description",
+            "cache_timeout",
+        }

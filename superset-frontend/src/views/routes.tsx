@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import { FeatureFlag, isFeatureEnabled } from '@superset-ui/core';
 import {
   lazy,
@@ -146,6 +147,10 @@ const RowLevelSecurityList = lazy(
     ),
 );
 
+const TaskList = lazy(
+  () => import(/* webpackChunkName: "TaskList" */ 'src/pages/TaskList'),
+);
+
 const RolesList = lazy(
   () => import(/* webpackChunkName: "RolesList" */ 'src/pages/RolesList'),
 );
@@ -194,12 +199,24 @@ const UserRegistrations = lazy(
     ),
 );
 
+const FileHandler = lazy(
+  () => import(/* webpackChunkName: "FileHandler" */ 'src/pages/FileHandler'),
+);
+
+const RedirectWarning = lazy(
+  () =>
+    import(
+      /* webpackChunkName: "RedirectWarning" */ 'src/pages/RedirectWarning'
+    ),
+);
+
 const SubscriptionPlans = lazy(
   () => import(/* webpackChunkName: "SubscriptionPlans" */ 'src/pages/SubscriptionPlans'),
 );
 
 const SubscriptionManage = lazy(
   () => import(/* webpackChunkName: "SubscriptionManage" */ 'src/pages/SubscriptionManage'),
+    import(
 );
 
 const SubscriptionPayment = lazy(
@@ -218,6 +235,10 @@ type Routes = {
 }[];
 
 export const routes: Routes = [
+  {
+    path: '/redirect/',
+    Component: RedirectWarning,
+  },
   {
     path: '/login/',
     Component: Login,
@@ -246,6 +267,10 @@ export const routes: Routes = [
   {
     path: '/superset/welcome/',
     Component: Home,
+  },
+  {
+    path: '/superset/file-handler',
+    Component: FileHandler,
   },
   {
     path: '/dashboard/list/',
@@ -336,6 +361,10 @@ export const routes: Routes = [
   {
     path: '/rowlevelsecurity/list',
     Component: RowLevelSecurityList,
+  },
+  {
+    path: '/tasks/list/',
+    Component: TaskList,
   },
   {
     path: '/sqllab/',
