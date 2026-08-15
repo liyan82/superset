@@ -37,6 +37,25 @@ APP_ICON = "/static/assets/images/patent-1024.png"
 
 FAVICONS = [{"href": "/static/assets/images/p4-favicon.png"}]
 
+# Brand tokens.
+#
+# THEME_DEFAULT in superset/config.py is built from that module's own APP_NAME
+# and APP_ICON at import time, so overriding those above is not enough on its
+# own -- the theme defaults were already computed. Restate the affected tokens
+# here; superset.views.base deep-merges partial overrides against the built-in
+# defaults, so unspecified tokens still fall back.
+#
+# brandAppName is also what the UI restores document.title to when leaving a
+# dashboard or chart.
+THEME_DEFAULT = {
+    "token": {
+        "brandAppName": APP_NAME,
+        "brandLogoAlt": APP_NAME,
+        "brandLogoUrl": APP_ICON,
+        "fontFamilyCode": "'Fira Code', 'Courier New', monospace",
+    },
+}
+
 # Webserver address for email links and external references
 # Can be overridden by environment variable or superset_config_docker.py
 SUPERSET_WEBSERVER_ADDRESS = os.getenv("SUPERSET_WEBSERVER_ADDRESS", "https://patent1024.com")
@@ -127,9 +146,11 @@ class CeleryConfig:
     broker_url = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_CELERY_DB}"
     imports = (
         "superset.sql_lab",
+        "superset.tasks.deletion_retention",
         "superset.tasks.scheduler",
         "superset.tasks.thumbnails",
         "superset.tasks.cache",
+        "superset.tasks.export_dashboard_excel",
         "superset.tasks.expired_subscriptions",
         # "superset.tasks.sync_stripe",
     )
@@ -144,6 +165,13 @@ class CeleryConfig:
         "reports.prune_log": {
             "task": "reports.prune_log",
             "schedule": crontab(minute=10, hour=0),
+        },
+        # Gated on the SOFT_DELETE feature flag, which is off by default: the
+        # task is scheduled either way, but purges nothing while the flag is
+        # unset. Enable it in FEATURE_FLAGS below to exercise retention locally.
+        "deletion_retention.purge_soft_deleted": {
+            "task": "deletion_retention.purge_soft_deleted",
+            "schedule": crontab(minute=0, hour=0),
         },
         "expired_subscriptions.process_expirations": {
             "task": "expired_subscriptions.process_expirations",
@@ -188,9 +216,22 @@ SUBSCRIPTION_PLANS_FEATURES = {
     ],
 }
 
-FEATURE_FLAGS = {"ALERT_REPORTS": True, "DATASET_FOLDERS": True}
+FEATURE_FLAGS = {
+    "ALERT_REPORTS": True,
+    "DATASET_FOLDERS": True,
+    "ENABLE_EXTENSIONS": True,
+    "MOBILE_CONSUMPTION_MODE": True,
+    "SEMANTIC_LAYERS": True,
+}
+EXTENSIONS_PATH = "/app/docker/extensions"
 ALERT_REPORTS_NOTIFICATION_DRY_RUN = True
-WEBDRIVER_BASEURL = f"http://superset_app{os.environ.get('SUPERSET_APP_ROOT', '/')}/"  # When using docker compose baseurl should be http://superset_nginx{ENV{BASEPATH}}/  # noqa: E501
+# The Docker Compose app service is named "superset" and listens on 8088. Report
+# paths are root-relative, so urljoin drops the base path; only the scheme, host,
+# and port must be correct here. SUPERSET_APP_ROOT is kept for consumers that
+# concatenate paths directly (e.g. cache warm-up). For screenshots in the dev
+# stack (unbuilt static assets) point this at the nginx service instead:
+# http://nginx{SUPERSET_APP_ROOT}/
+WEBDRIVER_BASEURL = f"http://superset:8088{os.environ.get('SUPERSET_APP_ROOT', '/')}/"
 # The base URL for the email report hyperlinks.
 WEBDRIVER_BASEURL_USER_FRIENDLY = (
     f"http://localhost:8888/{os.environ.get('SUPERSET_APP_ROOT', '/')}/"

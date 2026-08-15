@@ -19,7 +19,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { t } from '@apache-superset/core/translation';
 import { ensureIsArray } from '@superset-ui/core';
+import { datasetLabelLower } from 'src/features/semanticLayers/label';
 import { styled } from '@apache-superset/core/theme';
+import { Alert } from '@apache-superset/core/components';
 import { EmptyState, Loading } from '@superset-ui/core/components';
 import { GenericDataType } from '@apache-superset/core/common';
 import { GridTable } from 'src/components/GridTable';
@@ -34,7 +36,7 @@ import {
 import { TableControls, ROW_LIMIT_OPTIONS } from './DataTableControls';
 import { SamplesPaneProps } from '../types';
 
-const Error = styled.pre`
+const ErrorAlertWrapper = styled.div`
   margin-top: ${({ theme }) => `${theme.sizeUnit * 4}px`};
 `;
 
@@ -59,7 +61,6 @@ export const SamplesPane = ({
   queryFormData,
   queryForce,
   setForceQuery,
-  isVisible,
   canDownload,
 }: SamplesPaneProps) => {
   const [filterText, setFilterText] = useState('');
@@ -148,19 +149,30 @@ export const SamplesPane = ({
           rowcount={rowcount}
           datasourceId={datasourceId}
           onInputChange={handleInputChange}
+          filterText={filterText}
           isLoading={isLoading}
           canDownload={canDownload}
           rowLimit={rowLimit}
           rowLimitOptions={ROW_LIMIT_OPTIONS}
           onRowLimitChange={handleRowLimitChange}
         />
-        <Error>{responseError}</Error>
+        <ErrorAlertWrapper>
+          <Alert
+            type="error"
+            showIcon
+            message={t('Failed to load samples')}
+            description={responseError}
+          />
+        </ErrorAlertWrapper>
       </>
     );
   }
 
   if (data.length === 0) {
-    const title = t('No samples were returned for this dataset');
+    const title = t(
+      'No samples were returned for this %s',
+      datasetLabelLower(),
+    );
     return <EmptyState image="document.svg" title={title} />;
   }
 
@@ -173,6 +185,7 @@ export const SamplesPane = ({
         rowcount={rowcount}
         datasourceId={datasourceId}
         onInputChange={handleInputChange}
+        filterText={filterText}
         isLoading={isLoading}
         canDownload={canDownload}
         rowLimit={rowLimit}

@@ -25,7 +25,7 @@ import {
   CacheProvider as EmotionCacheProvider,
 } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { noop, mergeWith } from 'lodash';
+import { mergeWith } from 'lodash-es';
 import { GlobalStyles } from './GlobalStyles';
 import {
   AntdThemeConfig,
@@ -38,39 +38,17 @@ import {
 import { normalizeThemeConfig, serializeThemeConfig } from './utils';
 
 export class Theme {
-  theme: SupersetTheme;
+  // Forward-compat: TS 6.0 enforces strictPropertyInitialization here;
+  // both fields are assigned via setConfig() during construction, so we
+  // use a definite-assignment assertion rather than hoisting the logic
+  // out of setConfig().
+  //
+  // Assigned via setConfig() in the constructor; TypeScript 6.0's
+  // strictPropertyInitialization can't trace that call chain, so we use
+  // a definite-assignment assertion.
+  theme!: SupersetTheme;
 
-  private static readonly defaultTokens = {
-    // Brand
-    brandLogoAlt: 'Apache Superset',
-    brandLogoUrl: '/static/assets/images/patent-1024.png',
-    brandLogoMargin: '18px',
-    brandLogoHref: '/',
-    brandLogoHeight: '24px',
-
-    // Default colors
-    colorPrimary: '#2893B3', // NOTE: previous lighter primary color was #20a7c9
-    colorLink: '#2893B3',
-    colorError: '#e04355',
-    colorWarning: '#fcc700',
-    colorSuccess: '#5ac189',
-    colorInfo: '#66bcfe',
-
-    // Forcing some default tokens
-    fontFamily: `'Inter', Helvetica, Arial`,
-    fontFamilyCode: `'Fira Code', 'Courier New', monospace`,
-
-    // Extra tokens
-    transitionTiming: 0.3,
-    brandIconMaxWidth: 37,
-    fontSizeXS: '8',
-    fontSizeXXL: '28',
-    fontWeightNormal: '400',
-    fontWeightLight: '300',
-    fontWeightStrong: 500,
-  };
-
-  private antdConfig: AntdThemeConfig;
+  private antdConfig!: AntdThemeConfig;
 
   private constructor({ config }: { config?: AnyThemeConfig }) {
     this.SupersetThemeProvider = this.SupersetThemeProvider.bind(this);
@@ -86,10 +64,12 @@ export class Theme {
    * @param config - The theme configuration
    * @param baseTheme - Optional base theme to apply under the config
    */
-  static fromConfig(
+  // Merge a config over an optional base theme (arrays replace rather than
+  // deep-merge; a colorPrimary override without colorLink aligns colorLink).
+  private static mergeConfig(
     config?: AnyThemeConfig,
     baseTheme?: AnyThemeConfig,
-  ): Theme {
+  ): AnyThemeConfig | undefined {
     let mergedConfig: AnyThemeConfig | undefined = config;
 
     if (baseTheme && config) {
@@ -98,9 +78,9 @@ export class Theme {
       );
 
       // In Ant Design v5, colorLink derives from colorInfo, not colorPrimary.
-      // Currently we expectlinks to follow the brand/primary color. When the user
-      // overrides colorPrimary without explicitly setting colorLink, update the
-      // merged colorLink so links match the new primary palette.
+      // We expect links to follow the brand/primary color, so when a config
+      // overrides colorPrimary without setting colorLink, align the merged
+      // colorLink with the new primary palette.
       if (config.token?.colorPrimary && !config.token?.colorLink) {
         const mToken = mergedConfig?.token;
         if (mToken) {
@@ -111,7 +91,14 @@ export class Theme {
       mergedConfig = baseTheme;
     }
 
-    return new Theme({ config: mergedConfig });
+    return mergedConfig;
+  }
+
+  static fromConfig(
+    config?: AnyThemeConfig,
+    baseTheme?: AnyThemeConfig,
+  ): Theme {
+    return new Theme({ config: Theme.mergeConfig(config, baseTheme) });
   }
 
   private static getFilteredAntdTheme(
@@ -132,12 +119,14 @@ export class Theme {
   }
 
   /**
-   * Update the theme using any theme configuration
-   * Automatically handles both AntdThemeConfig and SerializableThemeConfig
-   * Dark mode should be specified via the algorithm property in the config
+   * Update the theme using any theme configuration, optionally merged over a
+   * base theme. Automatically handles both AntdThemeConfig and
+   * SerializableThemeConfig. Dark mode should be specified via the algorithm
+   * property in the config.
    */
-  setConfig(config: AnyThemeConfig): void {
-    const antdConfig = normalizeThemeConfig(config);
+  setConfig(config: AnyThemeConfig, baseTheme?: AnyThemeConfig): void {
+    const mergedConfig = Theme.mergeConfig(config, baseTheme) ?? config;
+    const antdConfig = normalizeThemeConfig(mergedConfig);
 
     if (antdConfig.token?.colorPrimary && !antdConfig.token?.colorLink) {
       antdConfig.token.colorLink = antdConfig.token.colorPrimary;
@@ -146,11 +135,11 @@ export class Theme {
     // First phase: Let Ant Design compute the tokens
     const tokens = Theme.getFilteredAntdTheme(antdConfig);
 
-    // Extract Superset-specific properties from top-level config.
-    // These are custom properties that aren't part of Ant Design's token system
-    // but need to be passed through to the SupersetTheme for ECharts customization.
+    // Extract Superset-specific properties from the merged config (not the raw
+    // config) so a base theme's ECharts overrides survive in-place updates, the
+    // same way the Ant Design tokens above are taken from the merged config.
     const { echartsOptionsOverrides, echartsOptionsOverridesByChartType } =
-      config as AnyThemeConfig & {
+      mergedConfig as AnyThemeConfig & {
         echartsOptionsOverrides?: any;
         echartsOptionsOverridesByChartType?: Record<string, any>;
       };
@@ -158,7 +147,6 @@ export class Theme {
     // Set the base theme properties
     this.antdConfig = antdConfig;
     this.theme = {
-      ...Theme.defaultTokens, // Superset-level defaults (brand and extra tokens)
       ...tokens, // First apply Ant Design computed tokens
       ...antdConfig.token, // Then override with our custom tokens
       // Include Superset-specific properties from top-level config
@@ -168,8 +156,8 @@ export class Theme {
       }),
     } as SupersetTheme;
 
-    // Update the providers with the fully formed theme
-    this.updateProviders(
+    // Update every mounted provider with the fully formed theme
+    this.notifyProviders(
       this.theme,
       this.antdConfig,
       createCache({ key: 'superset' }),
@@ -208,6 +196,27 @@ export class Theme {
       newConfig.algorithm = newAlgorithm;
     }
 
+    // Skip the update (and the notifyProviders fan-out it triggers) if the
+    // theme is already in the requested mode. Docs pages mount one
+    // dark-mode-sync bridge per live component demo (see
+    // docs/src/components/StorybookWrapper.jsx's ThemeSync), so a single
+    // toggle event calls this once per demo on the page. Without this
+    // check, every one of those calls would recompute the theme and
+    // notify every mounted provider, turning a single real toggle into
+    // O(n^2) provider notifications across n demos.
+    // Compare the algorithm sets rather than positions: reordering
+    // non-mode algorithms to the front doesn't change the effective
+    // theme, so it shouldn't count as a change either.
+    const currentAlgorithm = this.antdConfig.algorithm;
+    const algorithmUnchanged = Array.isArray(newConfig.algorithm)
+      ? Array.isArray(currentAlgorithm) &&
+        newConfig.algorithm.length === currentAlgorithm.length &&
+        newConfig.algorithm.every(alg => currentAlgorithm.includes(alg))
+      : newConfig.algorithm === currentAlgorithm;
+    if (algorithmUnchanged) {
+      return;
+    }
+
     // Update the theme with the new configuration
     this.setConfig(newConfig);
   }
@@ -216,13 +225,29 @@ export class Theme {
     return JSON.stringify(serializeThemeConfig(this.antdConfig), null, 2);
   }
 
-  private updateProviders(
+  // Every currently-mounted SupersetThemeProvider for this Theme instance
+  // registers a listener here (see the useEffect below). A single
+  // "last write wins" callback isn't enough once more than one provider can
+  // be mounted from the same Theme instance at a time -- e.g. multiple live
+  // component demos on one docs page -- since each render would overwrite
+  // the previous provider's callback and only the most-recently-rendered
+  // provider would ever hear about a setConfig/toggleDarkMode call.
+  private providerListeners = new Set<
+    (
+      theme: SupersetTheme,
+      antdConfig: AntdThemeConfig,
+      emotionCache: any,
+    ) => void
+  >();
+
+  private notifyProviders(
     theme: SupersetTheme,
     antdConfig: AntdThemeConfig,
     emotionCache: any,
   ): void {
-    noop(theme, antdConfig, emotionCache);
-    // Overridden at runtime by SupersetThemeProvider using setThemeState
+    this.providerListeners.forEach(listener =>
+      listener(theme, antdConfig, emotionCache),
+    );
   }
 
   SupersetThemeProvider({ children }: { children: React.ReactNode }) {
@@ -237,9 +262,42 @@ export class Theme {
       emotionCache: createCache({ key: 'superset' }),
     });
 
-    this.updateProviders = (theme, antdConfig, emotionCache) => {
-      setThemeState({ theme, antdConfig, emotionCache });
-    };
+    // Register (and, on unmount, deregister) this provider instance's own
+    // listener rather than assigning a single shared callback on every
+    // render, so every concurrently mounted provider for this Theme
+    // instance receives updates, not just the last one to render.
+    //
+    // Use useLayoutEffect (not useEffect) so registration happens in the
+    // same commit phase as any layout effect elsewhere that might call
+    // setConfig/toggleDarkMode on this instance during mount (e.g. the
+    // docs site's dark-mode sync in StorybookWrapper.jsx, which reads the
+    // toggle and pushes it onto the singleton via a layout effect of its
+    // own). Layout effects run bottom-up, so a listener registered here
+    // (this component is nested inside that caller) is guaranteed to be
+    // in place before an ancestor's layout effect can fire and notify it.
+    // If this were a passive effect instead, an ancestor's layout effect
+    // could call toggleDarkMode before this listener exists, dropping that
+    // notification, and the provider would render stale until a later
+    // toggle.
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    React.useLayoutEffect(() => {
+      const listener = (
+        nextTheme: SupersetTheme,
+        nextAntdConfig: AntdThemeConfig,
+        nextEmotionCache: any,
+      ) => {
+        setThemeState({
+          theme: nextTheme,
+          antdConfig: nextAntdConfig,
+          emotionCache: nextEmotionCache,
+        });
+      };
+      this.providerListeners.add(listener);
+      return () => {
+        this.providerListeners.delete(listener);
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
       <EmotionCacheProvider value={themeState.emotionCache}>
