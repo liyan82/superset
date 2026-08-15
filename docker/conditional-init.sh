@@ -7,15 +7,16 @@ if ! command -v psql > /dev/null; then
   apt-get update && apt-get install -y postgresql-client
 fi
 
-# Use environment variables from the container
-DB_HOST=172.18.0.1
-DB_PORT=5432
-DB_USER=superset
-DB_PASSWORD=yeef2FATH4tiff
-DB_NAME=superset
+# Use environment variables from the container, falling back to the
+# docker-compose defaults. Override any of these in docker/.env-local.
+DB_HOST=${DATABASE_HOST:-172.18.0.1}
+DB_PORT=${DATABASE_PORT:-5432}
+DB_USER=${DATABASE_USER:-superset}
+DB_PASSWORD=${DATABASE_PASSWORD:?DATABASE_PASSWORD must be set}
+DB_NAME=${DATABASE_DB:-superset}
 
 # Export password for psql
-export PGPASSWORD=yeef2FATH4tiff
+export PGPASSWORD="$DB_PASSWORD"
 
 echo "Checking connection to database at $DB_HOST:$DB_PORT..."
 
