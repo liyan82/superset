@@ -18,8 +18,8 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { t } from '@superset-ui/core';
-import { css, styled } from '@apache-superset/core/ui';
+import { t } from '@apache-superset/core/translation';
+import { css, styled } from '@apache-superset/core/theme';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
@@ -44,15 +44,19 @@ const StyledCol = styled.div<{ md?: number; offset?: number }>`
   width: 100%;
   padding-left: 15px;
   padding-right: 15px;
-  
-  ${({ md }) => md && css`
-    flex: 0 0 ${(md / 12) * 100}%;
-    max-width: ${(md / 12) * 100}%;
-  `}
-  
-  ${({ offset }) => offset && css`
-    margin-left: ${(offset / 12) * 100}%;
-  `}
+
+  ${({ md }) =>
+    md &&
+    css`
+      flex: 0 0 ${(md / 12) * 100}%;
+      max-width: ${(md / 12) * 100}%;
+    `}
+
+  ${({ offset }) =>
+    offset &&
+    css`
+      margin-left: ${(offset / 12) * 100}%;
+    `}
 `;
 
 const StyledPanel = styled.div`
@@ -60,7 +64,7 @@ const StyledPanel = styled.div`
   background-color: #fff;
   border: 1px solid transparent;
   border-radius: 4px;
-  box-shadow: 0 1px 1px rgba(0,0,0,.05);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
   border-color: #ddd;
 `;
 
@@ -72,7 +76,7 @@ const StyledPanelHeading = styled.div`
   color: #fff;
   background-color: #5cb85c;
   border-color: #5cb85c;
-  
+
   h3 {
     margin: 0;
     font-size: 16px;
@@ -93,7 +97,7 @@ const StyledSuccessIcon = styled.i`
 
 const StyledLabel = styled.span<{ variant?: string }>`
   display: inline;
-  padding: .2em .6em .3em;
+  padding: 0.2em 0.6em 0.3em;
   font-size: 75%;
   font-weight: 700;
   line-height: 1;
@@ -101,14 +105,18 @@ const StyledLabel = styled.span<{ variant?: string }>`
   text-align: center;
   white-space: nowrap;
   vertical-align: baseline;
-  border-radius: .25em;
-  
+  border-radius: 0.25em;
+
   ${({ variant }) => {
     switch (variant) {
       case 'success':
-        return css`background-color: #5cb85c;`;
+        return css`
+          background-color: #5cb85c;
+        `;
       default:
-        return css`background-color: #777;`;
+        return css`
+          background-color: #777;
+        `;
     }
   }}
 `;
@@ -131,7 +139,7 @@ const StyledButton = styled.button<{ variant?: string; size?: string }>`
   border-radius: 4px;
   text-decoration: none;
   margin: 0 0.5rem;
-  
+
   ${({ variant }) => {
     switch (variant) {
       case 'primary':
@@ -162,10 +170,10 @@ const StyledDetailsList = styled.ul`
   list-style: none;
   padding: 0;
   text-align: left;
-  
+
   li {
     margin-bottom: 8px;
-    
+
     strong {
       margin-right: 8px;
     }
@@ -194,28 +202,31 @@ interface SubscriptionSuccessProps {
   user?: UserWithPermissionsAndRoles;
 }
 
-export default function SubscriptionSuccess({ user }: SubscriptionSuccessProps) {
+export default function SubscriptionSuccess({
+  user,
+}: SubscriptionSuccessProps) {
   const { addDangerToast } = useToasts();
-  const [subscription, setSubscription] = useState<SubscriptionDetails | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionDetails | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
 
   const fetchSubscriptionDetails = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const response = await SupersetClient.get({
         endpoint: '/subscription/api/details',
       });
-      
+
       const data = response.json as SubscriptionDetails;
       setSubscription(data);
-      
+
       // If no subscription found, redirect to plans
       if (!data.subscription) {
         window.location.href = '/subscription/plans';
         return;
       }
-      
     } catch (error) {
       console.error('Error fetching subscription details:', error);
       addDangerToast(t('Error loading subscription details.'));
@@ -232,9 +243,7 @@ export default function SubscriptionSuccess({ user }: SubscriptionSuccessProps) 
     fetchSubscriptionDetails();
   }, [fetchSubscriptionDetails]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
   const handleReturnToDashboard = () => {
     window.location.href = '/';
@@ -273,7 +282,7 @@ export default function SubscriptionSuccess({ user }: SubscriptionSuccessProps) 
   return (
     <StyledContainer>
       <SubMenu name={t('Subscription Success')} buttons={subMenuButtons} />
-      
+
       <StyledRow>
         <StyledCol md={8} offset={2}>
           <StyledPanel>
@@ -282,42 +291,74 @@ export default function SubscriptionSuccess({ user }: SubscriptionSuccessProps) 
             </StyledPanelHeading>
             <StyledPanelBody>
               <StyledSuccessIcon className="fa fa-check-circle" />
-              
+
               <h3>{t('Thank you for your subscription!')}</h3>
               <p style={{ fontSize: '1.125rem', marginBottom: '2rem' }}>
-                {t('Your %s subscription has been successfully activated.', sub.plan.name)}
+                {t(
+                  'Your %s subscription has been successfully activated.',
+                  sub.plan.name,
+                )}
               </p>
-              
+
               <hr style={{ margin: '2rem 0' }} />
-              
+
               <StyledRow>
                 <StyledCol md={6}>
                   <h4>{t('Subscription Details')}</h4>
                   <StyledDetailsList>
-                    <li><strong>{t('Plan:')}</strong> {sub.plan.name}</li>
-                    <li><strong>{t('Price:')}</strong> ${sub.plan.price.toFixed(2)} / {sub.plan.billing_cycle}</li>
-                    <li><strong>{t('Status:')}</strong> <StyledLabel variant="success">{t('Active')}</StyledLabel></li>
-                    <li><strong>{t('Start Date:')}</strong> {formatDate(sub.start_date)}</li>
-                    <li><strong>{t('Renewal Date:')}</strong> {formatDate(sub.end_date)}</li>
+                    <li>
+                      <strong>{t('Plan:')}</strong> {sub.plan.name}
+                    </li>
+                    <li>
+                      <strong>{t('Price:')}</strong> $
+                      {sub.plan.price.toFixed(2)} / {sub.plan.billing_cycle}
+                    </li>
+                    <li>
+                      <strong>{t('Status:')}</strong>{' '}
+                      <StyledLabel variant="success">{t('Active')}</StyledLabel>
+                    </li>
+                    <li>
+                      <strong>{t('Start Date:')}</strong>{' '}
+                      {formatDate(sub.start_date)}
+                    </li>
+                    <li>
+                      <strong>{t('Renewal Date:')}</strong>{' '}
+                      {formatDate(sub.end_date)}
+                    </li>
                     {sub.external_subscription_id && (
-                      <li><strong>{t('Payment Method:')}</strong> Stripe</li>
+                      <li>
+                        <strong>{t('Payment Method:')}</strong> Stripe
+                      </li>
                     )}
                   </StyledDetailsList>
                 </StyledCol>
                 <StyledCol md={6}>
-                  <h4>{t('What\'s Next?')}</h4>
-                  <p>{t('You now have full access to all premium features associated with your subscription plan.')}</p>
-                  <p>{t('You can manage your subscription at any time from your account settings.')}</p>
+                  <h4>{t("What's Next?")}</h4>
+                  <p>
+                    {t(
+                      'You now have full access to all premium features associated with your subscription plan.',
+                    )}
+                  </p>
+                  <p>
+                    {t(
+                      'You can manage your subscription at any time from your account settings.',
+                    )}
+                  </p>
                   {sub.external_subscription_id && (
                     <p style={{ fontSize: '0.875rem', color: '#6c757d' }}>
-                      {t('Your subscription will automatically renew unless you cancel it before the renewal date.')}
+                      {t(
+                        'Your subscription will automatically renew unless you cancel it before the renewal date.',
+                      )}
                     </p>
                   )}
                 </StyledCol>
               </StyledRow>
-              
+
               <div style={{ marginTop: '2rem' }}>
-                <StyledButton variant="primary" onClick={handleReturnToDashboard}>
+                <StyledButton
+                  variant="primary"
+                  onClick={handleReturnToDashboard}
+                >
                   {t('Return to Dashboard')}
                 </StyledButton>
                 <StyledButton onClick={handleManageSubscription}>
@@ -330,4 +371,4 @@ export default function SubscriptionSuccess({ user }: SubscriptionSuccessProps) 
       </StyledRow>
     </StyledContainer>
   );
-} 
+}

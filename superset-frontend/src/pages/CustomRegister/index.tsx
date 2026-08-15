@@ -18,8 +18,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { t } from '@superset-ui/core';
-import { styled } from '@apache-superset/core/ui';
+import { t } from '@apache-superset/core/translation';
+import { styled } from '@apache-superset/core/theme';
 import getBootstrapData from 'src/utils/getBootstrapData';
 import ReactCAPTCHA from 'react-google-recaptcha';
 
@@ -89,13 +89,15 @@ const StyledContainer = styled.div`
     color: #556270;
     font-size: 1em;
     margin: 0;
-    text-shadow: 0 1px 1px rgba(255,255,255,0.5);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
   }
 
   .panel-default {
     border: none;
     border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 0 20px rgba(40, 62, 83, 0.1);
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.08),
+      0 0 20px rgba(40, 62, 83, 0.1);
     overflow: hidden;
   }
 
@@ -133,7 +135,7 @@ const StyledContainer = styled.div`
   }
 
   .form-control:focus {
-    border-color: #283E53;
+    border-color: #283e53;
     outline: none;
   }
 
@@ -143,8 +145,8 @@ const StyledContainer = styled.div`
 
   .btn-primary {
     width: 100%;
-    background-color: #283E53;
-    border-color: #283E53;
+    background-color: #283e53;
+    border-color: #283e53;
     border-radius: 6px;
     padding: 10px;
     font-size: 16px;
@@ -173,7 +175,7 @@ const StyledContainer = styled.div`
   }
 
   .login-link a {
-    color: #283E53;
+    color: #283e53;
     font-weight: 600;
     text-decoration: none;
   }
@@ -222,15 +224,17 @@ const StyledContainer = styled.div`
     width: 1em;
     height: 1em;
     vertical-align: -0.125em;
-    border: .2em solid currentColor;
+    border: 0.2em solid currentColor;
     border-right-color: transparent;
     border-radius: 50%;
-    animation: spinner-spin .75s linear infinite;
-    margin-right: .5rem;
+    animation: spinner-spin 0.75s linear infinite;
+    margin-right: 0.5rem;
   }
 
   @keyframes spinner-spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   label {
@@ -244,7 +248,7 @@ const StyledContainer = styled.div`
 export default function CustomRegister() {
   const bootstrapData = getBootstrapData();
   const registrationData = (bootstrapData as any)?.registration || {};
-  
+
   const [formData, setFormData] = useState<RegisterForm>({
     username: '',
     first_name: '',
@@ -253,7 +257,7 @@ export default function CustomRegister() {
     password: '',
     conf_password: '',
   });
-  
+
   const [fieldErrors, setFieldErrors] = useState<FieldError>({});
   const [loading, setLoading] = useState(false);
   const [policyState, setPolicyState] = useState<PolicyState>({
@@ -266,7 +270,7 @@ export default function CustomRegister() {
   const [captchaResponse, setCaptchaResponse] = useState<string | null>(null);
 
   // Get reCAPTCHA public key from bootstrap data
-  const authRecaptchaPublicKey: string = 
+  const authRecaptchaPublicKey: string =
     (bootstrapData as any)?.common?.conf?.RECAPTCHA_PUBLIC_KEY || '';
 
   // Real-time validation for username
@@ -279,7 +283,7 @@ export default function CustomRegister() {
 
   // Real-time validation for password
   useEffect(() => {
-    const password = formData.password;
+    const {password} = formData;
     setPolicyState(prev => ({
       ...prev,
       passwordLength: password.length >= 8,
@@ -305,12 +309,14 @@ export default function CustomRegister() {
     // Use traditional form submission to let browser handle redirect naturally
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
-    
+
     // Get CSRF token from bootstrap data or DOM
-    const csrfToken = bootstrapData?.common?.conf?.CSRF_TOKEN || 
-                     document.querySelector<HTMLInputElement>('#csrf_token')?.value || '';
+    const csrfToken =
+      bootstrapData?.common?.conf?.CSRF_TOKEN ||
+      document.querySelector<HTMLInputElement>('#csrf_token')?.value ||
+      '';
     formData.append('csrf_token', csrfToken);
-    
+
     // Add captcha response if available
     if (captchaResponse) {
       formData.append('g-recaptcha-response', captchaResponse);
@@ -347,7 +353,9 @@ export default function CustomRegister() {
 
         <div className="panel panel-default">
           <div className="panel-heading">
-            <h3 className="panel-title">{registrationData.title || t('Create Your Account')}</h3>
+            <h3 className="panel-title">
+              {registrationData.title || t('Create Your Account')}
+            </h3>
           </div>
           <div className="panel-body">
             <form className="form" onSubmit={handleSubmit}>
@@ -359,12 +367,16 @@ export default function CustomRegister() {
                   name="username"
                   className={`form-control ${fieldErrors.username ? 'is-invalid' : ''}`}
                   value={formData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  onChange={e => handleInputChange('username', e.target.value)}
                   required
                 />
                 <div className="policy-container">
                   <ul>
-                    <li className={policyState.usernameLength ? 'valid' : 'invalid'}>
+                    <li
+                      className={
+                        policyState.usernameLength ? 'valid' : 'invalid'
+                      }
+                    >
                       {t('At least 5 characters')}
                     </li>
                   </ul>
@@ -386,7 +398,9 @@ export default function CustomRegister() {
                   name="first_name"
                   className={`form-control ${fieldErrors.first_name ? 'is-invalid' : ''}`}
                   value={formData.first_name}
-                  onChange={(e) => handleInputChange('first_name', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('first_name', e.target.value)
+                  }
                   required
                 />
                 {fieldErrors.first_name && (
@@ -406,7 +420,7 @@ export default function CustomRegister() {
                   name="last_name"
                   className={`form-control ${fieldErrors.last_name ? 'is-invalid' : ''}`}
                   value={formData.last_name}
-                  onChange={(e) => handleInputChange('last_name', e.target.value)}
+                  onChange={e => handleInputChange('last_name', e.target.value)}
                   required
                 />
                 {fieldErrors.last_name && (
@@ -426,7 +440,7 @@ export default function CustomRegister() {
                   name="email"
                   className={`form-control ${fieldErrors.email ? 'is-invalid' : ''}`}
                   value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={e => handleInputChange('email', e.target.value)}
                   required
                 />
                 {fieldErrors.email && (
@@ -446,21 +460,37 @@ export default function CustomRegister() {
                   name="password"
                   className={`form-control ${fieldErrors.password ? 'is-invalid' : ''}`}
                   value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  onChange={e => handleInputChange('password', e.target.value)}
                   required
                 />
                 <div className="policy-container">
                   <ul>
-                    <li className={policyState.passwordLength ? 'valid' : 'invalid'}>
+                    <li
+                      className={
+                        policyState.passwordLength ? 'valid' : 'invalid'
+                      }
+                    >
                       {t('At least 8 characters')}
                     </li>
-                    <li className={policyState.passwordUppercase ? 'valid' : 'invalid'}>
+                    <li
+                      className={
+                        policyState.passwordUppercase ? 'valid' : 'invalid'
+                      }
+                    >
                       {t('An uppercase letter')}
                     </li>
-                    <li className={policyState.passwordLowercase ? 'valid' : 'invalid'}>
+                    <li
+                      className={
+                        policyState.passwordLowercase ? 'valid' : 'invalid'
+                      }
+                    >
                       {t('A lowercase letter')}
                     </li>
-                    <li className={policyState.passwordNumber ? 'valid' : 'invalid'}>
+                    <li
+                      className={
+                        policyState.passwordNumber ? 'valid' : 'invalid'
+                      }
+                    >
                       {t('At least one number')}
                     </li>
                   </ul>
@@ -482,7 +512,9 @@ export default function CustomRegister() {
                   name="conf_password"
                   className={`form-control ${fieldErrors.conf_password ? 'is-invalid' : ''}`}
                   value={formData.conf_password}
-                  onChange={(e) => handleInputChange('conf_password', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('conf_password', e.target.value)
+                  }
                   required
                 />
                 {fieldErrors.conf_password && (
@@ -500,7 +532,7 @@ export default function CustomRegister() {
                   <label>{t('Captcha')}</label>
                   <ReactCAPTCHA
                     sitekey={authRecaptchaPublicKey}
-                    onChange={(value) => {
+                    onChange={value => {
                       setCaptchaResponse(value);
                     }}
                     data-test="captcha-input"
@@ -515,7 +547,7 @@ export default function CustomRegister() {
               >
                 {loading ? (
                   <>
-                    <span className="spinner"></span>
+                    <span className="spinner" />
                     {t('Processing...')}
                   </>
                 ) : (
@@ -525,22 +557,26 @@ export default function CustomRegister() {
             </form>
 
             {fieldErrors.general && (
-              <div className="invalid-feedback" style={{ marginTop: '15px', textAlign: 'center' }}>
+              <div
+                className="invalid-feedback"
+                style={{ marginTop: '15px', textAlign: 'center' }}
+              >
                 {fieldErrors.general.map((error, idx) => (
                   <span key={idx}>{error}</span>
                 ))}
               </div>
             )}
 
-            <div className="text-center login-link" style={{ paddingTop: '15px' }}>
+            <div
+              className="text-center login-link"
+              style={{ paddingTop: '15px' }}
+            >
               {t('Already have an account?')}{' '}
-              <a href="/login/">
-                {t('Sign In')}
-              </a>
+              <a href="/login/">{t('Sign In')}</a>
             </div>
           </div>
         </div>
       </div>
     </StyledContainer>
   );
-} 
+}

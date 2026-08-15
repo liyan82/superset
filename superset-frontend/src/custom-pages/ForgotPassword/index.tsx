@@ -18,7 +18,9 @@
  */
 
 import { useState } from 'react';
-import { SupersetClient, t, css } from '@superset-ui/core';
+import { SupersetClient } from '@superset-ui/core';
+import { t } from '@apache-superset/core/translation';
+import { css } from '@apache-superset/core/theme';
 import { Button } from '@superset-ui/core/components/Button';
 import { Form } from '@superset-ui/core/components/Form';
 import { Input } from '@superset-ui/core/components/Input';

@@ -17,8 +17,8 @@
  * under the License.
  */
 import { useState, useEffect } from 'react';
-import { t } from '@superset-ui/core';
-import { styled } from '@apache-superset/core/ui';
+import { t } from '@apache-superset/core/translation';
+import { styled } from '@apache-superset/core/theme';
 import getBootstrapData from 'src/utils/getBootstrapData';
 
 const StyledContainer = styled.div`
@@ -151,7 +151,7 @@ const StyledContainer = styled.div`
 
 export default function ActivationSuccess() {
   const [timeLeft, setTimeLeft] = useState(5);
-  
+
   const bootstrapData = getBootstrapData();
   const activationData = (bootstrapData as any)?.activationSuccess || {};
   const username = activationData.username || '';
@@ -194,7 +194,7 @@ export default function ActivationSuccess() {
           </div>
           <div className="panel-body">
             <div className="success-icon">✓</div>
-            
+
             <p>
               <strong>
                 {t('Welcome')}
@@ -204,9 +204,9 @@ export default function ActivationSuccess() {
             <p>
               {t('Your account has been successfully activated. You can now access all features of Superset.')}
             </p>
-            
+
             <hr />
-            
+
             <button
               type="button"
               className="btn btn-primary"
@@ -214,19 +214,19 @@ export default function ActivationSuccess() {
             >
               {t('Go to Login')}
             </button>
-            
+
                          <div className="countdown">
                {timeLeft > 0 ? (
                  <>
-                   {t('Automatically redirecting to login in ')} 
-                   {timeLeft} 
+                   {t('Automatically redirecting to login in ')}
+                   {timeLeft}
                    {t(' second')}{timeLeft !== 1 ? t('s') : ''}...
                  </>
                ) : (
                  t('Redirecting...')
                )}
              </div>
-            
+
             <p style={{ marginTop: '20px', fontSize: '14px' }}>
               {t('If the automatic redirect doesn\'t work, click ')}{' '}
               <a href="/login/" className="redirect-link">{t('here to login')}</a>.
@@ -236,4 +236,4 @@ export default function ActivationSuccess() {
       </div>
     </StyledContainer>
   );
-} 
+}

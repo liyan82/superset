@@ -18,7 +18,9 @@
  */
 
 import { useState, useEffect } from 'react';
-import { SupersetClient, t, css, useTheme } from '@superset-ui/core';
+import { SupersetClient } from '@superset-ui/core';
+import { t } from '@apache-superset/core/translation';
+import { css, useTheme } from '@apache-superset/core/theme';
 import { Button } from '@superset-ui/core/components/Button';
 import { Form } from '@superset-ui/core/components/Form';
 import { Input } from '@superset-ui/core/components/Input';
@@ -104,13 +106,12 @@ export default function ResetPasswordPage() {
     if (/\d/.test(password)) score += 15;
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 10;
 
-    if (score < 40)
-      return { score, text: t('Weak'), color: theme.colors.error.base };
+    if (score < 40) return { score, text: t('Weak'), color: theme.colorError };
     if (score < 70)
-      return { score, text: t('Fair'), color: theme.colors.warning.base };
+      return { score, text: t('Fair'), color: theme.colorWarning };
     if (score < 90)
-      return { score, text: t('Good'), color: theme.colors.success.base };
-    return { score, text: t('Strong'), color: theme.colors.success.dark1 };
+      return { score, text: t('Good'), color: theme.colorSuccess };
+    return { score, text: t('Strong'), color: theme.colorSuccess };
   };
 
   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {

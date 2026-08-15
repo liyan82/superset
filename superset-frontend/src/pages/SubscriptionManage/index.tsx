@@ -19,8 +19,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { t } from '@superset-ui/core';
-import { css, styled } from '@apache-superset/core/ui';
+import { t } from '@apache-superset/core/translation';
+import { css, styled } from '@apache-superset/core/theme';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { SupersetClient } from '@superset-ui/core';
@@ -31,9 +31,11 @@ const StyledPageWrapper = styled.div`
   min-height: 100vh;
   min-height: 100dvh;
   background-color: #f5f7fa;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
   position: relative;
-  
+
   &::before {
     content: '';
     position: fixed;
@@ -66,15 +68,19 @@ const StyledCol = styled.div<{ md?: number; offset?: number }>`
   width: 100%;
   padding-left: 15px;
   padding-right: 15px;
-  
-  ${({ md }) => md && css`
-    flex: 0 0 ${(md / 12) * 100}%;
-    max-width: ${(md / 12) * 100}%;
-  `}
-  
-  ${({ offset }) => offset && css`
-    margin-left: ${(offset / 12) * 100}%;
-  `}
+
+  ${({ md }) =>
+    md &&
+    css`
+      flex: 0 0 ${(md / 12) * 100}%;
+      max-width: ${(md / 12) * 100}%;
+    `}
+
+  ${({ offset }) =>
+    offset &&
+    css`
+      margin-left: ${(offset / 12) * 100}%;
+    `}
 `;
 
 const StyledPanel = styled.div`
@@ -82,7 +88,7 @@ const StyledPanel = styled.div`
   background-color: #fff;
   border: 1px solid transparent;
   border-radius: 4px;
-  box-shadow: 0 1px 1px rgba(0,0,0,.05);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
   border-color: #ddd;
 `;
 
@@ -93,7 +99,7 @@ const StyledPanelHeading = styled.div<{ variant?: string }>`
   border-top-right-radius: 3px;
   color: #fff;
   border-color: #ddd;
-  
+
   ${({ variant }) => {
     if (variant === 'primary') {
       return css`
@@ -113,7 +119,7 @@ const StyledPanelHeading = styled.div<{ variant?: string }>`
       color: #333;
     `;
   }}
-  
+
   h3 {
     margin: 0;
     font-size: 16px;
@@ -127,7 +133,7 @@ const StyledPanelBody = styled.div`
 
 const StyledLabel = styled.span<{ variant?: string }>`
   display: inline;
-  padding: .2em .6em .3em;
+  padding: 0.2em 0.6em 0.3em;
   font-size: 75%;
   font-weight: 700;
   line-height: 1;
@@ -135,18 +141,26 @@ const StyledLabel = styled.span<{ variant?: string }>`
   text-align: center;
   white-space: nowrap;
   vertical-align: baseline;
-  border-radius: .25em;
-  
+  border-radius: 0.25em;
+
   ${({ variant }) => {
     switch (variant) {
       case 'success':
-        return css`background-color: #5cb85c;`;
+        return css`
+          background-color: #5cb85c;
+        `;
       case 'warning':
-        return css`background-color: #f0ad4e;`;
+        return css`
+          background-color: #f0ad4e;
+        `;
       case 'danger':
-        return css`background-color: #d9534f;`;
+        return css`
+          background-color: #d9534f;
+        `;
       default:
-        return css`background-color: #777;`;
+        return css`
+          background-color: #777;
+        `;
     }
   }}
 `;
@@ -168,7 +182,7 @@ const StyledButton = styled.button<{ variant?: string; size?: string }>`
   border: 1px solid transparent;
   border-radius: 4px;
   text-decoration: none;
-  
+
   ${({ variant }) => {
     switch (variant) {
       case 'danger':
@@ -213,7 +227,7 @@ const StyledButton = styled.button<{ variant?: string; size?: string }>`
         `;
     }
   }}
-  
+
   &:disabled {
     opacity: 0.65;
     cursor: not-allowed;
@@ -227,21 +241,22 @@ const StyledTable = styled.table`
   background-color: transparent;
   border-collapse: collapse;
   border-spacing: 0;
-  
-  th, td {
+
+  th,
+  td {
     padding: 8px;
     line-height: 1.42857143;
     vertical-align: top;
     border-top: 1px solid #ddd;
   }
-  
+
   th {
     font-weight: 500;
     text-align: left;
     background-color: #f5f5f5;
     border-bottom: 2px solid #ddd;
   }
-  
+
   tbody tr:nth-child(odd) {
     background-color: #f9f9f9;
   }
@@ -252,7 +267,7 @@ const StyledAlert = styled.div<{ variant?: string }>`
   margin-bottom: 20px;
   border: 1px solid transparent;
   border-radius: 4px;
-  
+
   ${({ variant }) => {
     switch (variant) {
       case 'warning':
@@ -330,25 +345,30 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await SupersetClient.get({
         endpoint: '/subscription/api/details',
       });
-      
+
       const data = response.json as SubscriptionDetails;
       setDetails(data);
-      
+
       // If no subscription, redirect to plans page
       if (!data.subscription) {
-        addSuccessToast(t('You don\'t have an active subscription. Choose a plan below to subscribe.'));
+        addSuccessToast(
+          t(
+            "You don't have an active subscription. Choose a plan below to subscribe.",
+          ),
+        );
         history.push('/subscription/plans');
         return;
       }
-      
     } catch (error) {
       console.error('Error fetching subscription details:', error);
       setError(t('Error loading subscription details. Please try again.'));
-      addDangerToast(t('Error loading subscription details. Please try again.'));
+      addDangerToast(
+        t('Error loading subscription details. Please try again.'),
+      );
     } finally {
       setLoading(false);
     }
@@ -361,29 +381,31 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
   const handleCancelSubscription = async () => {
     console.log('handleCancelSubscription called!');
     console.log('details:', details);
-    
+
     if (!details?.subscription) {
       console.log('No subscription found, returning early');
       return;
     }
-    
+
     setCancelling(true);
     try {
       console.log('Making API call to cancel subscription...');
       console.log('subscription_id:', details.subscription.id);
-      
+
       const response = await SupersetClient.post({
         endpoint: '/subscription/api/cancel',
         jsonPayload: {
           subscription_id: details.subscription.id,
         },
       });
-      
+
       console.log('API Response:', response);
       const result = response.json as any;
-      
+
       if (result.success) {
-        addSuccessToast(result.message || t('Your subscription has been cancelled'));
+        addSuccessToast(
+          result.message || t('Your subscription has been cancelled'),
+        );
         setShowCancelModal(false);
         // Refresh the details to show updated status
         await fetchDetails();
@@ -392,7 +414,11 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
       }
     } catch (error) {
       console.error('Error cancelling subscription:', error);
-      addDangerToast(error instanceof Error ? error.message : t('Error cancelling subscription. Please try again.'));
+      addDangerToast(
+        error instanceof Error
+          ? error.message
+          : t('Error cancelling subscription. Please try again.'),
+      );
     } finally {
       setCancelling(false);
     }
@@ -400,15 +426,14 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
 
   const handleResumePayment = () => {
     if (!details?.subscription?.plan?.product_id) return;
-    history.push(`/subscription/payment/${details.subscription.plan.product_id}`);
+    history.push(
+      `/subscription/payment/${details.subscription.plan.product_id}`,
+    );
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString(undefined, {
+  const formatDateTime = (dateString: string) => new Date(dateString).toLocaleString(undefined, {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',
@@ -416,9 +441,8 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
       minute: '2-digit',
       second: '2-digit',
       hour12: true,
-      timeZoneName: 'short'
+      timeZoneName: 'short',
     });
-  };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -466,13 +490,13 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
       <StyledPageWrapper>
         <StyledContainer>
           <SubMenu name={t('Manage Subscription')} buttons={subMenuButtons} />
-        <StyledAlert variant="warning">
-          <h4>{t('Error Loading Subscription')}</h4>
-          <p>{error}</p>
-          <StyledButton variant="primary" onClick={fetchDetails}>
-            {t('Retry')}
-          </StyledButton>
-        </StyledAlert>
+          <StyledAlert variant="warning">
+            <h4>{t('Error Loading Subscription')}</h4>
+            <p>{error}</p>
+            <StyledButton variant="primary" onClick={fetchDetails}>
+              {t('Retry')}
+            </StyledButton>
+          </StyledAlert>
         </StyledContainer>
       </StyledPageWrapper>
     );
@@ -483,169 +507,226 @@ export default function SubscriptionManage({ user }: SubscriptionManageProps) {
       <StyledPageWrapper>
         <StyledContainer>
           <SubMenu name={t('Manage Subscription')} buttons={subMenuButtons} />
-        <StyledAlert variant="warning">
-          <h4>{t('No Active Subscription')}</h4>
-          <p>{t('You don\'t have an active subscription at the moment.')}</p>
-          <a href="/subscription/plans">
-            <StyledButton variant="primary">{t('View Available Plans')}</StyledButton>
-          </a>
-        </StyledAlert>
+          <StyledAlert variant="warning">
+            <h4>{t('No Active Subscription')}</h4>
+            <p>{t("You don't have an active subscription at the moment.")}</p>
+            <a href="/subscription/plans">
+              <StyledButton variant="primary">
+                {t('View Available Plans')}
+              </StyledButton>
+            </a>
+          </StyledAlert>
         </StyledContainer>
       </StyledPageWrapper>
     );
   }
 
-  const subscription = details.subscription;
+  const {subscription} = details;
 
   return (
     <StyledPageWrapper>
       <StyledContainer>
-        <SubMenu name={t('Manage Your Subscription')} buttons={subMenuButtons} />
-      
-      <StyledRow>
-        <StyledCol md={8}>
-          <StyledPanel>
-            <StyledPanelHeading variant="primary">
-              <h3>{t('Current Subscription')}</h3>
-            </StyledPanelHeading>
-            <StyledPanelBody>
-              <StyledRow>
-                <StyledCol md={6}>
-                  <h4>{subscription.plan.name}</h4>
-                  <p>{subscription.plan.description}</p>
-                  
-                  <h5>
-                    {t('Status: ')}
-                    {getStatusLabel(subscription.status)}
-                  </h5>
-                </StyledCol>
-                <StyledCol md={6}>
-                  <h5>{t('Subscription Details:')}</h5>
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
-                    <li><strong>{t('Started:')}</strong> {formatDate(subscription.start_date)}</li>
-                    <li><strong>{t('Ends:')}</strong> {formatDate(subscription.end_date)}</li>
-                    <li>
-                      <strong>{t('Auto-renew:')}</strong>
-                      {subscription.is_auto_renew ? (
-                        <span style={{ color: '#5cb85c' }}> {t('Yes')}</span>
-                      ) : (
-                        <span style={{ color: '#d9534f' }}> {t('No')}</span>
-                      )}
-                    </li>
-                  </ul>
-                </StyledCol>
-              </StyledRow>
-              
-              {subscription.status === 'active' && (
-                <div style={{ borderTop: '1px solid #ddd', marginTop: '15px', paddingTop: '15px' }}>
-                  <StyledButton variant="danger" onClick={() => setShowCancelModal(true)}>
-                    {t('Cancel Subscription')}
-                  </StyledButton>
-                </div>
-              )}
-              
-              {subscription.status === 'incomplete' && (
-                <div style={{ borderTop: '1px solid #ddd', marginTop: '15px', paddingTop: '15px' }}>
-                  <StyledButton variant="warning" onClick={handleResumePayment}>
-                    {t('Resume Payment')}
-                  </StyledButton>
-                </div>
-              )}
-              
-              {(subscription.status === 'cancelled' || subscription.status === 'expired') && (
-                <div style={{ borderTop: '1px solid #ddd', marginTop: '15px', paddingTop: '15px' }}>
-                  <a href="/subscription/plans">
-                    <StyledButton variant="primary">{t('View Available Plans')}</StyledButton>
-                  </a>
-                </div>
-              )}
-            </StyledPanelBody>
-          </StyledPanel>
-          
-          <StyledPanel>
-            <StyledPanelHeading variant="info">
-              <h3>{t('Payment History')}</h3>
-            </StyledPanelHeading>
-            <StyledPanelBody>
-              {details.payments && details.payments.length > 0 ? (
-                <StyledTable>
-                  <thead>
-                    <tr>
-                      <th>{t('Date')}</th>
-                      <th>{t('Amount')}</th>
-                      <th>{t('Status')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {details.payments.map((payment) => (
-                      <tr key={payment.id}>
-                        <td>{payment.payment_date ? formatDateTime(payment.payment_date) : 'N/A'}</td>
-                        <td>${payment.amount.toFixed(2)}</td>
-                        <td>{getPaymentStatusLabel(payment.status)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </StyledTable>
-              ) : (
-                <StyledAlert variant="info">
-                  {t('No payment history available.')}
-                </StyledAlert>
-              )}
-            </StyledPanelBody>
-          </StyledPanel>
-        </StyledCol>
-        
-        <StyledCol md={4}>
-          <StyledPanel>
-            <StyledPanelHeading>
-              <h3>{t('Need Help?')}</h3>
-            </StyledPanelHeading>
-            <StyledPanelBody>
-              <p>{t('If you have any questions about your subscription or need assistance, please contact our support team:')}</p>
-              <ul style={{ listStyle: 'none', padding: 0 }}>
-                <li><i className="fa fa-envelope"></i> <a href="mailto:david@patent1024.com">david@patent1024.com</a></li>
-                <li><i className="fa fa-phone"></i> (678) 888-2116</li>
-              </ul>
-            </StyledPanelBody>
-          </StyledPanel>
-        </StyledCol>
-      </StyledRow>
+        <SubMenu
+          name={t('Manage Your Subscription')}
+          buttons={subMenuButtons}
+        />
 
-      {/* Cancellation Confirmation Modal */}
-      <Modal
-        title={t('Confirm Cancellation')}
-        open={showCancelModal}
-        onCancel={() => setShowCancelModal(false)}
-        footer={[
-          <StyledButton 
-            key="keep"
-            onClick={() => {
-              console.log('Keep Subscription button clicked!');
-              setShowCancelModal(false);
-            }}
-          >
-            {t('Keep Subscription')}
-          </StyledButton>,
-          <StyledButton 
-            key="cancel"
-            variant="danger" 
-            onClick={() => {
-              console.log('Cancel button clicked!');
-              handleCancelSubscription();
-            }}
-            disabled={cancelling}
-          >
-            {cancelling ? t('Cancelling...') : t('Yes, Cancel My Subscription')}
-          </StyledButton>,
-        ]}
-      >
-        <p>{t('Are you sure you want to cancel your subscription?')}</p>
-        <p>
-          {t('If you cancel, you can still use the service until your current subscription period ends on ')}
-          <strong>{formatDate(subscription.end_date)}</strong>.
-        </p>
-      </Modal>
+        <StyledRow>
+          <StyledCol md={8}>
+            <StyledPanel>
+              <StyledPanelHeading variant="primary">
+                <h3>{t('Current Subscription')}</h3>
+              </StyledPanelHeading>
+              <StyledPanelBody>
+                <StyledRow>
+                  <StyledCol md={6}>
+                    <h4>{subscription.plan.name}</h4>
+                    <p>{subscription.plan.description}</p>
+
+                    <h5>
+                      {t('Status: ')}
+                      {getStatusLabel(subscription.status)}
+                    </h5>
+                  </StyledCol>
+                  <StyledCol md={6}>
+                    <h5>{t('Subscription Details:')}</h5>
+                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                      <li>
+                        <strong>{t('Started:')}</strong>{' '}
+                        {formatDate(subscription.start_date)}
+                      </li>
+                      <li>
+                        <strong>{t('Ends:')}</strong>{' '}
+                        {formatDate(subscription.end_date)}
+                      </li>
+                      <li>
+                        <strong>{t('Auto-renew:')}</strong>
+                        {subscription.is_auto_renew ? (
+                          <span style={{ color: '#5cb85c' }}> {t('Yes')}</span>
+                        ) : (
+                          <span style={{ color: '#d9534f' }}> {t('No')}</span>
+                        )}
+                      </li>
+                    </ul>
+                  </StyledCol>
+                </StyledRow>
+
+                {subscription.status === 'active' && (
+                  <div
+                    style={{
+                      borderTop: '1px solid #ddd',
+                      marginTop: '15px',
+                      paddingTop: '15px',
+                    }}
+                  >
+                    <StyledButton
+                      variant="danger"
+                      onClick={() => setShowCancelModal(true)}
+                    >
+                      {t('Cancel Subscription')}
+                    </StyledButton>
+                  </div>
+                )}
+
+                {subscription.status === 'incomplete' && (
+                  <div
+                    style={{
+                      borderTop: '1px solid #ddd',
+                      marginTop: '15px',
+                      paddingTop: '15px',
+                    }}
+                  >
+                    <StyledButton
+                      variant="warning"
+                      onClick={handleResumePayment}
+                    >
+                      {t('Resume Payment')}
+                    </StyledButton>
+                  </div>
+                )}
+
+                {(subscription.status === 'cancelled' ||
+                  subscription.status === 'expired') && (
+                  <div
+                    style={{
+                      borderTop: '1px solid #ddd',
+                      marginTop: '15px',
+                      paddingTop: '15px',
+                    }}
+                  >
+                    <a href="/subscription/plans">
+                      <StyledButton variant="primary">
+                        {t('View Available Plans')}
+                      </StyledButton>
+                    </a>
+                  </div>
+                )}
+              </StyledPanelBody>
+            </StyledPanel>
+
+            <StyledPanel>
+              <StyledPanelHeading variant="info">
+                <h3>{t('Payment History')}</h3>
+              </StyledPanelHeading>
+              <StyledPanelBody>
+                {details.payments && details.payments.length > 0 ? (
+                  <StyledTable>
+                    <thead>
+                      <tr>
+                        <th>{t('Date')}</th>
+                        <th>{t('Amount')}</th>
+                        <th>{t('Status')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {details.payments.map(payment => (
+                        <tr key={payment.id}>
+                          <td>
+                            {payment.payment_date
+                              ? formatDateTime(payment.payment_date)
+                              : 'N/A'}
+                          </td>
+                          <td>${payment.amount.toFixed(2)}</td>
+                          <td>{getPaymentStatusLabel(payment.status)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </StyledTable>
+                ) : (
+                  <StyledAlert variant="info">
+                    {t('No payment history available.')}
+                  </StyledAlert>
+                )}
+              </StyledPanelBody>
+            </StyledPanel>
+          </StyledCol>
+
+          <StyledCol md={4}>
+            <StyledPanel>
+              <StyledPanelHeading>
+                <h3>{t('Need Help?')}</h3>
+              </StyledPanelHeading>
+              <StyledPanelBody>
+                <p>
+                  {t(
+                    'If you have any questions about your subscription or need assistance, please contact our support team:',
+                  )}
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0 }}>
+                  <li>
+                    <i className="fa fa-envelope" />{' '}
+                    <a href="mailto:david@patent1024.com">
+                      david@patent1024.com
+                    </a>
+                  </li>
+                  <li>
+                    <i className="fa fa-phone" /> (678) 888-2116
+                  </li>
+                </ul>
+              </StyledPanelBody>
+            </StyledPanel>
+          </StyledCol>
+        </StyledRow>
+
+        {/* Cancellation Confirmation Modal */}
+        <Modal
+          title={t('Confirm Cancellation')}
+          open={showCancelModal}
+          onCancel={() => setShowCancelModal(false)}
+          footer={[
+            <StyledButton
+              key="keep"
+              onClick={() => {
+                console.log('Keep Subscription button clicked!');
+                setShowCancelModal(false);
+              }}
+            >
+              {t('Keep Subscription')}
+            </StyledButton>,
+            <StyledButton
+              key="cancel"
+              variant="danger"
+              onClick={() => {
+                console.log('Cancel button clicked!');
+                handleCancelSubscription();
+              }}
+              disabled={cancelling}
+            >
+              {cancelling
+                ? t('Cancelling...')
+                : t('Yes, Cancel My Subscription')}
+            </StyledButton>,
+          ]}
+        >
+          <p>{t('Are you sure you want to cancel your subscription?')}</p>
+          <p>
+            {t(
+              'If you cancel, you can still use the service until your current subscription period ends on ',
+            )}
+            <strong>{formatDate(subscription.end_date)}</strong>.
+          </p>
+        </Modal>
       </StyledContainer>
     </StyledPageWrapper>
   );
-} 
+}

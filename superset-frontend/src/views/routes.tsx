@@ -167,8 +167,7 @@ const ActionLogList: LazyExoticComponent<any> = lazy(
 );
 
 const Login = lazy(
-  () =>
-    import(/* webpackChunkName: "CustomLogin" */ 'src/custom-pages/Login'),
+  () => import(/* webpackChunkName: "CustomLogin" */ 'src/custom-pages/Login'),
 );
 
 const ForgotPassword = lazy(
@@ -211,20 +210,31 @@ const RedirectWarning = lazy(
 );
 
 const SubscriptionPlans = lazy(
-  () => import(/* webpackChunkName: "SubscriptionPlans" */ 'src/pages/SubscriptionPlans'),
+  () =>
+    import(
+      /* webpackChunkName: "SubscriptionPlans" */ 'src/pages/SubscriptionPlans'
+    ),
 );
 
 const SubscriptionManage = lazy(
-  () => import(/* webpackChunkName: "SubscriptionManage" */ 'src/pages/SubscriptionManage'),
+  () =>
     import(
+      /* webpackChunkName: "SubscriptionManage" */ 'src/pages/SubscriptionManage'
+    ),
 );
 
 const SubscriptionPayment = lazy(
-  () => import(/* webpackChunkName: "SubscriptionPayment" */ 'src/pages/SubscriptionPayment'),
+  () =>
+    import(
+      /* webpackChunkName: "SubscriptionPayment" */ 'src/pages/SubscriptionPayment'
+    ),
 );
 
 const SubscriptionSuccess = lazy(
-  () => import(/* webpackChunkName: "SubscriptionSuccess" */ 'src/pages/SubscriptionSuccess'),
+  () =>
+    import(
+      /* webpackChunkName: "SubscriptionSuccess" */ 'src/pages/SubscriptionSuccess'
+    ),
 );
 
 type Routes = {

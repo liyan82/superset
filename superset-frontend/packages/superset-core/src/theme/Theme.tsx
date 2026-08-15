@@ -158,6 +158,7 @@ export class Theme {
     // Set the base theme properties
     this.antdConfig = antdConfig;
     this.theme = {
+      ...Theme.defaultTokens, // Superset-level defaults (brand and extra tokens)
       ...tokens, // First apply Ant Design computed tokens
       ...antdConfig.token, // Then override with our custom tokens
       // Include Superset-specific properties from top-level config

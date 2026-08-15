@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { styled, css } from '@apache-superset/core/ui';
+import { styled, css } from '@apache-superset/core/theme';
 import { Card, Typography } from '@superset-ui/core/components';
 
 export const LoginContainer = styled.div`

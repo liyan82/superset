@@ -17,17 +17,12 @@
  * under the License.
  */
 import { useState, useEffect, useCallback } from 'react';
-import { SupersetClient, t } from '@superset-ui/core';
-import { styled, css, useTheme } from '@apache-superset/core/ui';
-import {
-  Button,
-  Select,
-  FormLabel,
-  Alert,
-  Input,
-} from '@superset-ui/core/components';
+import { SupersetClient } from '@superset-ui/core';
+import { t } from '@apache-superset/core/translation';
+import { styled, css, useTheme } from '@apache-superset/core/theme';
+import { Button, Select, FormLabel, Input } from '@superset-ui/core/components';
 // eslint-disable-next-line no-restricted-imports
-import { Modal } from 'antd';
+import { Alert, Modal } from 'antd';
 import ProgressBar from '@superset-ui/core/components/ProgressBar';
 import { Icons } from '@superset-ui/core/components/Icons';
 import { Space } from '@superset-ui/core/components/Space';
@@ -53,7 +48,7 @@ interface SelectOption {
 const StyledContainer = styled.div`
   ${({ theme }) => css`
     .form-section {
-      background-color: ${theme.colors.grayscale.light5};
+      background-color: ${theme.colorBgLayout};
       padding: ${theme.sizeUnit * 6}px;
       margin-bottom: ${theme.sizeUnit * 4}px;
       border-radius: ${theme.borderRadius}px;
@@ -64,10 +59,10 @@ const StyledContainer = styled.div`
     }
 
     .form-actions {
-      background-color: ${theme.colors.grayscale.light5};
+      background-color: ${theme.colorBgLayout};
       padding: ${theme.sizeUnit * 4}px ${theme.sizeUnit * 6}px;
       border-radius: ${theme.borderRadius}px;
-      border-top: 1px solid ${theme.colors.grayscale.light2};
+      border-top: 1px solid ${theme.colorBorderSecondary};
     }
   `}
 `;
@@ -383,7 +378,7 @@ export default function Newsletter() {
               marginTop: theme.sizeUnit * 2,
               fontFamily: 'monospace',
               fontSize: '13px',
-              backgroundColor: theme.colors.grayscale.light4,
+              backgroundColor: theme.colorBgContainerDisabled,
             }}
           />
           {errors.emailBody && (

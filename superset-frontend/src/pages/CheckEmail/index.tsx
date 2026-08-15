@@ -18,8 +18,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { t } from '@superset-ui/core';
-import { styled } from '@apache-superset/core/ui';
+import { t } from '@apache-superset/core/translation';
+import { styled } from '@apache-superset/core/theme';
 import getBootstrapData from 'src/utils/getBootstrapData';
 
 const StyledContainer = styled.div`
@@ -54,13 +54,15 @@ const StyledContainer = styled.div`
     color: #556270;
     font-size: 1em;
     margin: 0;
-    text-shadow: 0 1px 1px rgba(255,255,255,0.5);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
   }
 
   .panel-default {
     border: none;
     border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 0 20px rgba(40, 62, 83, 0.1);
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.08),
+      0 0 20px rgba(40, 62, 83, 0.1);
     overflow: hidden;
   }
 
@@ -84,8 +86,8 @@ const StyledContainer = styled.div`
   }
 
   .btn-primary {
-    background-color: #283E53;
-    border-color: #283E53;
+    background-color: #283e53;
+    border-color: #283e53;
     border-radius: 6px;
     padding: 10px 20px;
     font-size: 16px;
@@ -123,7 +125,7 @@ const StyledContainer = styled.div`
 export default function CheckEmail() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const bootstrapData = getBootstrapData();
   const checkEmailData = (bootstrapData as any)?.checkEmail || {};
   const email = checkEmailData.email || '';
@@ -146,20 +148,25 @@ export default function CheckEmail() {
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Get CSRF token from bootstrap data or DOM
-      const csrfToken = (bootstrapData as any)?.common?.conf?.CSRF_TOKEN || 
-                       document.querySelector<HTMLInputElement>('#csrf_token')?.value || '';
-      
-      const response = await fetch(`/register/resend-activation/${registerUserId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+      const csrfToken =
+        (bootstrapData as any)?.common?.conf?.CSRF_TOKEN ||
+        document.querySelector<HTMLInputElement>('#csrf_token')?.value ||
+        '';
+
+      const response = await fetch(
+        `/register/resend-activation/${registerUserId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `csrf_token=${encodeURIComponent(csrfToken)}`,
+          credentials: 'same-origin',
         },
-        body: `csrf_token=${encodeURIComponent(csrfToken)}`,
-        credentials: 'same-origin',
-      });
+      );
 
       if (response.ok) {
         // Reset timer and disable button again
@@ -190,18 +197,21 @@ export default function CheckEmail() {
           </div>
           <div className="panel-body">
             <p>
-              {t("We've sent an activation link to your email address: ")}<strong>{email}</strong>.
+              {t("We've sent an activation link to your email address: ")}
+              <strong>{email}</strong>.
             </p>
             <p>
-              {t('Please click the link in that email to activate your account.')}
+              {t(
+                'Please click the link in that email to activate your account.',
+              )}
             </p>
             <p>
-              {t("If you don't see the email in your inbox, please check your spam folder.")}
+              {t(
+                "If you don't see the email in your inbox, please check your spam folder.",
+              )}
             </p>
             <hr />
-            <p>
-              {t("Didn't receive the email after a minute?")}
-            </p>
+            <p>{t("Didn't receive the email after a minute?")}</p>
             <button
               type="button"
               className="btn btn-primary"
@@ -220,4 +230,4 @@ export default function CheckEmail() {
       </div>
     </StyledContainer>
   );
-} 
+}

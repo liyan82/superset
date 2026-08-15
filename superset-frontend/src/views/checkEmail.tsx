@@ -17,7 +17,7 @@
  * under the License.
  */
 import ReactDOM from 'react-dom';
-import { logging } from '@superset-ui/core';
+import { logging } from '@apache-superset/core/utils';
 import CheckEmail from 'src/pages/CheckEmail';
 import setupClient from 'src/setup/setupClient';
 import setupColors from 'src/setup/setupColors';
@@ -37,4 +37,4 @@ if (window.performance && window.performance.getEntriesByType) {
     const navigationEntry = navigationEntries[0] as PerformanceNavigationTiming;
     logging.info('Check email page load time:', navigationEntry.loadEventEnd - navigationEntry.fetchStart);
   }
-} 
+}
