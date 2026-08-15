@@ -90,16 +90,16 @@ BLOG_POSTS: dict[str, dict[str, str]] = {
 
 
 def _spa_response(view: Any) -> FlaskResponse:
-    """Render the React SPA shell with the standard bootstrap payload."""
-    from superset.utils import json
-    from superset.views.base import common_bootstrap_payload
+    """Render the React SPA shell with the standard bootstrap payload.
 
-    payload = {"common": common_bootstrap_payload()}
-    return view.render_template(
-        "superset/spa.html",
-        entry="spa",
-        bootstrap_data=json.dumps(payload, default=json.pessimistic_json_iso_dttm_ser),
-    )
+    Builds the context through get_spa_template_context rather than assembling
+    it by hand: spa.html also needs theme_tokens, spinner_svg, default_title and
+    the language-pack vars, and rendering without them raises UndefinedError.
+    """
+    from superset.views.base import get_spa_template_context
+
+    context = get_spa_template_context("spa")
+    return view.render_template("superset/spa.html", **context)
 
 
 class Patent1024IndexView(SupersetIndexView):

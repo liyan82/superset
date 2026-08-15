@@ -83,19 +83,13 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
         self._init_vars()
         # Serve the React app instead of Jinja template
         # Import here to avoid circular import
-        from superset.views.base import common_bootstrap_payload
-        
-        payload = {
-            "common": common_bootstrap_payload(),
-            "registration": {
-                "title": str(self.form_title),
-            }
-        }
-        return self.render_template(
-            "superset/spa.html",
-            entry="registration",
-            bootstrap_data=json.dumps(payload, default=superset_json.pessimistic_json_iso_dttm_ser),
+        from superset.views.base import get_spa_template_context
+
+        context = get_spa_template_context(
+            "registration",
+            {"registration": {"title": str(self.form_title)}},
         )
+        return self.render_template("superset/spa.html", **context)
 
     @expose("/form", methods=["POST"])
     def this_form_post(self) -> Response:
@@ -224,23 +218,21 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
 
         # Serve the React app instead of Jinja template
         # Import here to avoid circular import
-        from superset.views.base import common_bootstrap_payload
-        
-        payload = {
-            "common": common_bootstrap_payload(),
-            "checkEmail": {
-                "title": str(lazy_gettext("Check Your Email")),
-                "email": email,
-                "register_user_id": register_user.id,
-            }
-        }
+        from superset.views.base import get_spa_template_context
+
+        context = get_spa_template_context(
+            "checkEmail",
+            {
+                "checkEmail": {
+                    "title": str(lazy_gettext("Check Your Email")),
+                    "email": email,
+                    "register_user_id": register_user.id,
+                }
+            },
+        )
         return cast(
             Response,
-            self.render_template(
-                "superset/spa.html",
-                entry="checkEmail",
-                bootstrap_data=json.dumps(payload, default=superset_json.pessimistic_json_iso_dttm_ser),
-            ),
+            self.render_template("superset/spa.html", **context),
         )
 
     @expose("/activation/<string:activation_hash>")
@@ -249,8 +241,8 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
         Override the activation endpoint to serve React activation success page
         instead of the default Jinja template.
         """
-        from superset.views.base import common_bootstrap_payload
-        
+        from superset.views.base import get_spa_template_context
+
         # Find the registration record
         reg = self.appbuilder.sm.find_register_user(activation_hash)
         if not reg:
@@ -279,7 +271,6 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
 
         # Serve React activation success page
         payload = {
-            "common": common_bootstrap_payload(),
             "activationSuccess": {
                 "title": str(lazy_gettext("Account Activated Successfully!")),
                 "username": reg.username,
@@ -287,14 +278,11 @@ class SupersetRegisterUserDBView(RegisterUserDBView):
                 "last_name": reg.last_name,
             }
         }
-        
+
+        context = get_spa_template_context("activationSuccess", payload)
         return cast(
             Response,
-            self.render_template(
-                "superset/spa.html",
-                entry="activationSuccess",
-                bootstrap_data=json.dumps(payload, default=superset_json.pessimistic_json_iso_dttm_ser),
-            ),
+            self.render_template("superset/spa.html", **context),
         )
 
     @expose("/resend-activation/<int:register_user_id>", methods=["POST"])
