@@ -36,19 +36,25 @@ logger = logging.getLogger(__name__)
 class ForgotPasswordSchema(Schema):
     """Schema for forgot password request"""
 
-    email = fields.Email(required=True, description="User's email address")
+    email = fields.Email(
+        required=True, metadata={"description": "User's email address"}
+    )
 
 
 class ResetPasswordSchema(Schema):
     """Schema for password reset request"""
 
-    token = fields.String(required=True, description="Password reset token")
+    token = fields.String(
+        required=True, metadata={"description": "Password reset token"}
+    )
     new_password = fields.String(
         required=True,
         validate=lambda x: len(x) >= 8,
-        description="New password (minimum 8 characters)",
+        metadata={"description": "New password (minimum 8 characters)"},
     )
-    confirm_password = fields.String(required=True, description="Confirm new password")
+    confirm_password = fields.String(
+        required=True, metadata={"description": "Confirm new password"}
+    )
 
 
 class PasswordResetApi(BaseSupersetApi):
