@@ -155,12 +155,21 @@ class RequestPasswordResetCommand(BaseCommand):
             # Update config with mapped values
             config.update(smtp_config_mapping)
 
-            logger.info(f"Using SMTP config: {smtp_config_mapping}")
+            # Never log the mapping wholesale -- it carries SMTP_PASSWORD.
+            logger.info(
+                "Using SMTP host=%s port=%s user=%s from=%s starttls=%s",
+                smtp_config_mapping["SMTP_HOST"],
+                smtp_config_mapping["SMTP_PORT"],
+                smtp_config_mapping["SMTP_USER"],
+                smtp_config_mapping["SMTP_MAIL_FROM"],
+                smtp_config_mapping["SMTP_STARTTLS"],
+            )
 
             # Send email
+            app_name = current_app.config.get("APP_NAME") or "Superset"
             send_email_smtp(
                 to=user.email,
-                subject="Reset your Superset password",
+                subject=f"Reset your {app_name} password",
                 html_content=email_content,
                 config=config,
             )
@@ -170,23 +179,59 @@ class RequestPasswordResetCommand(BaseCommand):
         except Exception as ex:
             logger.error(f"Exception during email send: {ex}", exc_info=True)
 
+    @staticmethod
+    def _get_public_base_url() -> str:
+        """Public origin to use for links that end up inside an email.
+
+        Deliberately config-driven and never derived from the incoming request:
+        building the reset link from the Host header would let an attacker send
+        a forged Host, receive a link pointing at their own domain, and harvest
+        the victim's reset token.
+
+        PASSWORD_RESET_BASE_URL wins; SUPERSET_WEBSERVER_ADDRESS is honoured for
+        backwards compatibility. A loopback or wildcard origin is unreachable for
+        anyone receiving the mail, so warn loudly rather than silently sending a
+        dead link -- that failure mode is invisible to the user, who is told the
+        mail was sent either way.
+        """
+        base_url = (
+            current_app.config.get("PASSWORD_RESET_BASE_URL")
+            or current_app.config.get("SUPERSET_WEBSERVER_ADDRESS")
+            or ""
+        ).strip().rstrip("/")
+
+        if not base_url:
+            logger.error(
+                "Neither PASSWORD_RESET_BASE_URL nor SUPERSET_WEBSERVER_ADDRESS is "
+                "set. Password reset emails will contain unusable links."
+            )
+        elif any(
+            host in base_url
+            for host in ("localhost", "127.0.0.1", "0.0.0.0", "host.docker.internal")
+        ):
+            logger.warning(
+                "Password reset emails are being built against %s, which recipients "
+                "cannot reach. Set PASSWORD_RESET_BASE_URL to the public site URL "
+                "(e.g. https://patent1024.com) in superset_config.py.",
+                base_url,
+            )
+
+        return base_url
+
     def _build_reset_url(self, token: str) -> str:
         """Build the password reset URL"""
-        # Use configured base URL instead of hardcoded localhost
-        base_url = current_app.config.get(
-            "SUPERSET_WEBSERVER_ADDRESS", "https://patent1024.com"
-        ).rstrip("/")
-        return f"{base_url}/reset-password/?token={token}"
+        return f"{self._get_public_base_url()}/reset-password/?token={token}"
 
     def _render_email_template(self, user: User, reset_url: str) -> str:
         """Render the email template"""
         from flask import render_template
 
         expiry_hours = current_app.config.get("RESET_PASSWORD_TOKEN_EXPIRY_HOURS", 1)
-        base_url = current_app.config.get(
-            "SUPERSET_WEBSERVER_ADDRESS", "http://localhost:8088"
+        # Same origin as the reset link: these two used to fall back to different
+        # defaults, so the logo could point somewhere the link did not.
+        logo_url = (
+            f"{self._get_public_base_url()}/static/assets/images/patent-1024.png"
         )
-        logo_url = f"{base_url}/static/assets/images/patent-1024.png"
 
         try:
             return render_template(
@@ -197,7 +242,14 @@ class RequestPasswordResetCommand(BaseCommand):
                 logo_url=logo_url,
             )
         except Exception as ex:
-            logger.warning(f"Failed to render email template, using fallback: {ex}")
+            # Not a warning: the mail still goes out, but unbranded and without
+            # the styled layout, and nothing else surfaces that to anyone.
+            logger.error(
+                "Failed to render email/password_reset.html, falling back to "
+                "plain HTML: %s",
+                ex,
+                exc_info=True,
+            )
             # Fallback to simple HTML if template rendering fails
             return (
                 "<html><body style='font-family: Arial, sans-serif;'>"

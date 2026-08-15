@@ -62,11 +62,19 @@ class NewsletterApi(BaseSupersetApi):
     openapi_spec_tag = "Newsletter"
 
     def _generate_unsubscribe_link(self, user_id: int, session_id: str) -> str:
-        """Generate unsubscribe link with user-specific token"""
+        """Generate unsubscribe link with user-specific token.
+
+        Uses PASSWORD_RESET_BASE_URL (the public site origin) rather than
+        SUPERSET_WEBSERVER_ADDRESS: the latter is pointed at localhost for local
+        browsing, which would put an unreachable unsubscribe link in every
+        newsletter we send.
+        """
         token = f"{user_id}_{session_id}_{uuid.uuid4().hex[:8]}"
-        base_url = current_app.config.get(
-            "SUPERSET_WEBSERVER_ADDRESS", "http://localhost:8088"
-        )
+        base_url = (
+            current_app.config.get("PASSWORD_RESET_BASE_URL")
+            or current_app.config.get("SUPERSET_WEBSERVER_ADDRESS")
+            or ""
+        ).strip().rstrip("/")
         return f"{base_url}/newsletter/unsubscribe?token={token}"
 
     def _process_email_template(

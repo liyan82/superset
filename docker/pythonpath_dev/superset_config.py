@@ -82,6 +82,16 @@ SUPERSET_WEBSERVER_ADDRESS = os.getenv(
     "SUPERSET_WEBSERVER_ADDRESS", "https://patent1024.com"
 )
 
+# Public origin used to build links inside outgoing email (password reset, and
+# the logo those emails embed).
+#
+# This is deliberately separate from SUPERSET_WEBSERVER_ADDRESS: that one is
+# also read by superset_config_docker.py and gets pointed at http://localhost
+# for local browsing, which produces reset links no recipient can open. Anything
+# that lands in an email has to use the public site URL, so keep this set to the
+# real domain even in development.
+PASSWORD_RESET_BASE_URL = os.getenv("PASSWORD_RESET_BASE_URL", "https://patent1024.com")
+
 # Enable user registration
 AUTH_USER_REGISTRATION = True
 AUTH_USER_REGISTRATION_ROLE = "Trial"
