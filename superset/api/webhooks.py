@@ -140,7 +140,11 @@ def handle_subscription_created(subscription_data):
 
     try:
         # Find user by Stripe customer ID (assuming you store this)
-        from superset.models.core import User
+        # Import from superset.models.user rather than flask_appbuilder directly:
+        # that module is what mixes the subscription fields (including
+        # stripe_customer_id) into the User model, so importing it here
+        # guarantees the mixin has been applied.
+        from superset.models.user import User
         user = db.session.query(User).filter_by(
             stripe_customer_id=stripe_customer_id
         ).one()

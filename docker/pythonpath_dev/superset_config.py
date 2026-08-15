@@ -30,6 +30,14 @@ from celery.schedules import crontab
 
 logger = logging.getLogger()
 
+# patent1024 customizations. Both of these are upstream hooks -- APP_INITIALIZER
+# is read by superset.app.create_app, FAB_INDEX_VIEW by Flask-AppBuilder -- so
+# none of it requires editing an upstream module.
+from superset.patent1024.initializer import Patent1024AppInitializer  # noqa: E402
+
+APP_INITIALIZER = Patent1024AppInitializer
+FAB_INDEX_VIEW = "superset.patent1024.initializer.Patent1024IndexView"
+
 APP_NAME = "Patent 1024"
 
 # Specify the App icon
