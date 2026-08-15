@@ -58,7 +58,9 @@ THEME_DEFAULT = {
 
 # Webserver address for email links and external references
 # Can be overridden by environment variable or superset_config_docker.py
-SUPERSET_WEBSERVER_ADDRESS = os.getenv("SUPERSET_WEBSERVER_ADDRESS", "https://patent1024.com")
+SUPERSET_WEBSERVER_ADDRESS = os.getenv(
+    "SUPERSET_WEBSERVER_ADDRESS", "https://patent1024.com"
+)
 
 # Enable user registration
 AUTH_USER_REGISTRATION = True

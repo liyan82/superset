@@ -1510,11 +1510,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
       updateTableOwnState(setDataMask, modifiedOwnState);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    hasServerPageLengthChanged,
-    serverPageLength,
-    setDataMask,
-  ]);
+  }, [hasServerPageLengthChanged, serverPageLength, setDataMask]);
 
   const handleSizeChange = useCallback(
     ({ width, height }: { width: number; height: number }) => {
@@ -1645,12 +1641,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    clientViewRows,
-    exportColumns,
-    serverPagination,
-    setDataMask,
-  ]);
+  }, [clientViewRows, exportColumns, serverPagination, setDataMask]);
 
   return (
     <Styles>

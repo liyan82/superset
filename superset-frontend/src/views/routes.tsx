@@ -263,7 +263,11 @@ export const routes: Routes = [
     mobileSupported: true,
   },
   { path: RoutePaths.LOGIN, Component: Login, mobileSupported: true },
-  { path: '/forgot-password/', Component: ForgotPassword, mobileSupported: true },
+  {
+    path: '/forgot-password/',
+    Component: ForgotPassword,
+    mobileSupported: true,
+  },
   { path: '/reset-password/', Component: ResetPassword, mobileSupported: true },
   {
     path: RoutePaths.REGISTER_ACTIVATION,

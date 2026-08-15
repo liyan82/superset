@@ -213,18 +213,18 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             SecurityRestApi,
             UserRegistrationsRestAPI,
         )
-        from superset.views.password_reset_api import PasswordResetApi
         from superset.sqllab.api import SqlLabRestApi
         from superset.sqllab.permalink.api import SqlLabPermalinkRestApi
         from superset.subjects.api import SubjectRestApi
         from superset.tags.api import TagRestApi
         from superset.themes.api import ThemeRestApi
+        from superset.views.ai_query import AIQueryView
         from superset.views.alerts import AlertView, ReportView
         from superset.views.all_entities import TaggedObjectsModelView
         from superset.views.annotations import AnnotationLayerView
-        from superset.views.attorneys import AttorneysView
         from superset.views.api import Api
         from superset.views.archived_assets import ArchivedAssetsView
+        from superset.views.attorneys import AttorneysView
         from superset.views.chart.views import SliceModelView
         from superset.views.core import Superset
         from superset.views.css_templates import CssTemplateModelView
@@ -240,6 +240,8 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         from superset.views.groups import GroupsListView
         from superset.views.log.api import LogRestApi
         from superset.views.logs import ActionLogView
+        from superset.views.newsletter import NewsletterApi, NewsletterView
+        from superset.views.password_reset_api import PasswordResetApi
         from superset.views.pwa_manifest import PwaManifestView
         from superset.views.redirect import RedirectView
         from superset.views.roles import RolesListView
@@ -253,8 +255,8 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             TableModelView,
         )
         from superset.views.sqllab import SqllabView
-        from superset.views.ai_query import AIQueryView
-        from superset.views.newsletter import NewsletterView, NewsletterApi
+        from superset.views.stripe_webhook import StripeWebhookView
+        from superset.views.subscription import SubscriptionView
         from superset.views.tags import TagModelView, TagView
         from superset.views.tasks import TaskModelView
         from superset.views.themes import ThemeModelView
@@ -262,8 +264,6 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         from superset.views.user_registrations import UserRegistrationsView
         from superset.views.users.api import CurrentUserRestApi, UserRestApi
         from superset.views.users_list import UsersListView
-        from superset.views.subscription import SubscriptionView
-        from superset.views.stripe_webhook import StripeWebhookView
 
         set_app_error_handlers(self.superset_app)
         self.register_request_handlers()
@@ -321,7 +321,6 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         appbuilder.add_api(LogRestApi)
         appbuilder.add_api(NewsletterApi)
 
-        from flask import current_app
 
         if feature_flag_manager.is_feature_enabled("ENABLE_EXTENSIONS"):
             from superset.extensions.api import ExtensionsRestApi
@@ -486,37 +485,22 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         )
 
         # Import your views here to avoid circular imports
-        from superset.views.subscription import (
-            SubscriptionView,
-        )
         from superset.views.admin import (
+            PaymentAdmin,
             SubscriptionPlanAdmin,
             UserSubscriptionAdmin,
-            PaymentAdmin
         )
 
         # Register subscription views
-        appbuilder.add_view(
-            SubscriptionView,
-            "Subscription",
-            category="Account"
-        )
+        appbuilder.add_view(SubscriptionView, "Subscription", category="Account")
 
         appbuilder.add_view(
-            SubscriptionPlanAdmin,
-            "Subscription Plans",
-            category="Admin"
+            SubscriptionPlanAdmin, "Subscription Plans", category="Admin"
         )
         appbuilder.add_view(
-            UserSubscriptionAdmin,
-            "User Subscriptions",
-            category="Admin"
+            UserSubscriptionAdmin, "User Subscriptions", category="Admin"
         )
-        appbuilder.add_view(
-            PaymentAdmin,
-            "Payments",
-            category="Admin"
-        )
+        appbuilder.add_view(PaymentAdmin, "Payments", category="Admin")
 
         # Register Stripe webhook without menu
         appbuilder.add_view_no_menu(StripeWebhookView)
@@ -1674,7 +1658,7 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
             csrf_exempt_list = self.config["WTF_CSRF_EXEMPT_LIST"]
             for ex in csrf_exempt_list:
                 csrf.exempt(ex)
-            
+
             # Add exemption for Stripe webhook
             csrf.exempt("/stripe-webhook/")
 
@@ -1719,8 +1703,8 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
 class SupersetIndexView(IndexView):
     @expose("/")
     def index(self) -> FlaskResponse:
-        from flask import render_template
-        from flask import redirect, g
+        from flask import redirect, render_template
+
         # Render public index page directly without checking authentication
         if g.user is not None and g.user.is_authenticated:
             return redirect(url_for("Superset.welcome"))
@@ -1731,14 +1715,16 @@ class SupersetIndexView(IndexView):
         """Forgot password page"""
         from superset.utils import json
         from superset.views.base import common_bootstrap_payload
-        
+
         payload = {
             "common": common_bootstrap_payload(),
         }
         return self.render_template(
             "superset/spa.html",
             entry="spa",
-            bootstrap_data=json.dumps(payload, default=json.pessimistic_json_iso_dttm_ser),
+            bootstrap_data=json.dumps(
+                payload, default=json.pessimistic_json_iso_dttm_ser
+            ),
         )
 
     @expose("/reset-password/")
@@ -1746,82 +1732,90 @@ class SupersetIndexView(IndexView):
         """Reset password page"""
         from superset.utils import json
         from superset.views.base import common_bootstrap_payload
-        
+
         payload = {
             "common": common_bootstrap_payload(),
         }
         return self.render_template(
             "superset/spa.html",
             entry="spa",
-            bootstrap_data=json.dumps(payload, default=json.pessimistic_json_iso_dttm_ser),
+            bootstrap_data=json.dumps(
+                payload, default=json.pessimistic_json_iso_dttm_ser
+            ),
         )
 
     @expose("/test-reset/")
     def test_reset(self) -> FlaskResponse:
         """Test reset password page"""
         from flask import render_template
+
         return render_template("superset/public_index.html")
 
     @expose("/patent-analytics-software/")
     def patent_analytics_software(self) -> FlaskResponse:
         """Patent Analytics Software SEO landing page"""
         from flask import render_template
+
         return render_template("superset/patent_analytics_software.html")
 
     @expose("/uspto-data-analysis/")
     def uspto_data_analysis(self) -> FlaskResponse:
         """USPTO Data Analysis Tools SEO landing page"""
         from flask import render_template
+
         return render_template("superset/uspto_data_analysis.html")
 
     @expose("/patent-portfolio-intelligence/")
     def patent_portfolio_intelligence(self) -> FlaskResponse:
         """Patent Portfolio Intelligence SEO landing page"""
         from flask import render_template
+
         return render_template("superset/patent_portfolio_intelligence.html")
 
     @expose("/ai-patent-search/")
     def ai_patent_search(self) -> FlaskResponse:
         """AI Patent Search Platform SEO landing page"""
         from flask import render_template
+
         return render_template("superset/ai_patent_search.html")
 
     @expose("/blog/")
     def blog_index(self) -> FlaskResponse:
         """Blog index page"""
         from flask import render_template
+
         return render_template("superset/blog_index.html")
 
     @expose("/blog/<string:slug>/")
     def blog_post(self, slug: str) -> FlaskResponse:
         """Individual blog post page"""
-        from flask import render_template, abort
-        
+        from flask import abort, render_template
+
         # Blog post metadata
         blog_posts = {
             "patent-filing-trends-2024": {
                 "title": "USPTO Patent Filing Trends & Statistics for 2024",
                 "date": "2025-01-15",
                 "excerpt": "Comprehensive analysis of 2024 patent filing patterns, technology trends, and USPTO statistics revealing key insights for IP professionals.",
-                "template": "blog_patent_trends.html"
+                "template": "blog_patent_trends.html",
             },
             "top-patent-law-firms-rankings": {
                 "title": "Top Patent Law Firms Rankings: Performance Analysis 2024",
-                "date": "2025-01-15", 
+                "date": "2025-01-15",
                 "excerpt": "Data-driven analysis of leading patent law firms, success rates, and prosecution strategies based on USPTO filing data.",
-                "template": "blog_law_firm_rankings.html"
+                "template": "blog_law_firm_rankings.html",
             },
             "ai-technology-patent-landscape": {
                 "title": "AI Technology Patent Landscape: Innovation Trends & Key Players",
                 "date": "2025-01-15",
                 "excerpt": "Deep dive into artificial intelligence patent filings, major companies, and emerging technology trends shaping the IP landscape.",
-                "template": "blog_ai_patents.html"
-            }
+                "template": "blog_ai_patents.html",
+            },
         }
-        
+
         if slug not in blog_posts:
             abort(404)
-            
+
         post = blog_posts[slug]
         return render_template(f"superset/{post['template']}", post=post, slug=slug)
 
@@ -1829,25 +1823,30 @@ class SupersetIndexView(IndexView):
     def patent_report(self) -> FlaskResponse:
         """Free patent analytics report landing page"""
         from flask import render_template
+
         return render_template("superset/report_landing.html")
 
     @expose("/robots.txt")
     def robots_txt(self) -> FlaskResponse:
         """Serve robots.txt file"""
-        from flask import send_from_directory, current_app
         import os
-        
-        static_dir = os.path.join(current_app.root_path, 'static')
-        return send_from_directory(static_dir, 'robots.txt', mimetype='text/plain')
+
+        from flask import send_from_directory
+
+        static_dir = os.path.join(current_app.root_path, "static")
+        return send_from_directory(static_dir, "robots.txt", mimetype="text/plain")
 
     @expose("/sitemap.xml")
     def sitemap_xml(self) -> FlaskResponse:
         """Serve sitemap.xml file"""
-        from flask import send_from_directory, current_app
         import os
-        
-        static_dir = os.path.join(current_app.root_path, 'static')
-        return send_from_directory(static_dir, 'sitemap.xml', mimetype='application/xml')
+
+        from flask import send_from_directory
+
+        static_dir = os.path.join(current_app.root_path, "static")
+        return send_from_directory(
+            static_dir, "sitemap.xml", mimetype="application/xml"
+        )
 
     @expose("/lang/<string:locale>")
     @safe

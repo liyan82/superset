@@ -29,7 +29,6 @@ from typing import (
     cast,
     NamedTuple,
     Optional,
-    Type,
     TYPE_CHECKING,
     Union,
 )
@@ -83,6 +82,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.orm.query import Query as SqlaQuery
 from sqlalchemy.sql import exists
+from werkzeug.wrappers.response import Response
 
 from superset.constants import RouteMethod
 from superset.errors import ErrorLevel, SupersetError, SupersetErrorType
@@ -90,6 +90,8 @@ from superset.exceptions import (
     DatasetInvalidPermissionEvaluationException,
     SupersetSecurityException,
 )
+from superset.security.custom_auth import CustomAuthDBView
+from superset.security.custom_register import SupersetRegisterUserDBView  # Added import
 from superset.security.guest_token import (
     DEFAULT_GUEST_TOKEN_REVOCATION_VERSION,
     get_current_guest_token_revocation_version,
@@ -116,9 +118,6 @@ from superset.utils.core import (
 from superset.utils.decorators import transaction
 from superset.utils.filters import get_dataset_access_filters
 from superset.utils.urls import get_url_host
-from superset.security.custom_register import SupersetRegisterUserDBView  # Added import
-from superset.security.custom_auth import CustomAuthDBView
-from werkzeug.wrappers.response import Response
 
 if TYPE_CHECKING:
     from superset.common.query_context import QueryContext
@@ -5232,8 +5231,8 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
                 ]:
                     security_menu.childs.remove(item)
 
-class SubscriptionSecurityManager(SecurityManager):
 
+class SubscriptionSecurityManager(SecurityManager):
     def is_subscription_valid_for_route(self, route: str) -> bool:
         """Check if the current user's subscription allows access to a route"""
         logger.info(f"route: {route}")
@@ -5262,7 +5261,9 @@ class SubscriptionSecurityManager(SecurityManager):
         # redirect to subscription page for protected routes
         if hasattr(g, "user") and g.user and g.user.is_authenticated:
             if not self.is_subscription_valid_for_route(request.path):
-                flash(_("You need an active subscription to access this page"), "warning")  # noqa: E501
+                flash(
+                    _("You need an active subscription to access this page"), "warning"
+                )  # noqa: E501
                 return redirect(url_for("SubscriptionView.subscribe"))
             return None
         return None

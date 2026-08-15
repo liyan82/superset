@@ -18,22 +18,28 @@
 """add password reset tokens table
 
 Revision ID: eb095c5d054f
-Revises: cd1fb11291f2
+Revises: af1046791399
 Create Date: 2025-08-02 21:33:00.000000
 
 """
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from superset.migrations.shared.utils import (
+    create_index,
+    create_table,
+    drop_index,
+    drop_table,
+)
 
 # revision identifiers, used by Alembic.
 revision = "eb095c5d054f"
-down_revision = "cd1fb11291f2"
+down_revision = "af1046791399"
 
 
 def upgrade():
-    op.create_table(
+    create_table(
         "password_reset_tokens",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -48,26 +54,26 @@ def upgrade():
     )
 
     # Create indexes for performance
-    op.create_index(
-        "ix_password_reset_tokens_token_hash",
+    create_index(
         "password_reset_tokens",
+        "ix_password_reset_tokens_token_hash",
         ["token_hash"],
         unique=True,
     )
-    op.create_index(
-        "ix_password_reset_tokens_user_id",
+    create_index(
         "password_reset_tokens",
+        "ix_password_reset_tokens_user_id",
         ["user_id"],
     )
-    op.create_index(
-        "ix_password_reset_tokens_expires_at",
+    create_index(
         "password_reset_tokens",
+        "ix_password_reset_tokens_expires_at",
         ["expires_at"],
     )
 
 
 def downgrade():
-    op.drop_index("ix_password_reset_tokens_expires_at", "password_reset_tokens")
-    op.drop_index("ix_password_reset_tokens_user_id", "password_reset_tokens")
-    op.drop_index("ix_password_reset_tokens_token_hash", "password_reset_tokens")
-    op.drop_table("password_reset_tokens")
+    drop_index("password_reset_tokens", "ix_password_reset_tokens_expires_at")
+    drop_index("password_reset_tokens", "ix_password_reset_tokens_user_id")
+    drop_index("password_reset_tokens", "ix_password_reset_tokens_token_hash")
+    drop_table("password_reset_tokens")

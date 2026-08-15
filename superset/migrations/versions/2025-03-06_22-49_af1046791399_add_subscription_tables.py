@@ -17,7 +17,7 @@
 """Add subscription tables
 
 Revision ID: af1046791399
-Revises: 74ad1125881c
+Revises: 1072de5ed955
 Create Date: 2025-03-06 22:49:31.268363
 
 """
@@ -25,16 +25,22 @@ Create Date: 2025-03-06 22:49:31.268363
 import datetime
 
 import sqlalchemy as sa
-from alembic import op
+
+from superset.migrations.shared.utils import (
+    add_columns,
+    create_table,
+    drop_columns,
+    drop_table,
+)
 
 # revision identifiers, used by Alembic.
 revision = "af1046791399"
-down_revision = "74ad1125881c"
+down_revision = "1072de5ed955"
 
 
 def upgrade():
     # Create subscription_plans table
-    op.create_table(
+    create_table(
         "subscription_plans",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("product_id", sa.String(255), nullable=False, unique=True),
@@ -50,7 +56,7 @@ def upgrade():
     )
 
     # Create user_subscriptions table
-    op.create_table(
+    create_table(
         "user_subscriptions",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -66,7 +72,7 @@ def upgrade():
     )
 
     # Create payments table
-    op.create_table(
+    create_table(
         "payments",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("subscription_id", sa.Integer(), nullable=True),
@@ -83,7 +89,7 @@ def upgrade():
     )
 
     # Create payment_methods table
-    op.create_table(
+    create_table(
         "payment_methods",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -98,21 +104,18 @@ def upgrade():
     )
 
     # Add subscription fields to user model
-    op.add_column(
-        "ab_user", sa.Column("is_paid_user", sa.Boolean(), server_default="0")
-    )
-    op.add_column("ab_user", sa.Column("trial_used", sa.Boolean(), server_default="0"))
-    op.add_column(
-        "ab_user", sa.Column("stripe_customer_id", sa.String(255), nullable=True)
+    add_columns(
+        "ab_user",
+        sa.Column("is_paid_user", sa.Boolean(), server_default="0"),
+        sa.Column("trial_used", sa.Boolean(), server_default="0"),
+        sa.Column("stripe_customer_id", sa.String(255), nullable=True),
     )
 
 
 def downgrade():
     # Drop tables in reverse order
-    op.drop_column("ab_user", "stripe_customer_id")
-    op.drop_column("ab_user", "trial_used")
-    op.drop_column("ab_user", "is_paid_user")
-    op.drop_table("payment_methods")
-    op.drop_table("payments")
-    op.drop_table("user_subscriptions")
-    op.drop_table("subscription_plans")
+    drop_columns("ab_user", "stripe_customer_id", "trial_used", "is_paid_user")
+    drop_table("payment_methods")
+    drop_table("payments")
+    drop_table("user_subscriptions")
+    drop_table("subscription_plans")
