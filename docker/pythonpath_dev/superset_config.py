@@ -66,6 +66,12 @@ REGISTRATION_EMAIL_DOMAIN_BLACKLIST = {
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+# JWT signing secrets. Supplied via the environment so they never live in
+# version control. Set both in docker/.env-local (gitignored) for local work
+# and in the deployment environment for production.
+GLOBAL_ASYNC_QUERIES_JWT_SECRET = os.getenv("GLOBAL_ASYNC_QUERIES_JWT_SECRET")
+GUEST_TOKEN_JWT_SECRET = os.getenv("GUEST_TOKEN_JWT_SECRET")
+
 DATABASE_DIALECT = os.getenv("DATABASE_DIALECT")
 DATABASE_USER = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
