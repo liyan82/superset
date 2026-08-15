@@ -95,7 +95,7 @@ function Footer({
   const onSave = (createChart: boolean = true) => {
     if (datasetObject) {
       const data = {
-        database: datasetObject.db?.value,
+        database: datasetObject.db?.id,
         catalog: datasetObject.catalog,
         schema: datasetObject.schema,
         table_name: datasetObject.table_name,

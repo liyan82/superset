@@ -21,7 +21,7 @@ import { t } from '@apache-superset/core/translation';
 import { styled } from '@apache-superset/core/theme';
 import TableSelector, { TableOption } from 'src/components/TableSelector';
 import { EmptyState } from '@superset-ui/core/components';
-import { type DatabaseValue } from 'src/components/DatabaseSelector/types';
+import { type DatabaseObject } from 'src/components';
 import { useToasts } from 'src/components/MessageToasts/withToasts';
 import { LocalStorageKeys, getItem } from 'src/utils/localStorageHelpers';
 import {
@@ -127,7 +127,7 @@ export default function LeftPanel({
   const { addDangerToast } = useToasts();
 
   const setDatabase = useCallback(
-    (db: Partial<DatabaseValue>) => {
+    (db: Partial<DatabaseObject>) => {
       setDataset({ type: DatasetActionType.SelectDatabase, payload: { db } });
     },
     [setDataset],
@@ -158,7 +158,7 @@ export default function LeftPanel({
     const currentUserSelectedDb = getItem(
       LocalStorageKeys.Database,
       null,
-    ) as DatabaseValue;
+    ) as DatabaseObject;
     if (currentUserSelectedDb) {
       setDatabase(currentUserSelectedDb);
     }

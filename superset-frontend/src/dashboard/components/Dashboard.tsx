@@ -206,7 +206,7 @@ class Dashboard extends PureComponent<DashboardProps> {
 
     if (
       !editMode &&
-      (!areObjectsEqual(ownDataCharts, appliedOwnDataCharts, {
+      (!areObjectsEqual(appliedOwnDataCharts, ownDataCharts, {
         ignoreUndefined: true,
       }) ||
         !areObjectsEqual(appliedFilters, activeFilters, {

@@ -398,9 +398,6 @@ function ExploreViewContainer(props: ExploreViewContainerProps) {
     if (props.sliceName) {
       document.title = props.sliceName;
     }
-    return () => {
-      document.title = 'Patent 1024';
-    };
   }, [props.sliceName]);
 
   // Restore original title on unmount

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import type { DatabaseValue } from 'src/components/DatabaseSelector/types';
+import type { DatabaseObject } from 'src/components';
 
 export enum DatasetActionType {
   SelectDatabase,
@@ -27,7 +27,7 @@ export enum DatasetActionType {
 }
 
 export interface DatasetObject {
-  db: DatabaseValue & { owners: [number] };
+  db: DatabaseObject & { owners: [number] };
   catalog?: string | null;
   schema?: string | null;
   dataset_name: string;

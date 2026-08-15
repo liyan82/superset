@@ -235,9 +235,6 @@ export const DashboardPage: FC<PageProps> = ({ idOrSlug }: PageProps) => {
     if (dashboard_title) {
       document.title = dashboard_title;
     }
-    return () => {
-      document.title = 'Patent 1024';
-    };
   }, [dashboard_title]);
 
   // Restore original title on unmount
