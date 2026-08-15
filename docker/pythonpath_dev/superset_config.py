@@ -45,6 +45,18 @@ APP_ICON = "/static/assets/images/patent-1024.png"
 
 FAVICONS = [{"href": "/static/assets/images/p4-favicon.png"}]
 
+# Stripe subscriptions / billing.
+#
+# While this is False the subscription views are not registered, so the
+# "Account > Subscription" and "Admin > Subscription Plans / User Subscriptions
+# / Payments" menu entries do not appear and Flask-AppBuilder does not create
+# their permissions -- meaning they cannot be granted to a role either.
+#
+# The subscription tables and their data are left untouched, and the Stripe
+# webhook endpoint stays registered so live Stripe events are not dropped.
+# Flip this back to True (and restart) to restore the feature.
+ENABLE_SUBSCRIPTIONS = False
+
 # Brand tokens.
 #
 # THEME_DEFAULT in superset/config.py is built from that module's own APP_NAME
@@ -161,7 +173,11 @@ class CeleryConfig:
         "superset.tasks.thumbnails",
         "superset.tasks.cache",
         "superset.tasks.export_dashboard_excel",
-        "superset.tasks.expired_subscriptions",
+        *(
+            ("superset.tasks.expired_subscriptions",)
+            if ENABLE_SUBSCRIPTIONS
+            else ()
+        ),
         # "superset.tasks.sync_stripe",
     )
     result_backend = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_RESULTS_DB}"
@@ -183,11 +199,21 @@ class CeleryConfig:
             "task": "deletion_retention.purge_soft_deleted",
             "schedule": crontab(minute=0, hour=0),
         },
-        "expired_subscriptions.process_expirations": {
-            "task": "expired_subscriptions.process_expirations",
-            # "schedule": crontab(minute=0, hour=0),  # daily at midnight
-            "schedule": timedelta(seconds=30),
-        },
+        # Demotes users whose trial or subscription lapsed to TRIAL_EXPIRED_ROLE.
+        # Scheduled only when subscriptions are enabled -- with the feature off
+        # there is nothing to expire, and the task would still be rewriting user
+        # roles every 30 seconds.
+        **(
+            {
+                "expired_subscriptions.process_expirations": {
+                    "task": "expired_subscriptions.process_expirations",
+                    # "schedule": crontab(minute=0, hour=0),  # daily at midnight
+                    "schedule": timedelta(seconds=30),
+                }
+            }
+            if ENABLE_SUBSCRIPTIONS
+            else {}
+        ),
         # "sync_stripe.sync_stripe_data": {
         #     "task": "sync_stripe.sync_stripe_data",
         #     "schedule": timedelta(seconds=20),

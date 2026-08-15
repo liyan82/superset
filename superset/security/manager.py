@@ -1392,11 +1392,10 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         "Subject",
         # FAB registers ApiKeyApi when FAB_API_KEY_ENABLED=True
         "ApiKey",
-        # patent1024 admin views
+        # patent1024 admin views. The subscription entries are gone with the
+        # feature (ENABLE_SUBSCRIPTIONS); "Admin" is the menu category itself
+        # and is unrelated to subscriptions.
         "Admin",
-        "Subscription Plans",
-        "User Subscriptions",
-        "Payments",
     } | USER_MODEL_VIEWS
 
     ALPHA_ONLY_VIEW_MENUS = {

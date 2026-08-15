@@ -190,35 +190,25 @@ class Patent1024AppInitializer(SupersetAppInitializer):
     def init_views(self) -> None:
         super().init_views()
 
-        from superset.views.admin import (
-            PaymentAdmin,
-            SubscriptionPlanAdmin,
-            UserSubscriptionAdmin,
-        )
         from superset.views.ai_query import AIQueryView
         from superset.views.attorneys import AttorneysView
         from superset.views.newsletter import NewsletterApi, NewsletterView
         from superset.views.password_reset_api import PasswordResetApi
         from superset.views.stripe_webhook import StripeWebhookView
-        from superset.views.subscription import SubscriptionView
 
         app_root = self.config["APPLICATION_ROOT"].rstrip("/")
 
         appbuilder.add_api(NewsletterApi)
         appbuilder.add_api(PasswordResetApi)
 
-        appbuilder.add_view(SubscriptionView, "Subscription", category="Account")
-        appbuilder.add_view(
-            SubscriptionPlanAdmin, "Subscription Plans", category="Admin"
-        )
-        appbuilder.add_view(
-            UserSubscriptionAdmin, "User Subscriptions", category="Admin"
-        )
-        appbuilder.add_view(PaymentAdmin, "Payments", category="Admin")
+        self._init_subscription_views()
 
         appbuilder.add_view_no_menu(AIQueryView)
         appbuilder.add_view_no_menu(NewsletterView)
         appbuilder.add_view_no_menu(AttorneysView)
+        # Registered regardless of ENABLE_SUBSCRIPTIONS: Stripe retries webhooks
+        # for days, so unregistering the endpoint would drop events for any
+        # subscription that is still live on the Stripe side.
         appbuilder.add_view_no_menu(StripeWebhookView)
 
         appbuilder.add_link(
@@ -233,6 +223,35 @@ class Patent1024AppInitializer(SupersetAppInitializer):
             href=f"{app_root}/newsletter/",
             icon="fa-newspaper",
         )
+
+    def _init_subscription_views(self) -> None:
+        """Register the Stripe subscription views, when the feature is enabled.
+
+        Gated on ENABLE_SUBSCRIPTIONS. Leaving the views unregistered is what
+        keeps the menu entries hidden AND keeps Flask-AppBuilder from
+        (re)creating their permissions, so they cannot be granted to a role.
+        Existing grants from earlier boots have to be cleared separately --
+        see `superset fab security-cleanup`.
+        """
+        if not self.config.get("ENABLE_SUBSCRIPTIONS", False):
+            logger.info("ENABLE_SUBSCRIPTIONS is off; skipping subscription views")
+            return
+
+        from superset.views.admin import (
+            PaymentAdmin,
+            SubscriptionPlanAdmin,
+            UserSubscriptionAdmin,
+        )
+        from superset.views.subscription import SubscriptionView
+
+        appbuilder.add_view(SubscriptionView, "Subscription", category="Account")
+        appbuilder.add_view(
+            SubscriptionPlanAdmin, "Subscription Plans", category="Admin"
+        )
+        appbuilder.add_view(
+            UserSubscriptionAdmin, "User Subscriptions", category="Admin"
+        )
+        appbuilder.add_view(PaymentAdmin, "Payments", category="Admin")
 
     def configure_wtf(self) -> None:
         super().configure_wtf()
