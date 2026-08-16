@@ -17,6 +17,7 @@ from superset.extensions import db
 from superset.superset_typing import FlaskResponse
 from superset.utils import json
 from superset.utils.core import send_email_smtp
+from superset.patent1024.mail import to_ascii_html
 from superset.views.base import json_error_response, json_success
 from superset.views.base_api import BaseSupersetApi, statsd_metrics
 
@@ -121,7 +122,13 @@ class NewsletterApi(BaseSupersetApi):
         """Send email with retry logic"""
         for attempt in range(max_retries):
             try:
-                processed_content = self._process_email_template(html_content, user, session_id)
+                # to_ascii_html: a newsletter body is author-supplied and
+                # routinely contains emoji, which can blow up the SMTP send with
+                # UnicodeEncodeError. Without this every retry fails the same
+                # way. See superset.patent1024.mail.
+                processed_content = to_ascii_html(
+                    self._process_email_template(html_content, user, session_id)
+                )
 
                 # Prepare config with proper SMTP mapping (same as password reset)
                 config = current_app.config.copy()

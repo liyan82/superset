@@ -26,6 +26,7 @@ from werkzeug.security import generate_password_hash
 from superset import db
 from superset.commands.base import BaseCommand
 from superset.models.password_reset import PasswordResetToken
+from superset.patent1024.mail import to_ascii_html
 from superset.utils.password_reset import PasswordResetTokenManager
 
 logger = logging.getLogger(__name__)
@@ -234,12 +235,14 @@ class RequestPasswordResetCommand(BaseCommand):
         )
 
         try:
-            return render_template(
-                "email/password_reset.html",
-                user_name=user.first_name or user.username,
-                reset_url=reset_url,
-                expiry_hours=expiry_hours,
-                logo_url=logo_url,
+            return to_ascii_html(
+                render_template(
+                    "email/password_reset.html",
+                    user_name=user.first_name or user.username,
+                    reset_url=reset_url,
+                    expiry_hours=expiry_hours,
+                    logo_url=logo_url,
+                )
             )
         except Exception as ex:
             # Not a warning: the mail still goes out, but unbranded and without
@@ -251,7 +254,7 @@ class RequestPasswordResetCommand(BaseCommand):
                 exc_info=True,
             )
             # Fallback to simple HTML if template rendering fails
-            return (
+            return to_ascii_html(
                 "<html><body style='font-family: Arial, sans-serif;'>"
                 f"<h2>Reset Your Password</h2>"
                 f"<p>Hello {user.first_name or user.username},</p>"
