@@ -11,10 +11,13 @@
     gtag('config', 'G-SZZLY9BGNG');
   </script>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/static/assets/images/p4-favicon.ico">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/assets/images/p4-favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/images/p4-apple-touch-icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Top Law Firms Ranking (2022 - 2024)</title>
   <meta name="description" content="Comprehensive ranking of top law firms based on patent prosecution performance, grant rates, speed, and volume metrics from 2020-2024.">
-  
+
   <!-- Preconnect to external resources -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -470,12 +473,12 @@
       .container { padding: 0 1rem; }
       h1 { font-size: 2rem; }
       .table-container { padding: 1rem; overflow-x: auto; }
-      .floating-controls { 
-        position: relative; 
-        width: 100%; 
-        right: auto; 
-        top: auto; 
-        transform: none; 
+      .floating-controls {
+        position: relative;
+        width: 100%;
+        right: auto;
+        top: auto;
+        transform: none;
         margin: 2rem 0;
       }
       .floating-controls.collapsed { transform: none; }
@@ -492,7 +495,7 @@
     <div class="container">
       <div class="navbar">
         <a href="/" class="logo">
-          <img src="/static/assets/images/patent-1024.png" alt="Patent 1024 Logo">
+          <img src="/static/assets/images/patent-1024.svg" alt="Patent 1024 Logo">
         </a>
         <div class="nav-buttons">
           <a href="/login/" class="btn btn-outline">Log In</a>
@@ -506,12 +509,12 @@
     <div class="container">
       <div class="table-container">
         <h1>Top 1024 Law Firms Ranking (2022 - 2024)</h1>
-        
+
         <!-- Ranking Methodology Section -->
         <div class="formula-section">
           <h2>🏆 Ranking Methodology</h2>
           <p>Our comprehensive ranking system evaluates law firms using a weighted composite score based on four key performance indicators:</p>
-          
+
           <div class="formula-display-static">
             <strong>Composite Score = (35% × Grant Rate) + (25% × Speed) + (25% × Grant Volume) + (15% × Application Volume)</strong>
           </div>
@@ -524,7 +527,7 @@
           </ul>
 
           <p><strong>Normalization Process:</strong> All metrics are normalized using min-max scaling to ensure fair comparison across different scales, then combined using the weighted formula above.</p>
-          
+
           <p><strong>Data Accuracy:</strong> Grant rates exclude applications currently in process to provide accurate success rate calculations based on final outcomes only.</p>
         </div>
 
@@ -533,7 +536,7 @@
           <h2>📊 Data Source & Disclaimer</h2>
           <p>All data presented in this ranking is sourced from the United States Patent and Trademark Office (USPTO) public records. The information includes patent applications metadata and documents. While we strive for accuracy, this data is provided for informational purposes only and should not be the sole factor in selecting legal representation. Individual case outcomes may vary based on numerous factors not reflected in these statistics. Users are encouraged to conduct their own due diligence when selecting patent counsel.</p>
         </div>
-        
+
         <table id="firmsTable">
           <thead>
             <tr>
@@ -1610,15 +1613,15 @@
               <span class="weight-value" id="appVolumeValue">15%</span>
             </div>
           </div>
-          
+
           <div class="formula-display" id="formulaDisplay">
             Score = (35% × Grant Rate) + (25% × Speed) + (25% × Grant Volume) + (15% × Application Volume)
           </div>
-          
+
           <div class="total-weight valid" id="totalWeight">
             Total Weight: 100%
           </div>
-          
+
           <div class="control-buttons">
             <button class="btn-apply" id="applyWeights">Apply Changes</button>
             <button class="btn-reset" id="resetWeights">Reset</button>
@@ -1643,7 +1646,7 @@
     // Minimal Content Protection
     (function() {
       'use strict';
-      
+
       // Disable right-click on table only
       document.addEventListener('contextmenu', function(e) {
         if (e.target.closest('table')) {
@@ -1651,12 +1654,12 @@
           return false;
         }
       });
-      
+
       // Prevent iframe embedding
       if (top !== self) {
         top.location = self.location;
       }
-      
+
     })();
 
     // Basic table protection only
@@ -1705,7 +1708,7 @@
 
       function sortTable(column) {
         const rows = Array.from(tbody.querySelectorAll('tr'));
-        
+
         // Determine sort direction
         let direction;
         if (currentSort.column === column) {
@@ -1735,7 +1738,7 @@
 
         // Set current sort state
         currentSort = { column, direction };
-        
+
         // Add sort indicator
         const currentHeader = table.querySelector(`th[data-column="${column}"]`);
         currentHeader.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
@@ -1749,11 +1752,11 @@
           const bValue = parseValue(b.cells[columnIndex].textContent, column);
 
           if (typeof aValue === 'string') {
-            return direction === 'asc' 
+            return direction === 'asc'
               ? aValue.localeCompare(bValue)
               : bValue.localeCompare(aValue);
           } else {
-            return direction === 'asc' 
+            return direction === 'asc'
               ? aValue - bValue
               : bValue - aValue;
           }
@@ -1811,14 +1814,14 @@
         });
 
         // Update formula
-        formulaDisplay.textContent = 
+        formulaDisplay.textContent =
           `Score = (${weights.grantRate}% × Grant Rate) + (${weights.speed}% × Speed) + (${weights.grantVolume}% × Grant Volume) + (${weights.appVolume}% × Application Volume)`;
 
         // Update total weight
         const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
         totalWeightDisplay.textContent = `Total Weight: ${total}%`;
         totalWeightDisplay.className = total === 100 ? 'total-weight valid' : 'total-weight invalid';
-        
+
         // Enable/disable apply button
         applyButton.disabled = total !== 100;
       }
@@ -1833,14 +1836,14 @@
         try {
           const rows = document.querySelectorAll('#firmsTable tbody tr');
           console.log('Found rows:', rows.length);
-          
+
           originalFirmsData = Array.from(rows).map((row, index) => {
             const cells = row.querySelectorAll('td');
             const totalCases = parseInt(cells[2].textContent.replace(/,/g, '')) || 0;
             const grantedCases = parseInt(cells[3].textContent.replace(/,/g, '')) || 0;
             const grantRate = parseFloat(cells[4].textContent.replace('%', '')) / 100;
             const pendency = parseInt(cells[5].textContent.replace(/,/g, '')) || 1;
-            
+
             const data = {
               element: row,
               firm: cells[1].textContent.trim(),
@@ -1849,14 +1852,14 @@
               grantRate: grantRate,
               pendency: pendency
             };
-            
+
             if (index < 3) {
               console.log('Sample data:', data);
             }
-            
+
             return data;
           });
-          
+
           console.log('Extracted data for', originalFirmsData.length, 'firms');
         } catch (error) {
           console.error('Error extracting data:', error);
@@ -1899,7 +1902,7 @@
 
           // Calculate new scores
           originalFirmsData.forEach((firm, i) => {
-            firm.score = 
+            firm.score =
               weights.grantRate * normGrantRates[i] +
               weights.speed * normSpeeds[i] +
               weights.grantVolume * normGrantVolumes[i] +
@@ -1915,7 +1918,7 @@
           originalFirmsData.forEach((firm, i) => {
             const rank = i + 1;
             const grantRatePercent = (firm.grantRate * 100).toFixed(2) + '%';
-            
+
             const row = document.createElement('tr');
             row.innerHTML = `
               <td class="rank-cell">${rank}</td>
@@ -1927,7 +1930,7 @@
             `;
             tbody.appendChild(row);
           });
-          
+
           console.log('Table updated with', originalFirmsData.length, 'firms');
         } catch (error) {
           console.error('Error in applyNewWeights:', error);
@@ -1999,10 +2002,10 @@
           document.head.appendChild(style);
         }
       }
-      
+
       window.addEventListener('load', updateStickyPosition);
       window.addEventListener('resize', updateStickyPosition);
     })();
   </script>
 </body>
-</html> 
+</html>

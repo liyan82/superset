@@ -183,7 +183,7 @@ export default function ActivationSuccess() {
       <div className="login-container">
         <div className="login-logo">
           <a href="/">
-            <img src="/static/assets/images/patent-1024.png" alt="Logo" />
+            <img src="/static/assets/images/patent-1024.svg" alt="Logo" />
           </a>
           <p className="tagline">{t('Unlock Insights from US Patent Data')}</p>
         </div>

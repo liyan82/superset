@@ -92,7 +92,7 @@
 
 <div class="register-container">
     <div class="login-logo">
-        <a href="/"><img src="/static/assets/images/patent-1024.png" alt="Logo"></a>
+        <a href="/"><img src="/static/assets/images/patent-1024.svg" alt="Logo"></a>
         <p class="tagline">Create Your Account</p>
     </div>
 
@@ -103,12 +103,12 @@
         <div class="panel-body">
             <form class="form" method="post" action="">
                 {{ form.hidden_tag() }}
-                
+
                 {% for field in form if field.widget.input_type != 'hidden' %}
                   <div class="form-group">
                     {{ field.label }}
                     {{ field(class="form-control" + (" is-invalid" if field.errors else "")) }}
-                    
+
                     {% if field.name == 'username' %}
                       <div id="username-policy" class="policy-container">
                         <ul>

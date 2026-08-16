@@ -11,6 +11,9 @@
     gtag('config', 'G-SZZLY9BGNG');
   </script>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/static/assets/images/p4-favicon.ico">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/assets/images/p4-favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/images/p4-apple-touch-icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Top Attorneys - Patent 1024</title>
   <!-- Security Headers -->
@@ -550,7 +553,7 @@
     <div class="container">
       <div class="navbar">
         <a href="/" class="logo">
-          <img src="/static/assets/images/patent-1024.png" alt="Patent 1024 Logo">
+          <img src="/static/assets/images/patent-1024.svg" alt="Patent 1024 Logo">
         </a>
         <div class="nav-buttons">
           <a href="/login/" class="btn btn-outline">Log In</a>
@@ -564,22 +567,22 @@
     <div class="container">
       <div class="table-container">
         <h1>Top 1024 Practitioners Ranking<br/> (2020 - 2024)</h1>
-        
+
         <div class="formula-section">
           <h2>Ranking Methodology</h2>
           <p>Our practitioner rankings are calculated using a weighted composite score based on four key performance metrics:</p>
-          
+
           <div class="formula-box">
             <h3>Composite Score Formula:</h3>
             <div class="formula" id="formula-display">
               <strong>Score = (35% × Grant Rate) + (25% × Speed) + (25% × Grant Volume) + (15% × Application Volume)</strong>
             </div>
-            
+
             <p class="controls-note">
               <em>Use the floating controls on the right to customize ranking weights →</em>
             </p>
           </div>
-          
+
           <div class="metrics-explanation">
             <h3>Metric Definitions:</h3>
             <ul>
@@ -589,7 +592,7 @@
               <li><strong>Application Volume (15%):</strong> Total number of cases handled by signing Application Data Sheet (ADS)</li>
             </ul>
           </div>
-          
+
           <div class="methodology-notes">
             <p class="methodology-note">
               <em><strong>Data Processing:</strong> All metrics are normalized using min-max scaling (0-1) before applying weights to ensure fair comparison across different value ranges.</em>
@@ -599,12 +602,12 @@
             </p>
           </div>
         </div>
-        
+
         <div class="disclaimer-section">
           <h3>Data Source & Disclaimer</h3>
           <p>All data presented in this ranking is sourced from the United States Patent and Trademark Office (USPTO) public records. The information includes patent applications meta data and documents. While we strive for accuracy, this data is provided for informational purposes only and should not be the sole factor in selecting legal representation. Individual case outcomes may vary based on numerous factors not reflected in these statistics. Users are encouraged to conduct their own due diligence when selecting patent counsel.</p>
         </div>
-        
+
         <table id="attorney-table">
           <thead>
             <tr>
@@ -1644,7 +1647,7 @@
           </tbody>
         </table>
       </div>
-      
+
       <!-- Sign-up CTA at bottom -->
       <div class="signup-cta">
         <div class="cta-content">
@@ -1692,15 +1695,15 @@
           <span class="weight-value" id="appVolumeValue">15%</span>
         </div>
       </div>
-      
+
       <div class="formula-display" id="formulaDisplay">
         Score = (35% × Grant Rate) + (25% × Speed) + (25% × Grant Volume) + (15% × Application Volume)
       </div>
-      
+
       <div class="total-weight valid" id="totalWeight">
         Total Weight: 100%
       </div>
-      
+
       <div class="control-buttons">
         <button class="btn-apply" id="applyWeights">Apply Changes</button>
         <button class="btn-reset" id="resetWeights">Reset</button>
@@ -1717,7 +1720,7 @@
     // Minimal Content Protection
     (function() {
       'use strict';
-      
+
       // Disable right-click on table only
       document.addEventListener('contextmenu', function(e) {
         if (e.target.closest('table')) {
@@ -1725,12 +1728,12 @@
           return false;
         }
       });
-      
+
       // Prevent iframe embedding
       if (top !== self) {
         top.location = self.location;
       }
-      
+
     })();
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -1739,10 +1742,10 @@
       const headers = table.querySelectorAll('thead th');
       const backToTopBtn = document.getElementById('back-to-top');
       let currentSort = { column: -1, direction: '' };
-      
+
       // Store original attorney data for recalculation
       let originalAttorneyData = [];
-      
+
       // Weight controls
       const weightSliders = {
         grantRate: document.getElementById('grantRateWeight'),
@@ -1750,14 +1753,14 @@
         grantVolume: document.getElementById('grantVolumeWeight'),
         applicationVolume: document.getElementById('appVolumeWeight')
       };
-      
+
       const weightValues = {
         grantRate: document.getElementById('grantRateValue'),
         speed: document.getElementById('speedValue'),
         grantVolume: document.getElementById('grantVolumeValue'),
         applicationVolume: document.getElementById('appVolumeValue')
       };
-      
+
       const formulaDisplay = document.getElementById('formulaDisplay');
       const totalWeightDisplay = document.getElementById('totalWeight');
       const resetBtn = document.getElementById('resetWeights');
@@ -1769,13 +1772,13 @@
         try {
           const rows = tbody.querySelectorAll('tr');
           console.log('Found rows:', rows.length);
-          
+
           originalAttorneyData = Array.from(rows).map((row, index) => {
             const cells = row.querySelectorAll('td');
             const totalCases = parseInt(cells[2].textContent.replace(/,/g, ''));
             const grantedCases = parseInt(cells[3].textContent.replace(/,/g, ''));
             const avgPendency = parseInt(cells[5].textContent.replace(/,/g, ''));
-            
+
             const data = {
               name: cells[1].textContent.trim(),
               totalCases: totalCases,
@@ -1786,14 +1789,14 @@
               applicationVolume: totalCases,
               avgPendency: avgPendency
             };
-            
+
             if (index < 3) {
               console.log('Sample data:', data);
             }
-            
+
             return data;
           });
-          
+
           console.log('Extracted data for', originalAttorneyData.length, 'attorneys');
         } catch (error) {
           console.error('Error extracting data:', error);
@@ -1813,7 +1816,7 @@
       function parseValue(value, columnIndex) {
         // Remove commas and whitespace
         const cleanValue = value.trim().replace(/,/g, '');
-        
+
         switch(columnIndex) {
           case 0: // Rank
           case 2: // Total Cases
@@ -1830,18 +1833,18 @@
 
       function sortTable(columnIndex, direction) {
         const rows = Array.from(tbody.querySelectorAll('tr'));
-        
+
         rows.sort((a, b) => {
           const aValue = parseValue(a.cells[columnIndex].textContent, columnIndex);
           const bValue = parseValue(b.cells[columnIndex].textContent, columnIndex);
-          
+
           let comparison = 0;
           if (aValue > bValue) {
             comparison = 1;
           } else if (aValue < bValue) {
             comparison = -1;
           }
-          
+
           return direction === 'asc' ? comparison : -comparison;
         });
 
@@ -1866,7 +1869,7 @@
       headers.forEach((header, columnIndex) => {
         header.addEventListener('click', function() {
           let newDirection = 'asc';
-          
+
           if (currentSort.column === columnIndex) {
             if (currentSort.direction === 'asc') {
               newDirection = 'desc';
@@ -1879,7 +1882,7 @@
               return;
             }
           }
-          
+
           currentSort = { column: columnIndex, direction: newDirection };
           sortTable(columnIndex, newDirection);
           updateSortIndicators(columnIndex, newDirection);
@@ -1902,7 +1905,7 @@
           const rect = tableHeaders.getBoundingClientRect();
           const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
           const headerPosition = rect.top + scrollTop - 120; // 120px offset for better visibility
-          
+
           window.scrollTo({
             top: Math.max(0, headerPosition), // Ensure we don't scroll to negative position
             behavior: 'smooth'
@@ -1914,7 +1917,7 @@
             const rect = tableContainer.getBoundingClientRect();
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             const containerPosition = rect.top + scrollTop - 100;
-            
+
             window.scrollTo({
               top: Math.max(0, containerPosition),
               behavior: 'smooth'
@@ -1925,7 +1928,7 @@
 
       // Show/hide button on scroll
       window.addEventListener('scroll', toggleBackToTopButton);
-      
+
       // Scroll to top on button click
       backToTopBtn.addEventListener('click', scrollToTop);
 
@@ -1953,14 +1956,14 @@
         });
 
         // Update formula
-        formulaDisplay.textContent = 
+        formulaDisplay.textContent =
           `Score = (${weights.grantRate}% × Grant Rate) + (${weights.speed}% × Speed) + (${weights.grantVolume}% × Grant Volume) + (${weights.appVolume}% × Application Volume)`;
 
         // Update total weight
         const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
         totalWeightDisplay.textContent = `Total Weight: ${total}%`;
         totalWeightDisplay.className = total === 100 ? 'total-weight valid' : 'total-weight invalid';
-        
+
         // Enable/disable apply button
         applyBtn.disabled = total !== 100;
       }
@@ -1994,7 +1997,7 @@
 
           // Calculate new scores
           originalAttorneyData.forEach((attorney, i) => {
-            attorney.score = 
+            attorney.score =
               weights.grantRate * normGrantRates[i] +
               weights.speed * normSpeeds[i] +
               weights.grantVolume * normGrantVolumes[i] +
@@ -2009,7 +2012,7 @@
           originalAttorneyData.forEach((attorney, i) => {
             const rank = i + 1;
             const approvalRatePercent = (attorney.approvalRate * 100).toFixed(2) + '%';
-            
+
             const row = document.createElement('tr');
             row.innerHTML = `
               <td class="rank-cell">${rank}</td>
@@ -2021,7 +2024,7 @@
             `;
             tbody.appendChild(row);
           });
-          
+
           console.log('Table updated with', originalAttorneyData.length, 'attorneys');
         } catch (error) {
           console.error('Error in applyNewWeights:', error);

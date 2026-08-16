@@ -41,9 +41,29 @@ FAB_INDEX_VIEW = "superset.patent1024.initializer.Patent1024IndexView"
 APP_NAME = "Patent 1024"
 
 # Specify the App icon
-APP_ICON = "/static/assets/images/patent-1024.png"
+APP_ICON = "/static/assets/images/patent-1024.svg"
 
-FAVICONS = [{"href": "/static/assets/images/p4-favicon.png"}]
+# The .ico carries hand-tuned 16/24/32px drawings; browsers that prefer PNG get
+# the 512 tile, and iOS uses the apple-touch entry when a page is bookmarked.
+FAVICONS = [
+    {
+        "href": "/static/assets/images/p4-favicon.ico",
+        "type": "image/x-icon",
+        "rel": "icon",
+    },
+    {
+        "href": "/static/assets/images/p4-favicon.png",
+        "type": "image/png",
+        "rel": "icon",
+        "sizes": "512x512",
+    },
+    {
+        "href": "/static/assets/images/p4-apple-touch-icon.png",
+        "type": "image/png",
+        "rel": "apple-touch-icon",
+        "sizes": "180x180",
+    },
+]
 
 # Stripe subscriptions / billing.
 #
@@ -72,6 +92,8 @@ THEME_DEFAULT = {
         "brandAppName": APP_NAME,
         "brandLogoAlt": APP_NAME,
         "brandLogoUrl": APP_ICON,
+        # The claim-tree spinner, in place of Superset's own loading.gif.
+        "brandSpinnerUrl": "/static/assets/images/patent-1024-loading.gif",
         "fontFamilyCode": "'Fira Code', 'Courier New', monospace",
     },
 }
@@ -187,11 +209,7 @@ class CeleryConfig:
         # replaces the default rather than extending it, so without this the
         # worker never registers the task and the shadow tables grow unbounded.
         "superset.tasks.version_history_retention",
-        *(
-            ("superset.tasks.expired_subscriptions",)
-            if ENABLE_SUBSCRIPTIONS
-            else ()
-        ),
+        *(("superset.tasks.expired_subscriptions",) if ENABLE_SUBSCRIPTIONS else ()),
         # "superset.tasks.sync_stripe",
     )
     result_backend = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_RESULTS_DB}"

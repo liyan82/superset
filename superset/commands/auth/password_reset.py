@@ -191,9 +191,10 @@ class RequestPasswordResetCommand(BaseCommand):
         expiry_hours = current_app.config.get("RESET_PASSWORD_TOKEN_EXPIRY_HOURS", 1)
         # Same origin as the reset link: these two used to fall back to different
         # defaults, so the logo could point somewhere the link did not.
-        logo_url = (
-            f"{public_base_url()}/static/assets/images/patent-1024.png"
-        )
+        # The email header is a dark band, so this is the inverse lockup with
+        # that background already flattened in -- mail clients routinely strip
+        # CSS filters, and some drop PNG alpha.
+        logo_url = f"{public_base_url()}/static/assets/images/patent-1024-email.png"
 
         try:
             return to_ascii_html(

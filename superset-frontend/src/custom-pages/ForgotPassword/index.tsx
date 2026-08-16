@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
         <div css={PageContainer}>
           <LoginLogo>
             <a href="/">
-              <img src="/static/assets/images/patent-1024.png" alt="Logo" />
+              <img src="/static/assets/images/patent-1024.svg" alt="Logo" />
             </a>
             <p className="tagline">Unlock Insights from US Patent Data</p>
           </LoginLogo>
@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
       <div css={PageContainer}>
         <LoginLogo>
           <a href="/">
-            <img src="/static/assets/images/patent-1024.png" alt="Logo" />
+            <img src="/static/assets/images/patent-1024.svg" alt="Logo" />
           </a>
           <p className="tagline">Unlock Insights from US Patent Data</p>
         </LoginLogo>
