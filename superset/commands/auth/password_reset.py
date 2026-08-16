@@ -26,7 +26,7 @@ from werkzeug.security import generate_password_hash
 from superset import db
 from superset.commands.base import BaseCommand
 from superset.models.password_reset import PasswordResetToken
-from superset.patent1024.mail import to_ascii_html
+from superset.patent1024.mail import public_base_url, to_ascii_html
 from superset.utils.password_reset import PasswordResetTokenManager
 
 logger = logging.getLogger(__name__)
@@ -180,48 +180,9 @@ class RequestPasswordResetCommand(BaseCommand):
         except Exception as ex:
             logger.error(f"Exception during email send: {ex}", exc_info=True)
 
-    @staticmethod
-    def _get_public_base_url() -> str:
-        """Public origin to use for links that end up inside an email.
-
-        Deliberately config-driven and never derived from the incoming request:
-        building the reset link from the Host header would let an attacker send
-        a forged Host, receive a link pointing at their own domain, and harvest
-        the victim's reset token.
-
-        PASSWORD_RESET_BASE_URL wins; SUPERSET_WEBSERVER_ADDRESS is honoured for
-        backwards compatibility. A loopback or wildcard origin is unreachable for
-        anyone receiving the mail, so warn loudly rather than silently sending a
-        dead link -- that failure mode is invisible to the user, who is told the
-        mail was sent either way.
-        """
-        base_url = (
-            current_app.config.get("PASSWORD_RESET_BASE_URL")
-            or current_app.config.get("SUPERSET_WEBSERVER_ADDRESS")
-            or ""
-        ).strip().rstrip("/")
-
-        if not base_url:
-            logger.error(
-                "Neither PASSWORD_RESET_BASE_URL nor SUPERSET_WEBSERVER_ADDRESS is "
-                "set. Password reset emails will contain unusable links."
-            )
-        elif any(
-            host in base_url
-            for host in ("localhost", "127.0.0.1", "0.0.0.0", "host.docker.internal")
-        ):
-            logger.warning(
-                "Password reset emails are being built against %s, which recipients "
-                "cannot reach. Set PASSWORD_RESET_BASE_URL to the public site URL "
-                "(e.g. https://patent1024.com) in superset_config.py.",
-                base_url,
-            )
-
-        return base_url
-
     def _build_reset_url(self, token: str) -> str:
         """Build the password reset URL"""
-        return f"{self._get_public_base_url()}/reset-password/?token={token}"
+        return f"{public_base_url()}/reset-password/?token={token}"
 
     def _render_email_template(self, user: User, reset_url: str) -> str:
         """Render the email template"""
@@ -231,7 +192,7 @@ class RequestPasswordResetCommand(BaseCommand):
         # Same origin as the reset link: these two used to fall back to different
         # defaults, so the logo could point somewhere the link did not.
         logo_url = (
-            f"{self._get_public_base_url()}/static/assets/images/patent-1024.png"
+            f"{public_base_url()}/static/assets/images/patent-1024.png"
         )
 
         try:

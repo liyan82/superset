@@ -16,6 +16,55 @@
 # under the License.
 """Helpers for mail that patent1024 sends itself."""
 
+import logging
+
+from flask import current_app
+
+logger = logging.getLogger(__name__)
+
+# Last-resort origin, used only when neither config key is set.
+DEFAULT_PUBLIC_BASE_URL = "https://patent1024.com"
+
+# Hosts that are fine for local browsing but unreachable for a mail recipient.
+_UNREACHABLE_HOSTS = ("localhost", "127.0.0.1", "0.0.0.0", "host.docker.internal")
+
+
+def public_base_url() -> str:
+    """Public origin for links that end up inside an email.
+
+    Deliberately config-driven and never derived from the incoming request:
+    building a reset link from the Host header would let an attacker send a
+    forged Host, receive a link pointing at their own domain, and harvest the
+    victim's reset token.
+
+    ``PASSWORD_RESET_BASE_URL`` wins; ``SUPERSET_WEBSERVER_ADDRESS`` is honoured
+    for backwards compatibility, but it gets pointed at localhost for local
+    browsing, which silently produces links no recipient can open.
+    """
+    base_url = (
+        current_app.config.get("PASSWORD_RESET_BASE_URL")
+        or current_app.config.get("SUPERSET_WEBSERVER_ADDRESS")
+        or ""
+    ).strip().rstrip("/")
+
+    if not base_url:
+        base_url = DEFAULT_PUBLIC_BASE_URL
+        logger.error(
+            "Neither PASSWORD_RESET_BASE_URL nor SUPERSET_WEBSERVER_ADDRESS is "
+            "set; falling back to %s. Set PASSWORD_RESET_BASE_URL explicitly.",
+            base_url,
+        )
+    elif any(host in base_url for host in _UNREACHABLE_HOSTS):
+        logger.warning(
+            "Outgoing email links are being built against %s, which recipients "
+            "cannot reach. Set PASSWORD_RESET_BASE_URL to the public site URL "
+            "(e.g. %s) in superset_config.py.",
+            base_url,
+            DEFAULT_PUBLIC_BASE_URL,
+        )
+
+    return base_url
+
 
 def to_ascii_html(html: str) -> str:
     """Re-express every non-ASCII character as a numeric HTML entity.

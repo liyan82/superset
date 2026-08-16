@@ -17,7 +17,7 @@ from superset.extensions import db
 from superset.superset_typing import FlaskResponse
 from superset.utils import json
 from superset.utils.core import send_email_smtp
-from superset.patent1024.mail import to_ascii_html
+from superset.patent1024.mail import public_base_url, to_ascii_html
 from superset.views.base import json_error_response, json_success
 from superset.views.base_api import BaseSupersetApi, statsd_metrics
 
@@ -71,12 +71,7 @@ class NewsletterApi(BaseSupersetApi):
         newsletter we send.
         """
         token = f"{user_id}_{session_id}_{uuid.uuid4().hex[:8]}"
-        base_url = (
-            current_app.config.get("PASSWORD_RESET_BASE_URL")
-            or current_app.config.get("SUPERSET_WEBSERVER_ADDRESS")
-            or ""
-        ).strip().rstrip("/")
-        return f"{base_url}/newsletter/unsubscribe?token={token}"
+        return f"{public_base_url()}/newsletter/unsubscribe?token={token}"
 
     def _process_email_template(
         self, html_content: str, user: User, session_id: str
