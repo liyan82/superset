@@ -183,6 +183,10 @@ class CeleryConfig:
         "superset.tasks.thumbnails",
         "superset.tasks.cache",
         "superset.tasks.export_dashboard_excel",
+        # Added upstream alongside the entity versioning tables. Our CeleryConfig
+        # replaces the default rather than extending it, so without this the
+        # worker never registers the task and the shadow tables grow unbounded.
+        "superset.tasks.version_history_retention",
         *(
             ("superset.tasks.expired_subscriptions",)
             if ENABLE_SUBSCRIPTIONS
@@ -201,6 +205,10 @@ class CeleryConfig:
         "reports.prune_log": {
             "task": "reports.prune_log",
             "schedule": crontab(minute=10, hour=0),
+        },
+        "version_history.prune_old_versions": {
+            "task": "version_history.prune_old_versions",
+            "schedule": crontab(minute=0, hour=3),
         },
         # Gated on the SOFT_DELETE feature flag, which is off by default: the
         # task is scheduled either way, but purges nothing while the flag is
