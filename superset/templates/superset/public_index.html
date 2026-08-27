@@ -15,19 +15,18 @@
   <link rel="icon" type="image/png" sizes="512x512" href="/static/assets/images/p4-favicon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/images/p4-apple-touch-icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Advanced patent analytics platform with AI-powered USPTO data insights. Analyze attorney performance, track patent portfolios, and discover competitive intelligence. Serving IP professionals in Silicon Valley, New York, Boston, and worldwide. Free beta access.">
-  <meta name="keywords" content="patent analytics, USPTO data, patent attorney performance, patent portfolio analysis, competitive intelligence, patent analytics software, IP analytics platform, Silicon Valley patent analytics, patent law firm analytics">
+  <meta name="description" content="Patent analytics on the full USPTO record: 9 million applications, 21.7 million signed prosecution documents, every attorney, law firm, examiner and applicant. Rank practitioners, track portfolios and ask questions in plain English. Free to use.">
+  <meta name="keywords" content="patent analytics, USPTO data, patent attorney performance, patent portfolio analysis, competitive intelligence, patent analytics software, IP analytics platform, examiner analytics, law firm rankings">
   <meta name="author" content="Patent 1024">
   <meta name="robots" content="index, follow">
   <meta name="googlebot" content="index, follow">
   <meta name="google" content="notranslate">
-  <meta name="google-site-verification" content="google-site-verification=google-site-verification">
   <meta name="google-site-verification" content="google-site-verification">
-  <title>Patent 1024 - Advanced Patent Data Analytics</title>
+  <title>Patent 1024 - Patent Analytics on the Full USPTO Record</title>
 
   <!-- Open Graph tags for social sharing -->
-  <meta property="og:title" content="Patent 1024 - Advanced Patent Data Analytics">
-  <meta property="og:description" content="Advanced patent analytics platform with AI-powered USPTO data insights. Analyze attorney performance, track patent portfolios, and discover competitive intelligence. Free beta access.">
+  <meta property="og:title" content="Patent 1024 - Patent Analytics on the Full USPTO Record">
+  <meta property="og:description" content="Nine million applications, 21.7 million signed prosecution documents, every attorney, firm and examiner. Rank practitioners, track portfolios, ask in plain English. Free to use.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://patent1024.com">
   <meta property="og:image" content="https://patent1024.com/static/assets/images/patent-1024-og.png">
@@ -36,8 +35,8 @@
 
   <!-- Twitter Card tags -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Patent 1024 - Advanced Patent Data Analytics">
-  <meta name="twitter:description" content="Advanced patent analytics platform with AI-powered USPTO data insights. Free beta access.">
+  <meta name="twitter:title" content="Patent 1024 - Patent Analytics on the Full USPTO Record">
+  <meta name="twitter:description" content="Nine million applications, 21.7 million signed prosecution documents, every attorney, firm and examiner. Free to use.">
   <meta name="twitter:image" content="https://patent1024.com/static/assets/images/patent-1024-og.png">
 
   <!-- Schema.org markup for Software Application -->
@@ -46,7 +45,7 @@
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Patent 1024",
-    "description": "Advanced patent analytics platform with AI-powered USPTO data insights for analyzing attorney performance, tracking patent portfolios, and discovering competitive intelligence.",
+    "description": "Patent analytics on the full USPTO record: attorney and law firm performance, portfolio intelligence, examiner profiles and natural-language search across nine million applications.",
     "url": "https://patent1024.com",
     "applicationCategory": "BusinessApplication",
     "applicationSubCategory": "Data Analytics",
@@ -55,1625 +54,808 @@
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD",
-      "description": "Free beta access available"
+      "description": "Free to use"
     },
     "provider": {
       "@type": "Organization",
-      "name": "Patent 1024, LLC",
-      "url": "https://patent1024.com"
+      "name": "Patent 1024",
+      "url": "https://patent1024.com",
+      "logo": "https://patent1024.com/static/assets/images/patent-1024.png"
     },
     "featureList": [
-      "AI-powered patent search",
-      "Attorney performance analytics",
+      "Attorney and practitioner analytics",
+      "Law firm representation rankings",
       "Patent portfolio intelligence",
-      "USPTO data analysis",
-      "Interactive dashboards",
-      "Competitive intelligence"
+      "Examiner profiles and allowance rates",
+      "Natural-language query over USPTO data",
+      "Interactive dashboards"
     ],
-    "screenshot": "https://patent1024.com/static/assets/images/patent-1024-screenshot.png",
-    "serviceArea": {
-      "@type": "GeoCircle",
-      "geoMidpoint": {
-        "@type": "GeoCoordinates",
-        "latitude": "37.7749",
-        "longitude": "-122.4194"
-      },
-      "geoRadius": "50000"
-    },
-    "areaServed": [
-      {
-        "@type": "Country",
-        "name": "United States"
-      },
-      {
-        "@type": "AdministrativeArea",
-        "name": "California"
-      },
-      {
-        "@type": "AdministrativeArea",
-        "name": "New York"
-      },
-      {
-        "@type": "AdministrativeArea",
-        "name": "Massachusetts"
-      },
-      {
-        "@type": "AdministrativeArea",
-        "name": "Texas"
-      }
-    ]
+    "screenshot": "https://patent1024.com/static/assets/images/attorneys_profile.png",
+    "areaServed": {
+      "@type": "Country",
+      "name": "United States"
+    }
   }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="/static/assets/images/attorneys_profile.png">
   <style>
+    /* ------------------------------------------------------------------
+       Patent 1024 homepage. Tokens, type scale and component rules come
+       from the design system sheet; see superset/patent1024/brand for the
+       mark itself. Inter carries every sentence, IBM Plex Mono every
+       figure, identifier, date and label.
+       ------------------------------------------------------------------ */
     :root {
-      --p4-dark-blue: #283E53;
-      --p4-blue: #3A5A7E;
-      --p4-accent: #00A8E8;
-      --p4-light-gray: #f2f4f7;
-      --p4-dark-gray: #333333;
+      --navy: #283E53;
+      --slate: #3A5A7E;
+      --accent: #00A8E8;
+      --accent-hover: #0090C6;
+      --sky: #7FC9EC;
+      --muted: #5B6B7C;
+      --light: #F2F4F7;
       --white: #ffffff;
+      --rule: #E3E7EE;
+      --card-border: #D8DFE8;
+      --input-border: #C9D2DD;
+      --zebra: #F8FAFC;
+      --selected: #EDF7FC;
+      --footer-bg: #1F3145;
+      --footer-text: #A9BCCD;
+      --footer-meta: #7C90A4;
+      --footer-rule: #33465C;
+      --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--navy);
+      background: var(--white);
       line-height: 1.6;
-      color: var(--p4-dark-gray);
-      background-color: var(--white);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    html { scroll-behavior: smooth; }
     a { text-decoration: none; color: inherit; }
-    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    img { max-width: 100%; display: block; }
+    .container { width: 100%; max-width: 1344px; margin: 0 auto; padding: 0 48px; }
+    .eyebrow {
+      font-family: var(--mono); font-size: 11px; font-weight: 400;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+    }
+    .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .lead { font-size: 18px; line-height: 1.55; color: var(--slate); max-width: 620px; }
+
+    /* ---------- buttons ---------- */
     .btn {
-      display: inline-block;
-      padding: 0.8rem 1.8rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-align: center;
-      border: 2px solid transparent;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 15px; font-weight: 600; border-radius: 4px; padding: 14px 24px;
+      border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+      font-family: inherit; white-space: nowrap;
     }
-    .btn-primary { background-color: var(--p4-dark-blue); color: var(--white); }
-    .btn-primary:hover {
-      background-color: var(--p4-blue);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(40, 62, 83, 0.2);
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); color: #fff; }
+    .btn-secondary { border-color: var(--input-border); color: var(--navy); background: transparent; }
+    .btn-secondary:hover { border-color: var(--navy); }
+    .btn-on-navy { background: #fff; color: var(--navy); }
+    .btn-on-navy:hover { background: var(--sky); color: var(--navy); }
+    .btn-ghost-navy { border-color: var(--slate); color: #fff; background: transparent; }
+    .btn-ghost-navy:hover { border-color: var(--sky); color: var(--sky); }
+    .btn-sm { padding: 8px 14px; font-size: 13px; }
+
+    /* ---------- pills ---------- */
+    .pill {
+      display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 8px; border-radius: 3px;
+      background: var(--light); color: var(--slate);
     }
-    .btn-outline { background-color: transparent; color: var(--p4-dark-blue); border-color: var(--p4-dark-blue); }
-    .btn-outline:hover { background-color: var(--p4-dark-blue); color: var(--white); }
-    .btn-lg { padding: 1rem 2.2rem; font-size: 1.1rem; }
+    .pill-accent { background: rgba(0,168,232,0.12); color: var(--accent-hover); }
+    .pill-navy { background: rgba(255,255,255,0.12); color: var(--sky); }
+
+    /* ---------- icons ---------- */
+    .ic { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none;
+          stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .ic-lg { width: 28px; height: 28px; }
+    .ic-sm { width: 16px; height: 16px; }
+
+    /* ---------- header ---------- */
     header {
-      padding: 1.2rem 0;
-      position: sticky;
-      top: 0;
-      background-color: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 1000;
-      border-bottom: 1px solid #e7e7e7;
-    }
-    .navbar { display: flex; justify-content: space-between; align-items: center; }
-    .logo img { height: 40px; }
-    nav ul { display: flex; list-style: none; gap: 2.5rem; }
-    nav li { position: relative; }
-    nav li a { font-weight: 500; transition: color 0.3s ease; font-size: 1rem; color: var(--p4-dark-gray); }
-    nav li a:hover { color: var(--p4-dark-blue); }
-
-    /* Dropdown styles */
-    .dropdown { position: relative; }
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background-color: var(--white);
-      min-width: 280px;
-      box-shadow: 0 8px 25px rgba(40, 62, 83, 0.15);
-      border-radius: 8px;
-      z-index: 1001;
-      border: 1px solid #e7e7e7;
-      margin-top: 0;
-      padding-top: 0.5rem;
-    }
-    .dropdown:hover .dropdown-content { display: block; }
-
-    /* Add invisible bridge to prevent hover break */
-    .dropdown::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      height: 0.5rem;
-      background: transparent;
-      z-index: 1000;
-    }
-    .dropdown-content a {
-      color: var(--p4-dark-gray) !important;
-      padding: 0.8rem 1.2rem;
-      text-decoration: none;
-      display: block;
-      font-weight: 500;
-      font-size: 0.95rem;
-      border-bottom: 1px solid #f0f0f0;
-      transition: all 0.3s ease;
-    }
-    .dropdown-content a:last-child { border-bottom: none; }
-    .dropdown-content a:hover {
-      background-color: var(--p4-light-gray);
-      color: var(--p4-dark-blue) !important;
-      padding-left: 1.5rem;
-    }
-    .dropdown-content a:first-child { border-radius: 8px 8px 0 0; }
-    .dropdown-content a:last-child { border-radius: 0 0 8px 8px; }
-    .dropdown-arrow {
-      font-size: 0.7rem;
-      margin-left: 0.3rem;
-      transition: transform 0.3s ease;
-    }
-    .dropdown:hover .dropdown-arrow { transform: rotate(180deg); }
-    .nav-buttons { display: flex; gap: 1rem; }
-    .hero {
-      padding: 6rem 0 8rem;
-      background-color: var(--p4-light-gray);
-      position: relative;
-      overflow: hidden;
-    }
-    .hero::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg font-family='monospace' font-size='10' fill='%23283E53' fill-opacity='0.03'%3E%3Ctext x='0' y='15'%3E1010%3C/text%3E%3Ctext x='40' y='15'%3E0101%3C/text%3E%3Ctext x='0' y='35'%3E0101%3C/text%3E%3Ctext x='40' y='35'%3E1010%3C/text%3E%3Ctext x='0' y='55'%3E1010%3C/text%3E%3Ctext x='40' y='55'%3E0101%3C/text%3E%3Ctext x='0' y='75'%3E0101%3C/text%3E%3Ctext x='40' y='75'%3E1010%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        z-index: 1;
-    }
-    .hero-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4rem;
-      align-items: center;
-      position: relative;
-      z-index: 2;
-    }
-    .hero-content { text-align: left; }
-    .hero h1 { font-size: 3.8rem; line-height: 1.1; font-weight: 800; margin-bottom: 1.5rem; color: var(--p4-dark-blue); }
-    .hero p { font-size: 1.25rem; color: var(--p4-blue); margin-bottom: 2.5rem; }
-    .hero-buttons { display: flex; gap: 1.5rem; justify-content: flex-start; }
-
-    .rankings-section {
-      padding: 4rem 0;
-      background: var(--white);
-    }
-
-    .rankings-showcase {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .rankings-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-    }
-
-    .rankings-showcase h2 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--p4-dark-blue);
-      text-align: center;
-      margin-bottom: 1rem;
-      position: relative;
-    }
-
-    .rankings-showcase h2::after {
-      content: '';
-      position: absolute;
-      bottom: -0.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 60px;
-      height: 3px;
-      background: linear-gradient(90deg, var(--p4-accent), var(--p4-dark-blue));
-      border-radius: 2px;
-    }
-
-    .ranking-card {
-      position: relative;
-      background: linear-gradient(135deg, var(--white) 0%, #f8fbff 100%);
-      border-radius: 16px;
-      padding: 1.5rem;
-      border: 1px solid rgba(40, 62, 83, 0.1);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      overflow: hidden;
-      text-decoration: none;
-      color: inherit;
-      display: block;
-    }
-
-    .ranking-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(0, 168, 232, 0.1), transparent);
-      transition: left 0.6s ease;
-    }
-
-    .ranking-card:hover::before {
-      left: 100%;
-    }
-
-    .ranking-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 20px 40px rgba(40, 62, 83, 0.15);
-      border-color: var(--p4-accent);
-    }
-
-    .ranking-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .ranking-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
-      color: var(--white);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .ranking-icon::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transform: rotate(45deg);
-      transition: all 0.6s ease;
-      opacity: 0;
-    }
-
-    .ranking-card:hover .ranking-icon::before {
-      opacity: 1;
-      animation: shimmer 1.5s ease-in-out;
-    }
-
-    @keyframes shimmer {
-      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-      50% { transform: translateX(0) translateY(0) rotate(45deg); }
-      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-    }
-
-    .ranking-title {
-      flex: 1;
-    }
-
-    .ranking-title h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--p4-dark-blue);
-      margin: 0;
-      line-height: 1.3;
-    }
-
-    .ranking-subtitle {
-      font-size: 0.85rem;
-      color: var(--p4-blue);
-      margin-top: 0.25rem;
-    }
-
-
-
-    .ranking-badge {
-      background: linear-gradient(135deg, #FFD700, #FFA500);
-      color: var(--p4-dark-blue);
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
-    }
-
-    /* Responsive design */
-    @media (max-width: 1024px) {
-      .hero-container {
-        grid-template-columns: 1fr;
-        gap: 3rem;
-        text-align: center;
-      }
-      .hero-content {
-        text-align: center;
-      }
-      .hero-buttons {
-        justify-content: center;
-      }
-    }
-    .features { padding: 6rem 0; background-color: var(--white); }
-    .section-header { text-align: center; margin-bottom: 3rem; }
-    .section-header h2 { font-size: 2.4rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--p4-dark-blue); }
-    .section-header p { font-size: 1.1rem; color: var(--p4-blue); max-width: 600px; margin: 0 auto; }
-    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem; }
-    .feature-card { background-color: var(--white); border-radius: 12px; padding: 2.5rem; transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #e7e7e7; text-align: center; }
-    .feature-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(40, 62, 83, 0.1); }
-    .feature-icon { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; margin-bottom: 1.5rem; background: var(--p4-light-gray); color: var(--p4-dark-blue); font-size: 1.8rem; }
-    .feature-icon svg { width: 32px; height: 32px; }
-    .feature-card h3 { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 600; color: var(--p4-dark-blue); }
-    .feature-card p { color: var(--p4-blue); }
-    .cta {
-      padding: 6rem 0;
-      background-color: var(--p4-dark-blue);
-      background-image: linear-gradient(135deg, var(--p4-dark-blue) 0%, var(--p4-blue) 100%);
-      color: var(--white);
-      text-align: center;
-      border-radius: 20px;
-      margin: 6rem auto;
-    }
-    .cta .container { position: relative; z-index: 2; }
-    .cta h2 { font-size: 2.8rem; font-weight: 700; margin-bottom: 1.5rem; }
-    .cta p { font-size: 1.2rem; max-width: 700px; margin: 0 auto 2.5rem; opacity: 0.9; }
-    .cta .btn-white { background-color: var(--white); color: var(--p4-dark-blue); }
-    .cta .btn-white:hover { background-color: var(--p4-light-gray); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); }
-    footer { padding: 5rem 0 2rem; background-color: var(--p4-light-gray); color: var(--p4-dark-blue); }
-    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 2.5rem; margin-bottom: 3rem; }
-    .footer-section h4 { font-size: 1.2rem; margin-bottom: 1.5rem; font-weight: 600; }
-    .footer-links { list-style: none; }
-    .footer-links li { margin-bottom: 0.8rem; }
-    .footer-links a { color: var(--p4-blue); transition: color 0.3s ease; }
-    .footer-links a:hover { color: var(--p4-dark-blue); text-decoration: underline; }
-    .copyright { text-align: center; padding-top: 3rem; border-top: 1px solid #dce4e8; color: var(--p4-blue); font-size: 0.9rem; }
-    .copyright a { color: var(--p4-dark-blue); text-decoration: underline; cursor: pointer; }
-    .copyright a:hover { color: var(--p4-accent); }
-    @media (max-width: 992px) { .footer-grid { grid-template-columns: 1fr 1fr 1fr; gap: 2rem; } }
-    @media (max-width: 640px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 768px) {
-      .hero h1 { font-size: 2.8rem; }
-      .navbar { flex-direction: column; gap: 1rem; }
-      nav ul { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
-      .nav-buttons { display: none; }
-      .dropdown-content { position: static; display: none; box-shadow: none; border: none; margin: 0; background: var(--p4-light-gray); border-radius: 8px; margin-top: 0.5rem; }
-      .dropdown:hover .dropdown-content { display: block; }
-      .footer-grid { grid-template-columns: 1fr; text-align: center; }
-
-      .hero-container {
-        gap: 2rem;
-      }
-
-      .rankings-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-
-      .rankings-showcase h2 {
-        font-size: 1.5rem;
-      }
-
-      .ranking-card {
-        padding: 1.25rem;
-      }
-
-      .ranking-icon {
-        width: 45px;
-        height: 45px;
-        font-size: 1.3rem;
-      }
-
-      .ranking-title h3 {
-        font-size: 1rem;
-      }
-
-      .ranking-subtitle {
-        font-size: 0.8rem;
-      }
-
-      .ranking-badge {
-        font-size: 0.65rem;
-        padding: 0.4rem 0.8rem;
-      }
-    }
-    .feature-card.active {
-      transform: translateY(-8px);
-      box-shadow: 0 15px 35px rgba(40, 62, 83, 0.15);
-      border-color: var(--p4-dark-blue);
-    }
-    .feature-showcase {
-      margin-top: 3rem;
-      border-radius: 12px;
-      overflow: hidden;
-      height: auto;
-      max-height: 0;
-      opacity: 0;
-      transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out 0.1s, margin-top 0.5s ease-in-out;
-      background: var(--p4-light-gray);
-      border: 1px solid #e7e7e7;
-    }
-    .feature-showcase.visible {
-      max-height: 500px;
-      opacity: 1;
-    }
-    .feature-showcase img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    /* New Interactive Features Showcase */
-    .features-showcase {
-      margin-bottom: 4rem;
-    }
-
-    .question-tabs {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
-
-    .question-tab {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 1rem 1.5rem;
-      background: var(--white);
-      border: 2px solid #e7e7e7;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      min-width: 140px;
-    }
-
-    .question-tab:hover {
-      border-color: var(--p4-dark-blue);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(40, 62, 83, 0.1);
-    }
-
-    .question-tab.active {
-      background: var(--p4-dark-blue);
-      color: var(--white);
-      border-color: var(--p4-dark-blue);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 25px rgba(40, 62, 83, 0.2);
-    }
-
-    .featured-tab {
-      position: relative;
-      border: 2px solid var(--p4-accent) !important;
-      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue)) !important;
-      color: var(--white) !important;
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 0 15px 30px rgba(0, 168, 232, 0.3);
-    }
-
-    .featured-tab:hover {
-      transform: translateY(-5px) scale(1.05);
-      box-shadow: 0 18px 35px rgba(0, 168, 232, 0.4);
-    }
-
-    .featured-badge {
-      position: absolute;
-      top: -8px;
-      right: -5px;
-      background: #ff6b35;
-      color: white;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 10px;
-      letter-spacing: 0.5px;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    .tab-icon {
-      font-size: 1.5rem;
-      filter: grayscale(1);
-      transition: filter 0.3s ease;
-    }
-
-    .question-tab.active .tab-icon {
-      filter: grayscale(0);
-    }
-
-    .tab-text {
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .question-panels {
-      position: relative;
-      background: var(--white);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(40, 62, 83, 0.1);
-      overflow: hidden;
-      min-height: 400px;
-    }
-
-    .question-panel {
-      display: none;
-      padding: 2rem;
-      animation: fadeIn 0.5s ease-in-out;
-    }
-
-    .question-panel.active {
-      display: block;
-    }
-
-    .panel-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      align-items: center;
-    }
-
-    .panel-text h3 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--p4-dark-blue);
-      margin-bottom: 0.5rem;
-    }
-
-    .panel-description {
-      color: var(--p4-blue);
-      margin-bottom: 1.5rem;
-      font-size: 1.1rem;
-    }
-
-    .question-examples {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .question-item {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      padding: 0.8rem 1rem;
-      background: var(--p4-light-gray);
-      border-radius: 8px;
-      border-left: 4px solid var(--p4-dark-blue);
-      transition: all 0.3s ease;
-    }
-
-    .question-item:hover {
-      background: #e8f0f8;
-      transform: translateX(4px);
-    }
-
-    .question-icon {
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-
-    .question-item span:last-child {
-      font-weight: 500;
-      color: var(--p4-dark-blue);
-    }
-
-    .panel-visual {
-      position: relative;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 8px 20px rgba(40, 62, 83, 0.1);
-      transition: transform 0.3s ease;
-    }
-
-    .panel-visual:hover {
-      transform: scale(1.02);
-    }
-
-    .panel-visual img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 768px) {
-      .panel-content {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-      }
-
-      .question-tabs {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5rem;
-      }
-
-      .question-tab {
-        min-width: auto;
-        padding: 0.8rem 1rem;
-      }
-
-      .featured-tab {
-        transform: translateY(-2px) scale(1.02);
-      }
-
-      .featured-tab:hover {
-        transform: translateY(-3px) scale(1.02);
-      }
-
-      .featured-badge {
-        font-size: 0.6rem;
-        padding: 1px 4px;
-        top: -6px;
-        right: -3px;
-      }
-
-      .tab-text {
-        font-size: 0.8rem;
-      }
-    }
-
-    /* Image Lightbox Styles */
-    .image-lightbox {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0s 0.3s;
-      cursor: pointer;
-    }
-
-    .image-lightbox.active {
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.3s ease;
-    }
-
-    .lightbox-content {
-      position: relative;
-      max-width: 95%;
-      max-height: 95%;
-      transform: scale(0.8);
-      transition: transform 0.3s ease;
-    }
-
-    .image-lightbox.active .lightbox-content {
-      transform: scale(1);
-    }
-
-    .lightbox-image {
-      max-width: 100%;
-      max-height: 100%;
-      border-radius: 8px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .lightbox-close {
-      position: absolute;
-      top: -40px;
-      right: -40px;
-      width: 40px;
-      height: 40px;
-      background: rgba(255, 255, 255, 0.9);
-      border: none;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #333;
-      transition: background 0.3s ease;
-    }
-
-    .lightbox-close:hover {
-      background: rgba(255, 255, 255, 1);
-    }
-
-    .panel-visual img {
-      cursor: pointer;
-      transition: opacity 0.3s ease;
-    }
-
-    .panel-visual img:hover {
-      opacity: 0.9;
-    }
-
-    @media (max-width: 768px) {
-      .lightbox-close {
-        top: 10px;
-        right: 10px;
-        width: 35px;
-        height: 35px;
-        font-size: 1.2rem;
-      }
-
-      .lightbox-content {
-        max-width: 98%;
-        max-height: 98%;
-      }
-    }
-
-    /* Pricing Modal Styles */
+      position: sticky; top: 0; z-index: 60; background: rgba(255,255,255,0.94);
+      backdrop-filter: saturate(180%) blur(10px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav {
+      height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    }
+    .nav-left { display: flex; align-items: center; gap: 44px; min-width: 0; }
+    .brand img { height: 30px; width: auto; }
+    .nav-links { display: flex; align-items: center; gap: 26px; font-size: 14px; font-weight: 500; color: var(--slate); }
+    .nav-links > * { position: relative; }
+    .nav-links a:hover { color: var(--navy); }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .dropdown > button {
+      display: inline-flex; align-items: center; gap: 6px; background: none; border: 0;
+      font: inherit; color: inherit; cursor: pointer; padding: 0;
+    }
+    .dropdown > button:hover { color: var(--navy); }
+    .caret { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 14px); left: -16px; width: 300px;
+      background: #fff; border: 1px solid var(--card-border); border-radius: 6px;
+      box-shadow: 0 12px 32px rgba(40,62,83,0.12); padding: 10px 0; display: none;
+    }
+    .dropdown.open .dropdown-menu { display: block; }
+    .dropdown-menu a {
+      display: block; padding: 10px 18px; font-size: 14px; color: var(--slate);
+    }
+    .dropdown-menu a:hover { background: var(--light); color: var(--navy); }
+    .menu-toggle { display: none; background: none; border: 0; cursor: pointer; color: var(--navy); padding: 6px; }
+
+    /* ---------- hero ---------- */
+    .hero { padding: 72px 0 60px; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .hero h1 {
+      font-size: 56px; line-height: 1.04; font-weight: 600; letter-spacing: -0.035em;
+      margin: 14px 0 20px;
+    }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-proof {
+      margin: 24px 0 28px; padding: 16px 20px; background: var(--light);
+      border-left: 2px solid var(--accent); border-radius: 0 4px 4px 0;
+      font-size: 15px; line-height: 1.55; color: var(--slate); max-width: 620px;
+    }
+    .hero-proof strong { color: var(--navy); font-weight: 600; }
+    .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; }
+    .hero-note { margin-top: 16px; font-family: var(--mono); font-size: 11px;
+                 letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+    /* ---------- hero slideshow ---------- */
+    .shots { border: 1px solid var(--card-border); border-radius: 8px; overflow: hidden; background: #fff;
+             box-shadow: 0 12px 40px rgba(40,62,83,0.10); }
+    .shots-tabs { display: flex; border-bottom: 1px solid var(--rule); background: var(--zebra); overflow-x: auto; }
+    .shots-tab {
+      flex: 1 1 auto; white-space: nowrap; background: none; border: 0; cursor: pointer;
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--muted); padding: 11px 10px; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+    }
+    .shots-tab:hover { color: var(--navy); }
+    .shots-tab.active { color: var(--navy); border-bottom-color: var(--accent); background: #fff; }
+    .shots-stage { position: relative; aspect-ratio: 1774 / 900; background: var(--zebra); }
+    .shots-slide {
+      position: absolute; inset: 0; opacity: 0; transition: opacity .45s ease; pointer-events: none;
+    }
+    .shots-slide.active { opacity: 1; pointer-events: auto; }
+    .shots-slide img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .shots-cap {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px 16px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--slate);
+    }
+    .shots-dots { display: flex; gap: 6px; }
+    .shots-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--input-border); border: 0; padding: 0; cursor: pointer; }
+    .shots-dot.active { background: var(--accent); }
+
+    /* ---------- stat strip ---------- */
+    .strip { background: var(--navy); color: #fff; padding: 22px 0; }
+    .strip-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; }
+    .strip-item { display: flex; flex-direction: column; gap: 4px; }
+    .strip-figure { font-family: var(--mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .strip-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sky); }
+
+    /* ---------- sections ---------- */
+    section.band { padding: 72px 0; }
+    section.band.alt { background: var(--light); }
+    .sec-head { max-width: 720px; margin-bottom: 40px; }
+    .sec-head h2 { font-size: 32px; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; margin: 10px 0 12px; }
+    .sec-head p { font-size: 17px; line-height: 1.55; color: var(--slate); }
+
+    /* ---------- question columns ---------- */
+    .qgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .qcol { border-top: 2px solid var(--navy); padding-top: 18px; }
+    .qcol.featured { border-top-color: var(--accent); }
+    .qcol-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--navy); }
+    .qcol.featured .qcol-head { color: var(--accent-hover); }
+    .qcol-head h3 { font-size: 16px; font-weight: 600; line-height: 1.35; }
+    .qcol ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .qcol li a {
+      display: block; font-size: 15px; line-height: 1.45; font-weight: 500; color: var(--slate);
+      padding-left: 14px; border-left: 1px solid var(--rule); transition: color .15s, border-color .15s;
+    }
+    .qcol li a:hover { color: var(--navy); border-left-color: var(--accent); }
+
+    /* ---------- rankings ---------- */
+    .rank-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .rank-card { background: #fff; border: 1px solid var(--card-border); border-radius: 6px; overflow: hidden;
+                 display: flex; flex-direction: column; }
+    .rank-head { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+                 padding: 16px 18px; border-bottom: 1px solid var(--rule); }
+    .rank-head h3 { font-size: 16px; font-weight: 600; }
+    .rank-table { width: 100%; border-collapse: collapse; }
+    .rank-table th {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); font-weight: 500; text-align: left; padding: 9px 18px; border-bottom: 1px solid var(--rule);
+    }
+    .rank-table th.num, .rank-table td.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .rank-table td { font-size: 13px; line-height: 1.5; padding: 10px 18px; border-bottom: 1px solid var(--rule); }
+    .rank-table tr:nth-child(even) td { background: var(--zebra); }
+    .rank-table td.name { font-weight: 500; color: var(--navy); }
+    .rank-foot { margin-top: auto; padding: 14px 18px; }
+    .rank-foot a { font-size: 13px; font-weight: 500; color: var(--accent); }
+    .rank-foot a:hover { color: var(--navy); }
+    .rank-aggregate { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .rank-aggregate .figure { font-family: var(--mono); font-size: 26px; font-weight: 500; }
+    .rank-aggregate p { font-size: 14px; line-height: 1.55; color: var(--slate); }
+
+    /* ---------- capability cards ---------- */
+    .cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .cap-card { background: #fff; border: 1px solid var(--card-border); border-radius: 6px; padding: 26px 24px; }
+    .cap-card .ic { color: var(--accent); margin-bottom: 14px; }
+    .cap-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .cap-card p { font-size: 14px; line-height: 1.6; color: var(--slate); }
+
+    /* ---------- query band ---------- */
+    .query-band { background: var(--navy); color: #fff; padding: 72px 0; }
+    .query-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .query-band h2 { font-size: 32px; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; margin: 12px 0 14px; }
+    .query-band p { font-size: 17px; line-height: 1.55; color: var(--sky); max-width: 560px; }
+    .query-band .eyebrow { color: var(--sky); }
+    .query-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 24px 0 28px; }
+    .query-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; color: #fff; }
+    .query-list .ic { color: var(--sky); margin-top: 2px; }
+    .query-demo { background: #16242F; border: 1px solid var(--footer-rule); border-radius: 6px; padding: 20px; }
+    .query-demo-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+                        text-transform: uppercase; color: var(--footer-meta); margin-bottom: 10px; }
+    .query-input {
+      display: flex; align-items: center; gap: 10px; background: #1B2C3E;
+      border: 1px solid var(--footer-rule); border-radius: 4px; padding: 12px 14px; margin-bottom: 16px;
+    }
+    .query-input .ic { color: var(--accent); }
+    .query-input span { font-family: var(--mono); font-size: 13px; color: #fff; }
+    .query-rows { width: 100%; border-collapse: collapse; }
+    .query-rows th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+                     color: var(--footer-meta); font-weight: 500; text-align: left; padding: 7px 0; border-bottom: 1px solid var(--footer-rule); }
+    .query-rows th.num, .query-rows td.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .query-rows td { font-size: 13px; padding: 9px 0; border-bottom: 1px solid #22343F; color: var(--footer-text); }
+    .query-rows td.name { color: #fff; font-weight: 500; }
+    .query-meta { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 14px;
+                  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--footer-meta); }
+
+    /* ---------- reporting band ---------- */
+    .report { border: 1px solid var(--card-border); border-radius: 6px; background: #fff; padding: 28px 32px;
+              display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: center; }
+    .report h3 { font-size: 20px; font-weight: 600; margin: 10px 0 10px; }
+    .report p { font-size: 14px; line-height: 1.6; color: var(--slate); }
+
+    /* ---------- closing CTA ---------- */
+    .cta { background: var(--navy); color: #fff; padding: 72px 0; text-align: center; }
+    .cta h2 { font-size: 34px; line-height: 1.15; font-weight: 600; letter-spacing: -0.025em; margin-bottom: 14px; }
+    .cta p { font-size: 17px; color: var(--sky); max-width: 560px; margin: 0 auto 28px; }
+    .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ---------- footer ---------- */
+    footer { background: var(--footer-bg); color: var(--footer-text); padding: 52px 0 28px; }
+    .footer-grid { display: grid; grid-template-columns: 1.6fr repeat(4, 1fr); gap: 40px; }
+    .footer-brand img { height: 28px; margin-bottom: 14px; }
+    .footer-brand p { font-size: 13px; line-height: 1.6; color: var(--footer-meta); max-width: 280px; }
+    .footer-col h4 { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+                     color: #fff; font-weight: 500; margin-bottom: 14px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .footer-col a { font-size: 13px; color: var(--footer-text); }
+    .footer-col a:hover { color: #fff; }
+    .footer-bottom { margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--footer-rule);
+                     display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;
+                     font-size: 12px; color: var(--footer-meta); }
+    .footer-bottom a { color: var(--footer-meta); }
+    .footer-bottom a:hover { color: #fff; }
+    .footer-bottom nav { display: flex; gap: 20px; flex-wrap: wrap; }
+
+    /* ---------- modals (carried over) ---------- */
     .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(40, 62, 83, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0s 0.3s;
+      position: fixed; inset: 0; background: rgba(31,49,69,0.55); z-index: 200;
+      display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto;
     }
-    .modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.3s ease;
-    }
+    .modal-overlay.active { display: flex; }
     .modal-content {
-      background: var(--white);
-      padding: 1.5rem 2rem 2rem;
-      border-radius: 16px;
-      max-width: 800px;
-      width: 90%;
-      position: relative;
-      transform: translateY(20px) scale(0.98);
-      transition: transform 0.3s ease;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      position: relative; background: #fff; border-radius: 8px; width: 100%; max-width: 860px;
+      padding: 40px; box-shadow: 0 24px 60px rgba(31,49,69,0.28);
     }
-    .modal-overlay.active .modal-content {
-      transform: translateY(0) scale(1);
-    }
+    .privacy-modal-content, .terms-modal-content { max-width: 760px; }
     .close-modal {
-      position: absolute;
-      top: 1rem;
-      right: 1.5rem;
-      font-size: 2.5rem;
-      font-weight: 300;
-      color: #999;
-      background: none;
-      border: none;
-      cursor: pointer;
-      line-height: 1;
-      transition: color 0.2s ease;
+      position: absolute; top: 14px; right: 18px; background: none; border: 0; font-size: 30px;
+      line-height: 1; color: var(--muted); cursor: pointer;
     }
-    .close-modal:hover { color: var(--p4-dark-gray); }
-    .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; justify-items: center; }
-    .pricing-card {
-      background-color: var(--p4-light-gray);
-      border-radius: 12px;
-      padding: 1.5rem;
-      text-align: center;
-      border: 1px solid #e7e7e7;
-      display: flex;
-      flex-direction: column;
-      max-width: 350px;
-      width: 100%;
-    }
-    .pricing-card h3 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
-    .pricing-card .plan-desc { color: var(--p4-blue); margin-bottom: 1.5rem; font-size: 0.9rem; }
-    .pricing-price { font-size: 3rem; font-weight: 700; margin-bottom: 0.25rem; color: var(--p4-dark-blue); }
-    .pricing-price span { font-size: 1rem; font-weight: 400; color: var(--p4-blue); }
-    .yearly-price { font-size: 1rem; color: var(--p4-accent); margin-bottom: 1.5rem; font-weight: 600; }
-    .pricing-features { list-style: none; margin-bottom: 1.5rem; text-align: left; flex-grow: 1; }
-    .pricing-features li { padding: 0.5rem 0; border-bottom: 1px solid #dce4e8; font-size: 0.9rem; }
-    .pricing-features li::before { content: '✓'; color: var(--p4-dark-blue); margin-right: 10px; font-weight: 600; }
-    .pricing-card.featured { border: 2px solid var(--p4-dark-blue); transform: scale(1.05); }
-    @media (max-width: 992px) { .pricing-grid { grid-template-columns: 1fr; } .pricing-card.featured { transform: scale(1); } }
-
-    /* Privacy Policy Modal Styles */
-    .privacy-modal-content {
-      max-width: 800px;
-      max-height: 85vh;
-      overflow-y: auto;
-      padding: 2rem 3rem 3rem;
-    }
-    .privacy-content {
-      text-align: left;
-    }
-    .privacy-content section {
-      margin-bottom: 2rem;
-    }
-    .privacy-content h3 {
-      color: var(--p4-dark-blue);
-      font-size: 1.3rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid var(--p4-light-gray);
-      padding-bottom: 0.5rem;
-    }
-    .privacy-content p {
-      color: var(--p4-blue);
-      font-size: 0.95rem;
-      line-height: 1.6;
-      margin-bottom: 1rem;
-    }
-    .privacy-content ul {
-      margin-left: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .privacy-content li {
-      color: var(--p4-blue);
-      font-size: 0.95rem;
-      line-height: 1.6;
-      margin-bottom: 0.5rem;
-    }
-    .privacy-content a {
-      color: var(--p4-dark-blue);
-      text-decoration: underline;
-    }
-    .privacy-content a:hover {
-      color: var(--p4-accent);
-    }
-    @media (max-width: 768px) {
-      .privacy-modal-content {
-        padding: 1.5rem 1.5rem 2rem;
-        max-height: 90vh;
-      }
-      .privacy-content h3 {
-        font-size: 1.2rem;
-      }
-    }
-
-    /* Terms of Service Modal Styles */
-    .terms-modal-content {
-      max-width: 800px;
-      max-height: 85vh;
-      overflow-y: auto;
-      padding: 2rem 3rem 3rem;
-    }
-    .terms-content {
-      text-align: left;
-    }
-    .terms-content section {
-      margin-bottom: 2rem;
-    }
-    .terms-content h3 {
-      color: var(--p4-dark-blue);
-      font-size: 1.3rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid var(--p4-light-gray);
-      padding-bottom: 0.5rem;
-    }
-    .terms-content p {
-      color: var(--p4-blue);
-      font-size: 0.95rem;
-      line-height: 1.6;
-      margin-bottom: 1rem;
-    }
-    .terms-content ul {
-      margin-left: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .terms-content li {
-      color: var(--p4-blue);
-      font-size: 0.95rem;
-      line-height: 1.6;
-      margin-bottom: 0.5rem;
-    }
-    .terms-content a {
-      color: var(--p4-dark-blue);
-      text-decoration: underline;
-    }
-    .terms-content a:hover {
-      color: var(--p4-accent);
-    }
-    @media (max-width: 768px) {
-      .terms-modal-content {
-        padding: 1.5rem 1.5rem 2rem;
-        max-height: 90vh;
-      }
-      .terms-content h3 {
-        font-size: 1.2rem;
-      }
-    }
-
-    /* Disclaimer Floating Text */
+    .close-modal:hover { color: var(--navy); }
+    .modal-content .section-header { margin-bottom: 26px; }
+    .modal-content .section-header h2 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 10px; }
+    .modal-content .section-header p { font-size: 15px; color: var(--slate); }
+    .modal-content h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .modal-content section { margin-bottom: 18px; }
+    .modal-content p { font-size: 14px; line-height: 1.65; color: var(--slate); margin-bottom: 10px; }
+    .modal-content ul { margin: 0 0 10px 18px; font-size: 14px; line-height: 1.65; color: var(--slate); }
+    .legal-body { max-height: 60vh; overflow-y: auto; padding-right: 8px; }
+    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .pricing-card { border: 1px solid var(--card-border); border-radius: 6px; padding: 26px 24px; }
+    .pricing-card.featured { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+    .pricing-card h3 { font-size: 18px; margin-bottom: 6px; }
+    .plan-desc { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .pricing-price { font-family: var(--mono); font-size: 30px; font-weight: 500; margin-bottom: 16px; }
+    .pricing-price span { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); font-weight: 400; }
+    .pricing-features { list-style: none; margin: 0 0 20px; display: flex; flex-direction: column; gap: 9px; }
+    .pricing-features li { font-size: 14px; color: var(--slate); display: flex; gap: 9px; align-items: flex-start; }
+    .pricing-features .ic { color: var(--accent); margin-top: 3px; }
     .disclaimer-popup {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--white);
-      border: 1px solid var(--p4-dark-blue);
-      border-radius: 12px;
-      padding: 1.5rem;
-      max-width: 400px;
-      box-shadow: 0 10px 30px rgba(40, 62, 83, 0.2);
-      z-index: 1500;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(20px);
-      transition: opacity 0.3s ease, visibility 0s 0.3s, transform 0.3s ease;
+      position: fixed; bottom: 24px; right: 24px; z-index: 210; width: min(420px, calc(100vw - 40px));
+      background: #fff; border: 1px solid var(--card-border); border-radius: 8px; padding: 22px 24px;
+      box-shadow: 0 20px 50px rgba(31,49,69,0.22); display: none;
     }
-    .disclaimer-popup.active {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    .disclaimer-popup h4 {
-      color: var(--p4-dark-blue);
-      margin-bottom: 0.8rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-    .disclaimer-popup p {
-      color: var(--p4-blue);
-      font-size: 0.9rem;
-      line-height: 1.5;
-      margin-bottom: 1rem;
-    }
-    .disclaimer-popup .close-disclaimer {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: var(--p4-blue);
-      cursor: pointer;
-      line-height: 1;
-    }
-    .disclaimer-popup .close-disclaimer:hover {
-      color: var(--p4-dark-blue);
-    }
-    @media (max-width: 768px) {
-      .disclaimer-popup {
-        bottom: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
-      }
-    }
+    .disclaimer-popup.active { display: block; }
+    .disclaimer-popup h4 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+    .disclaimer-popup p { font-size: 13px; line-height: 1.6; color: var(--slate); margin-bottom: 9px; }
+    .close-disclaimer { position: absolute; top: 10px; right: 14px; background: none; border: 0;
+                        font-size: 24px; line-height: 1; color: var(--muted); cursor: pointer; }
 
-    /* AI Query Showcase Styles */
-    .ai-query-showcase {
-      background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-      border: 2px solid var(--p4-light-gray);
-      border-radius: 20px;
-      padding: 3rem;
-      margin: 3rem 0;
-      display: flex;
-      align-items: center;
-      gap: 3rem;
-      box-shadow: 0 8px 32px rgba(40, 62, 83, 0.12);
-      position: relative;
-      overflow: hidden;
+    /* ---------- responsive ---------- */
+    @media (max-width: 1180px) {
+      .qgrid { grid-template-columns: repeat(2, 1fr); }
+      .strip-grid { grid-template-columns: repeat(3, 1fr); row-gap: 22px; }
+      .footer-grid { grid-template-columns: 1fr 1fr 1fr; }
     }
-    .ai-query-showcase::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -20%;
-      width: 300px;
-      height: 300px;
-      background: linear-gradient(45deg, rgba(0, 168, 232, 0.05), rgba(118, 75, 162, 0.05));
-      border-radius: 50%;
-      z-index: 0;
-    }
-    .ai-visual {
-      position: relative;
-      z-index: 1;
-    }
-    .ai-icon-container {
-      position: relative;
-      width: 120px;
-      height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .ai-icon {
-      font-size: 3.5rem;
-      background: linear-gradient(135deg, var(--p4-accent), var(--p4-dark-blue));
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 10px 30px rgba(0, 168, 232, 0.3);
-      position: relative;
-      z-index: 2;
-    }
-    .ai-pulse {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: 3px solid var(--p4-accent);
-      border-radius: 50%;
-      opacity: 0.6;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-        opacity: 0.6;
+    @media (max-width: 960px) {
+      .container { padding: 0 24px; }
+      .hero-grid, .query-grid { grid-template-columns: 1fr; gap: 40px; }
+      .hero h1 { font-size: 40px; }
+      .rank-grid, .cap-grid { grid-template-columns: 1fr; }
+      .report { grid-template-columns: 1fr; }
+      .nav-links, .nav-actions .btn-secondary { display: none; }
+      .menu-toggle { display: inline-flex; }
+      .nav-links.open {
+        display: flex; position: absolute; top: 72px; left: 0; right: 0; background: #fff;
+        flex-direction: column; align-items: flex-start; gap: 0; padding: 8px 24px 20px;
+        border-bottom: 1px solid var(--rule); box-shadow: 0 12px 24px rgba(40,62,83,0.08);
       }
-      50% {
-        transform: scale(1.1);
-        opacity: 0.3;
-      }
-      100% {
-        transform: scale(1.2);
-        opacity: 0;
-      }
+      .nav-links.open > * { width: 100%; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+      .nav-links.open .dropdown-menu { position: static; width: 100%; border: 0; box-shadow: none; padding: 6px 0 0; }
+      .nav-links.open .dropdown-menu a { padding: 9px 0; }
     }
-    .ai-content {
-      flex: 1;
-      position: relative;
-      z-index: 1;
-    }
-    .ai-header {
-      margin-bottom: 2rem;
-    }
-    .ai-badge {
-      display: inline-block;
-      background: linear-gradient(45deg, var(--p4-accent), #0099cc);
-      color: white;
-      padding: 0.4rem 1.2rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
-    }
-    .ai-query-showcase h3 {
-      color: var(--p4-dark-blue);
-      font-size: 2.2rem;
-      font-weight: 800;
-      margin-bottom: 0.8rem;
-      line-height: 1.2;
-    }
-    .ai-description {
-      color: var(--p4-blue);
-      font-size: 1.1rem;
-      line-height: 1.6;
-      margin-bottom: 0;
-    }
-    .ai-benefits {
-      margin: 1.5rem 0 2rem 0;
-    }
-    .benefit-item {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.8rem;
-      padding: 0.5rem 0;
-    }
-    .benefit-check {
-      background: var(--p4-accent);
-      color: white;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      font-weight: bold;
-      flex-shrink: 0;
-    }
-    .benefit-item span:last-child {
-      color: var(--p4-blue);
-      font-size: 1rem;
-      font-weight: 500;
-    }
-    .ai-cta {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      align-items: flex-start;
-    }
-    .ai-primary-btn {
-      display: inline-block;
-      background: linear-gradient(45deg, var(--p4-accent), var(--p4-dark-blue));
-      color: white;
-      padding: 1rem 2.5rem;
-      border-radius: 30px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 1.1rem;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 20px rgba(0, 168, 232, 0.3);
-      position: relative;
-      overflow: hidden;
-    }
-    .ai-primary-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s ease;
-    }
-    .ai-primary-btn:hover::before {
-      left: 100%;
-    }
-    .ai-primary-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(0, 168, 232, 0.4);
-      color: white;
-      text-decoration: none;
-    }
-    .ai-hint {
-      color: var(--p4-blue);
-      font-size: 0.9rem;
-      font-style: italic;
-      opacity: 0.8;
-    }
-
-    /* Responsive Design for AI Query */
-    @media (max-width: 768px) {
-      .ai-query-showcase {
-        flex-direction: column;
-        text-align: center;
-        padding: 2rem;
-        gap: 2rem;
-      }
-      .ai-icon-container {
-        width: 100px;
-        height: 100px;
-      }
-      .ai-icon {
-        width: 80px;
-        height: 80px;
-        font-size: 2.5rem;
-      }
-      .ai-query-showcase h3 {
-        font-size: 1.8rem;
-      }
-      .ai-cta {
-        align-items: center;
-      }
-    }
-
-    @media (max-width: 1024px) and (min-width: 769px) {
-      .rankings-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.2rem;
-      }
+    @media (max-width: 620px) {
+      .hero { padding: 48px 0 40px; }
+      .hero h1 { font-size: 32px; line-height: 1.1; letter-spacing: -0.03em; }
+      .lead { font-size: 16px; }
+      .strip-grid { grid-template-columns: repeat(2, 1fr); }
+      .qgrid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      section.band, .query-band, .cta { padding: 52px 0; }
+      .sec-head h2, .query-band h2 { font-size: 26px; }
+      .cta h2 { font-size: 26px; }
+      .modal-content { padding: 30px 22px; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .hero-cta .btn, .cta-buttons .btn { flex: 1 1 auto; }
     }
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header>
-    <div class="container">
-      <div class="navbar">
-        <a href="/" class="logo">
-          <img src="/static/assets/images/patent-1024.svg" alt="Patent 1024 Logo">
+
+<!-- Icon family: 24x24 grid, 1.5 stroke, round caps, no fill. Retires the emoji set. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-attorney" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/></symbol>
+  <symbol id="i-firm" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/><path d="M10 20v-5h4v5M8 8h2M14 8h2M8 11.5h2M14 11.5h2"/></symbol>
+  <symbol id="i-applicant" viewBox="0 0 24 24"><rect x="3.5" y="9" width="7" height="11"/><rect x="13.5" y="4" width="7" height="16"/></symbol>
+  <symbol id="i-examiner" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5"/><path d="M14 18l2 2 4-4.5"/></symbol>
+  <symbol id="i-application" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 13h6M9 16.5h4"/></symbol>
+  <symbol id="i-portfolio" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13"/><path d="M9 7V4h6v3M3 12h18"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 6h18M6 12h12M10 18h4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 19v-6M12.5 19V8M17 19v-9"/></symbol>
+  <symbol id="i-pendency" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-signature" viewBox="0 0 24 24"><path d="M4 20l1.2-4L15 6.2a2 2 0 012.8 0l1 1a2 2 0 010 2.8L9 20H4z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.5L21 19.5H3z"/><path d="M12 10v4M12 16.6v.2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></symbol>
+</svg>
+
+<header>
+  <div class="container">
+    <div class="nav">
+      <div class="nav-left">
+        <a href="/" class="brand" aria-label="Patent 1024 home">
+          <img src="/static/assets/images/patent-1024.svg" alt="Patent 1024">
         </a>
-        <nav>
-          <ul>
-            <li class="dropdown">
-              <a href="#features">Solutions<span class="dropdown-arrow">▼</span></a>
-              <div class="dropdown-content">
-                <a href="/patent-analytics-software/">Patent Analytics Software</a>
-                <a href="/uspto-data-analysis/">USPTO Data Analysis Tools</a>
-                <a href="/patent-portfolio-intelligence/">Patent Portfolio Intelligence</a>
-                <a href="/ai-patent-search/">AI Patent Search Platform</a>
-              </div>
-            </li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="/blog/">Blog</a></li>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#about">About</a></li>
-          </ul>
-        </nav>
-        <div class="nav-buttons">
-          <a href="/login/" class="btn btn-outline">Log In</a>
-          <a href="/register/form" class="btn btn-primary">Get Started FREE</a>
+        <div class="nav-links" id="navLinks">
+          <div class="dropdown" id="solutionsDropdown">
+            <button type="button" aria-expanded="false" aria-haspopup="true">
+              Solutions
+              <svg class="caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="dropdown-menu">
+              <a href="/patent-analytics-software/">Patent analytics software</a>
+              <a href="/uspto-data-analysis/">USPTO data analysis</a>
+              <a href="/patent-portfolio-intelligence/">Portfolio intelligence</a>
+              <a href="/ai-patent-search/">AI patent search</a>
+            </div>
+          </div>
+          <a href="#rankings">Rankings</a>
+          <a href="#questions">Features</a>
+          <a href="#" id="pricing-link">Pricing</a>
+          <a href="/blog/">Blog</a>
+          <a href="#about">About</a>
         </div>
       </div>
-    </div>
-  </header>
-
-  <main>
-    <!-- Hero Section -->
-    <section class="hero" id="home">
-      <div class="container">
-        <div class="hero-container">
-          <div class="hero-content">
-            <h1>Dangerously Addictive Patent Insights</h1>
-            <p>Uncover the data that makes your competitive strategy pulse with possibility.</p>
-            <p><b>Currently FREE while in beta. NO credit card required.</b></p>
-            <div class="hero-buttons">
-              <a href="/register/form" class="btn btn-primary btn-lg">Get Started FREE</a>
-              <a href="#features" class="btn btn-outline btn-lg">Explore Features</a>
-            </div>
-          </div>
-
-          <!-- AI Query Feature Showcase -->
-          <div class="ai-query-showcase">
-            <div class="ai-visual">
-              <div class="ai-icon-container">
-                <div class="ai-icon">🤖</div>
-                <div class="ai-pulse"></div>
-              </div>
-            </div>
-            <div class="ai-content">
-              <div class="ai-header">
-                <div class="ai-badge">🚀 Just Launched</div>
-                <h3>AI Query Engine</h3>
-                <p class="ai-description">Transform natural language into powerful database insights. No technical knowledge required.</p>
-              </div>
-              <div class="ai-benefits">
-                <div class="benefit-item">
-                  <span class="benefit-check">✓</span>
-                  <span>Ask complex questions in plain English</span>
-                </div>
-                <div class="benefit-item">
-                  <span class="benefit-check">✓</span>
-                  <span>Get results in seconds, not hours</span>
-                </div>
-                <div class="benefit-item">
-                  <span class="benefit-check">✓</span>
-                  <span>Enterprise-grade security & performance</span>
-                </div>
-              </div>
-              <div class="ai-cta">
-                <a href="/ai-query" class="ai-primary-btn">Experience AI Query</a>
-                <div class="ai-hint">Try: "Show me Apple's latest patent filings"</div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="nav-actions">
+        <a href="/login/" class="btn btn-secondary btn-sm">Log in</a>
+        <a href="/register/form" class="btn btn-primary btn-sm">Create free account</a>
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
       </div>
-    </section>
-
-    <!-- Rankings Section -->
-    <section class="rankings-section">
-      <div class="container">
-        <div class="rankings-showcase">
-          <h2>🏆 Live Rankings</h2>
-          <div class="rankings-grid">
-            <a href="/rankings/attorneys" class="ranking-card">
-              <div class="ranking-header">
-                <div class="ranking-icon">👨‍💼</div>
-                <div class="ranking-title">
-                  <h3>Top Practitioners</h3>
-                  <div class="ranking-subtitle">Weighted Score (2020-2024)</div>
-                </div>
-                <div class="ranking-badge">Top 1024</div>
-              </div>
-            </a>
-
-            <a href="/rankings/firms" class="ranking-card">
-              <div class="ranking-header">
-                <div class="ranking-icon">🏢</div>
-                <div class="ranking-title">
-                  <h3>Leading Law Firms</h3>
-                  <div class="ranking-subtitle">Most Patents (2022-2024)</div>
-                </div>
-                <div class="ranking-badge">Top 1024</div>
-              </div>
-            </a>
-
-            <a href="/rankings/companies" class="ranking-card">
-              <div class="ranking-header">
-                <div class="ranking-icon">🏭</div>
-                <div class="ranking-title">
-                  <h3>Top Applicants</h3>
-                  <div class="ranking-subtitle">Most Patents (2022-2024)</div>
-                </div>
-                <div class="ranking-badge">Top 1024</div>
-              </div>
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features" id="features">
-      <div class="container">
-        <div class="section-header">
-          <h2>Your Questions, Answered Instantly</h2>
-          <p>Don't just analyze data—unlock insights. Our system answers your most creative questions with just a few clicks on interactive charts.</p>
-        </div>
-
-        <div class="features-showcase">
-          <div class="question-tabs">
-            <button class="question-tab active featured-tab" data-target="attorneys">
-              <span class="featured-badge">FEATURED</span>
-              <span class="tab-icon">⚖️</span>
-              <span class="tab-text">Attorney Analytics</span>
-            </button>
-            <button class="question-tab" data-target="portfolio">
-              <span class="tab-icon">📊</span>
-              <span class="tab-text">Portfolio Intelligence</span>
-            </button>
-            <button class="question-tab" data-target="applications">
-              <span class="tab-icon">🔍</span>
-              <span class="tab-text">Application Deep Dive</span>
-            </button>
-            <button class="question-tab" data-target="examiners">
-              <span class="tab-icon">👥</span>
-              <span class="tab-text">Examiner Profiles</span>
-            </button>
-            <button class="question-tab featured-tab" data-target="demographics">
-              <span class="featured-badge">FEATURED</span>
-              <span class="tab-icon">📊</span>
-              <span class="tab-text">Law Firm Demographics</span>
-            </button>
-          </div>
-
-          <div class="question-panels">
-            <div class="question-panel active" id="attorneys">
-              <div class="panel-content">
-                <div class="panel-text">
-                  <h3>Attorney Analytics</h3>
-                  <p class="panel-description">Analyze attorney performance and prosecution strategies - Our flagship feature</p>
-                  <div class="question-examples">
-                    <div class="question-item">
-                      <span class="question-icon">✍️</span>
-                      <span>Who actually signed applications vs. being on POA?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">📝</span>
-                      <span>Which attorneys signed amendments and remarks?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">⏱️</span>
-                      <span>How long do attorneys take to get patents granted?</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="panel-visual">
-                  <img src="/static/assets/images/attorneys_profile.png" alt="Attorney Profile Analytics" loading="lazy">
-                </div>
-              </div>
-            </div>
-
-            <div class="question-panel" id="portfolio">
-              <div class="panel-content">
-                <div class="panel-text">
-                  <h3>Portfolio Intelligence</h3>
-                  <p class="panel-description">Uncover comprehensive portfolio insights with interactive exploration</p>
-                  <div class="question-examples">
-                    <div class="question-item">
-                      <span class="question-icon">💡</span>
-                      <span>What is Apple's patent portfolio and granting rate?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">🎯</span>
-                      <span>Which CPC categories does Apple focus on?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">📈</span>
-                      <span>How are patents distributed across categories?</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="panel-visual">
-                  <img src="/static/assets/images/apple_patents.png" alt="Apple Patents Dashboard" loading="lazy">
-                </div>
-              </div>
-            </div>
-
-            <div class="question-panel" id="applications">
-              <div class="panel-content">
-                <div class="panel-text">
-                  <h3>Application Deep Dive</h3>
-                  <p class="panel-description">Drill down into specific applications and representation patterns</p>
-                  <div class="question-examples">
-                    <div class="question-item">
-                      <span class="question-icon">📋</span>
-                      <span>What are Apple's specific patent applications?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">🏢</span>
-                      <span>How do law firms rank in Apple's representation?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">⚖️</span>
-                      <span>How are examiners distributed across applications?</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="panel-visual">
-                  <img src="/static/assets/images/apple_law_firm_apps.png" alt="Law Firm Applications" loading="lazy">
-                </div>
-              </div>
-            </div>
-
-            <div class="question-panel" id="examiners">
-              <div class="panel-content">
-                <div class="panel-text">
-                  <h3>Examiner Profiles</h3>
-                  <p class="panel-description">Understand examiner patterns and performance metrics</p>
-                  <div class="question-examples">
-                    <div class="question-item">
-                      <span class="question-icon">👨‍💼</span>
-                      <span>Who examined the most applications?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">📊</span>
-                      <span>What are their granting rates?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">🎯</span>
-                      <span>Which examiners specialize in specific technologies?</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="panel-visual">
-                  <img src="/static/assets/images/examiner_profile.png" alt="Examiner Profile Dashboard" loading="lazy">
-                </div>
-              </div>
-            </div>
-
-            <div class="question-panel" id="demographics">
-              <div class="panel-content">
-                <div class="panel-text">
-                  <h3>Law Firm Demographics</h3>
-                  <p class="panel-description">Explore diversity and representation patterns within law firms</p>
-                  <div class="question-examples">
-                    <div class="question-item">
-                      <span class="question-icon">👥</span>
-                      <span>How are attorney genders distributed in specific law firms?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">🌍</span>
-                      <span>What is the ethnicity breakdown of firm attorneys?</span>
-                    </div>
-                    <div class="question-item">
-                      <span class="question-icon">📋</span>
-                      <span>Who are the attorneys on the firm's POA lists?</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="panel-visual">
-                  <img src="/static/assets/images/law_firm_demographic.png" alt="Law Firm Demographics" loading="lazy">
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                <polyline points="14,2 14,8 20,8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10,9 9,9 8,9"/>
-              </svg>
-            </div>
-            <h3>Interactive Exploration</h3>
-            <p>Click through charts to uncover deeper insights. Every visualization is a gateway to more detailed analysis.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 11H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h4"/>
-                <path d="M15 11h4a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-4"/>
-                <path d="M12 2v7"/>
-                <path d="M8 21l4-7 4 7"/>
-              </svg>
-            </div>
-            <h3>Real-Time Filtering</h3>
-            <p>Filter by companies, time periods, technologies, or any combination. Watch insights emerge instantly.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10 9 12 5.16-2 9-6.45 9-12V7z"/>
-                <polyline points="9,12 10.5,13.5 15,9"/>
-              </svg>
-            </div>
-            <h3>Reliable Data</h3>
-            <p>Built on comprehensive USPTO data with automated updates. Trust your insights are based on the latest information.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta" id="about">
-      <div class="container">
-        <h2>From Data to Decision, Instantly.</h2>
-        <p>Your journey to smarter patent strategy starts now. Sign up and get immediate access to our powerful analytics dashboard. Currently free while we're in beta! 🎉</p>
-        <a href="/register/form" class="btn btn-lg btn-white">Get Started FREE</a>
-      </div>
-    </section>
-  </main>
-
-  <!-- Image Lightbox -->
-  <div id="image-lightbox" class="image-lightbox">
-    <div class="lightbox-content">
-      <button id="lightbox-close-btn" class="lightbox-close">&times;</button>
-      <img id="lightbox-image" class="lightbox-image" src="" alt="Screenshot preview">
     </div>
   </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="home">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">USPTO record &middot; 2001&ndash;2025</div>
+        <h1>Know the people behind<br>every <span class="accent">patent</span>.</h1>
+        <p class="lead">
+          Nine million applications, every attorney, law firm, examiner and applicant in the
+          record &mdash; ranked, cross-referenced and searchable in plain English. Answer in
+          minutes what used to take a paralegal a week.
+        </p>
+        <div class="hero-proof">
+          <strong>Including the question no one else can answer:</strong> who actually signed
+          the application &mdash; not merely who held the power of attorney. We parse the
+          signature block of every amendment, response and remark in the file.
+        </div>
+        <div class="hero-cta">
+          <a href="/register/form" class="btn btn-primary">Create free account</a>
+          <a href="/ai-query" class="btn btn-secondary">Ask a question</a>
+        </div>
+        <div class="hero-note">Free to use &middot; no credit card &middot; no seat limits</div>
+      </div>
+
+      <!-- Screenshot slideshow: the live dashboards, carried over from the previous page -->
+      <div class="shots" id="shots">
+        <div class="shots-tabs" role="tablist" aria-label="Dashboard previews">
+          <button class="shots-tab active" role="tab" aria-selected="true" data-i="0">Attorney analytics</button>
+          <button class="shots-tab" role="tab" aria-selected="false" data-i="1">Portfolio</button>
+          <button class="shots-tab" role="tab" aria-selected="false" data-i="2">Representation</button>
+          <button class="shots-tab" role="tab" aria-selected="false" data-i="3">Examiners</button>
+          <button class="shots-tab" role="tab" aria-selected="false" data-i="4">Firm reporting</button>
+        </div>
+        <div class="shots-stage">
+          <div class="shots-slide active" data-i="0">
+            <img src="/static/assets/images/attorneys_profile.png" alt="Attorney analytics dashboard: rankings by signed applications, filings over time and disposal breakdown" width="1774" height="887">
+          </div>
+          <div class="shots-slide" data-i="1">
+            <img src="/static/assets/images/apple_patents.png" alt="Portfolio intelligence dashboard: a company's applications, grant rate and CPC distribution" loading="lazy" width="1775" height="888">
+          </div>
+          <div class="shots-slide" data-i="2">
+            <img src="/static/assets/images/apple_law_firm_apps.png" alt="Representation dashboard: law firms ranked within one applicant's portfolio" loading="lazy" width="1774" height="927">
+          </div>
+          <div class="shots-slide" data-i="3">
+            <img src="/static/assets/images/examiner_profile.png" alt="Examiner profile dashboard: volume, allowance rate and technology mix by examiner" loading="lazy" width="1770" height="924">
+          </div>
+          <div class="shots-slide" data-i="4">
+            <img src="/static/assets/images/law_firm_demographic.png" alt="Firm composition reporting: aggregate breakdown across a firm's signing practitioners" loading="lazy" width="1772" height="765">
+          </div>
+        </div>
+        <div class="shots-cap">
+          <span id="shotsCaption">Practitioners ranked by signed applications, grant rate and pendency</span>
+          <span class="shots-dots" id="shotsDots"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STAT STRIP ================= -->
+<div class="strip">
+  <div class="container">
+    <div class="strip-grid">
+      <div class="strip-item"><span class="strip-figure">9,088,325</span><span class="strip-label">Applications</span></div>
+      <div class="strip-item"><span class="strip-figure">21,784,893</span><span class="strip-label">Signed documents</span></div>
+      <div class="strip-item"><span class="strip-figure">57,772</span><span class="strip-label">Attorneys</span></div>
+      <div class="strip-item"><span class="strip-figure">108,248</span><span class="strip-label">Examiners</span></div>
+      <div class="strip-item"><span class="strip-figure">44,884</span><span class="strip-label">Law firms</span></div>
+      <div class="strip-item"><span class="strip-figure">4,607,157</span><span class="strip-label">Inventors</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= QUESTIONS ================= -->
+<section class="band" id="questions">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow">What you can ask</div>
+      <h2>Your questions, answered instantly</h2>
+      <p>
+        Grouped the way the work is grouped. Every one of these resolves into an interactive
+        chart you can click through, filter and cite &mdash; not a static report.
+      </p>
+    </div>
+    <div class="qgrid">
+      <div class="qcol featured">
+        <div class="qcol-head">
+          <svg class="ic"><use href="#i-attorney"/></svg>
+          <h3>Attorney analytics</h3>
+        </div>
+        <ul>
+          <li><a href="/rankings/attorneys">Who actually signed applications, versus being on the POA?</a></li>
+          <li><a href="/rankings/attorneys">Which attorneys signed the amendments and remarks?</a></li>
+          <li><a href="/rankings/attorneys">How long does each attorney take from filing to grant?</a></li>
+          <li><a href="/rankings/attorneys">Who is quietly building a book in my technology?</a></li>
+        </ul>
+      </div>
+      <div class="qcol">
+        <div class="qcol-head">
+          <svg class="ic"><use href="#i-portfolio"/></svg>
+          <h3>Portfolio intelligence</h3>
+        </div>
+        <ul>
+          <li><a href="/patent-portfolio-intelligence/">What is this company&rsquo;s portfolio, and what share of it grants?</a></li>
+          <li><a href="/patent-portfolio-intelligence/">Which CPC categories does it focus on this year?</a></li>
+          <li><a href="/patent-portfolio-intelligence/">How are patents distributed across categories?</a></li>
+          <li><a href="/patent-portfolio-intelligence/">How does its filing rate compare with three rivals?</a></li>
+        </ul>
+      </div>
+      <div class="qcol">
+        <div class="qcol-head">
+          <svg class="ic"><use href="#i-application"/></svg>
+          <h3>Application deep dive</h3>
+        </div>
+        <ul>
+          <li><a href="/uspto-data-analysis/">What happened in prosecution on this serial number?</a></li>
+          <li><a href="/uspto-data-analysis/">How do law firms rank inside one applicant&rsquo;s representation?</a></li>
+          <li><a href="/uspto-data-analysis/">How are examiners distributed across applications?</a></li>
+          <li><a href="/uspto-data-analysis/">How are continuations tracking back to their parents?</a></li>
+        </ul>
+      </div>
+      <div class="qcol">
+        <div class="qcol-head">
+          <svg class="ic"><use href="#i-examiner"/></svg>
+          <h3>Examiner profiles</h3>
+        </div>
+        <ul>
+          <li><a href="/patent-analytics-software/">What does the examiner on my case allow, and after how many actions?</a></li>
+          <li><a href="/patent-analytics-software/">Which examiners handle the most volume in this art unit?</a></li>
+          <li><a href="/patent-analytics-software/">What are their granting rates?</a></li>
+          <li><a href="/patent-analytics-software/">Which examiners specialise in specific technologies?</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RANKINGS ================= -->
+<section class="band alt" id="rankings">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow">Live rankings</div>
+      <h2>The rankings behind the answers</h2>
+      <p>
+        Every question resolves into the same three ranked universes, each capped at the
+        top 1,024 and recomputed as new USPTO data lands.
+      </p>
+    </div>
+    <div class="rank-grid">
+
+      <div class="rank-card">
+        <div class="rank-head">
+          <h3>Practitioners</h3>
+          <span class="pill">Top 1024</span>
+        </div>
+        <div class="rank-aggregate">
+          <div>
+            <div class="figure">57,772</div>
+            <span class="strip-label" style="color:var(--muted)">Registered practitioners</span>
+          </div>
+          <p>
+            Ranked on signed volume, grant rate and pendency &mdash; built from
+            <span class="mono">21,784,893</span> signed prosecution documents rather than
+            the power-of-attorney record alone.
+          </p>
+        </div>
+        <div class="rank-foot"><a href="/rankings/attorneys">See the practitioner rankings &rarr;</a></div>
+      </div>
+
+      <div class="rank-card">
+        <div class="rank-head">
+          <h3>Law firms</h3>
+          <span class="pill">Top 1024</span>
+        </div>
+        <table class="rank-table">
+          <thead><tr><th>Firm</th><th class="num">Apps</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Oblon, McClelland, Maier &amp; Neustadt</td><td class="num">62,802</td></tr>
+            <tr><td class="name">Sughrue Mion</td><td class="num">60,631</td></tr>
+            <tr><td class="name">Birch Stewart Kolasch &amp; Birch</td><td class="num">52,831</td></tr>
+            <tr><td class="name">Oliff PLC</td><td class="num">46,914</td></tr>
+            <tr><td class="name">Knobbe, Martens, Olson &amp; Bear</td><td class="num">40,892</td></tr>
+          </tbody>
+        </table>
+        <div class="rank-foot"><a href="/rankings/firms">See the firm rankings &rarr;</a></div>
+      </div>
+
+      <div class="rank-card">
+        <div class="rank-head">
+          <h3>Applicants</h3>
+          <span class="pill">Top 1024</span>
+        </div>
+        <table class="rank-table">
+          <thead><tr><th>Applicant</th><th class="num">Apps</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Samsung Electronics</td><td class="num">46,034</td></tr>
+            <tr><td class="name">Qualcomm</td><td class="num">21,663</td></tr>
+            <tr><td class="name">Huawei Technologies</td><td class="num">20,135</td></tr>
+            <tr><td class="name">Canon</td><td class="num">18,151</td></tr>
+            <tr><td class="name">Apple</td><td class="num">17,807</td></tr>
+          </tbody>
+        </table>
+        <div class="rank-foot"><a href="/rankings/companies">See the applicant rankings &rarr;</a></div>
+      </div>
+
+    </div>
+    <p style="margin-top:18px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">
+      Firm and applicant counts cover filings from 2020 onward
+    </p>
+  </div>
+</section>
+
+<!-- ================= AI QUERY ================= -->
+<section class="query-band" id="ai-query">
+  <div class="container">
+    <div class="query-grid">
+      <div>
+        <div class="eyebrow">AI query engine</div>
+        <h2>Ask in plain English. Get rows you can cite.</h2>
+        <p>
+          Describe what you want the way you would to a colleague. The query engine writes the
+          SQL, runs it against the full corpus and hands back a table &mdash; no query language,
+          no data team, no waiting.
+        </p>
+        <ul class="query-list">
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Ask complex questions in plain English</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Results in seconds, across nine million applications</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Every answer traces back to the USPTO record</li>
+        </ul>
+        <a href="/ai-query" class="btn btn-on-navy">Open the query engine</a>
+      </div>
+      <div class="query-demo">
+        <div class="query-demo-label">Natural language</div>
+        <div class="query-input">
+          <svg class="ic ic-sm"><use href="#i-search"/></svg>
+          <span>Top applicants filing since 2020</span>
+        </div>
+        <div class="query-demo-label">Result</div>
+        <table class="query-rows">
+          <thead><tr><th>Applicant</th><th class="num">Applications</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Samsung Electronics</td><td class="num">46,034</td></tr>
+            <tr><td class="name">Qualcomm</td><td class="num">21,663</td></tr>
+            <tr><td class="name">Huawei Technologies</td><td class="num">20,135</td></tr>
+            <tr><td class="name">Canon</td><td class="num">18,151</td></tr>
+            <tr><td class="name">Apple</td><td class="num">17,807</td></tr>
+          </tbody>
+        </table>
+        <div class="query-meta">
+          <span>9,088,325 rows scanned</span>
+          <a href="/ai-query" style="color:var(--sky)">Open in query engine &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CAPABILITIES ================= -->
+<section class="band" id="about">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow">How it works</div>
+      <h2>Built for the way the work actually goes</h2>
+      <p>Three things that separate a working instrument from a static report.</p>
+    </div>
+    <div class="cap-grid">
+      <div class="cap-card">
+        <svg class="ic ic-lg"><use href="#i-chart"/></svg>
+        <h3>Interactive exploration</h3>
+        <p>
+          Click any bar, slice or row to drill straight through to the applications behind it.
+          Every visualisation is a gateway to the underlying record, not a dead end.
+        </p>
+      </div>
+      <div class="cap-card">
+        <svg class="ic ic-lg"><use href="#i-filter"/></svg>
+        <h3>Real-time filtering</h3>
+        <p>
+          Filter by applicant, firm, examiner, art unit, CPC subclass, entity status or date
+          range &mdash; in any combination. Results recompute as you go.
+        </p>
+      </div>
+      <div class="cap-card">
+        <svg class="ic ic-lg"><use href="#i-application"/></svg>
+        <h3>Primary-source data</h3>
+        <p>
+          Built directly on USPTO bulk data and the prosecution documents themselves, refreshed
+          as new records publish. Nothing is invented; everything traces back.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FIRM REPORTING ================= -->
+<section class="band alt">
+  <div class="container">
+    <div class="report">
+      <div>
+        <span class="pill pill-accent">Firm reporting &middot; opt in</span>
+        <h3>Aggregate composition reporting for your own firm</h3>
+        <p>
+          Firms that opt in can run aggregate composition reports across their own signing
+          practitioners, for client audits and Mansfield-style reporting. Firm-level aggregates
+          only &mdash; never published attributes about named individuals. Classifications are
+          model-generated and are suitable for statistical work, not for judgements about any
+          one person.
+        </p>
+      </div>
+      <div>
+        <a href="/register/form" class="btn btn-secondary">Request firm reporting</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CLOSING CTA ================= -->
+<section class="cta">
+  <div class="container">
+    <h2>Bring the question you couldn&rsquo;t answer last week.</h2>
+    <p>
+      Create an account and the whole corpus opens up &mdash; rankings, dashboards and the
+      query engine. It takes a minute, and it is free.
+    </p>
+    <div class="cta-buttons">
+      <a href="/register/form" class="btn btn-on-navy">Create free account</a>
+      <a href="/ai-query" class="btn btn-ghost-navy">Ask a question first</a>
+    </div>
+  </div>
+</section>
 
   <!-- Pricing Modal -->
   <div id="pricing-modal" class="modal-overlay">
     <div class="modal-content">
       <button id="close-modal-btn" class="close-modal">&times;</button>
       <div class="section-header">
-        <h2>Currently FREE During Beta</h2>
-        <p>No credit card required. No hidden fees. Get full access to our patent analytics platform while we're in beta testing.</p>
+        <h2>Free to use</h2>
+        <p>Full access to the rankings, the dashboards and the query engine. No credit card, no seat limits, no trial clock.</p>
       </div>
       <div class="pricing-grid">
         <div class="pricing-card featured">
           <h3>Individual</h3>
-          <p class="plan-desc">Everything You Need for Patent Analytics</p>
-          <div class="pricing-price">FREE<span>/for now</span></div>
-          <p class="yearly-price">🎉 Currently free while we're in beta</p>
+          <p class="plan-desc">Everything you need for patent analytics</p>
+          <div class="pricing-price">Free</div>
           <ul class="pricing-features">
-            <li>Interactive charts & dashboards</li>
-            <li>Access curated patent datasets</li>
-            <li>Export charts & data (PDF/PNG/CSV)</li>
-            <li>Guided data exploration</li>
-            <li>Automated reports, caching, & CSS templates</li>
-            <li>Full access to all features ✨</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Every ranking: practitioners, firms, applicants</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> All interactive dashboards</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Natural-language query engine</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Nine million applications, 2001&ndash;2025</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Export what you find</li>
           </ul>
-          <a href="/register/form" class="btn btn-primary">Get Started (It's FREE!)</a>
+          <a href="/register/form" class="btn btn-primary">Create free account</a>
         </div>
         <div class="pricing-card">
-          <h3>Enterprise</h3>
-          <p class="plan-desc">Custom Data Integration & BI Design</p>
-          <div class="pricing-price">Let's Talk</div>
+          <h3>Firm &amp; enterprise</h3>
+          <p class="plan-desc">For teams that need more than a login</p>
+          <div class="pricing-price">Let&rsquo;s talk</div>
           <ul class="pricing-features">
-            <li>Full-featured analytics suite</li>
-            <li>Unlimited user accounts</li>
-            <li>Custom data integration services</li>
-            <li>Tailored BI dashboard design</li>
-            <li>Purpose-built analytics solutions</li>
-            <li>White-label deployment options</li>
-            <li>Dedicated support & On-premise hosting</li>
-            <li>We'll actually charge you money 💰</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Everything in Individual</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Aggregate firm composition reporting</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Shared workspaces and saved queries</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Data feeds and API access</li>
+            <li><svg class="ic ic-sm"><use href="#i-check"/></svg> Priority support</li>
           </ul>
-          <a href="mailto:sales@patent1024.com" class="btn btn-outline">Contact Sales</a>
+          <a href="/register/form" class="btn btn-secondary">Get in touch</a>
         </div>
       </div>
     </div>
@@ -1687,7 +869,7 @@
         <h2>Privacy Policy</h2>
         <p>Last updated: May 2025</p>
       </div>
-      <div class="privacy-content">
+      <div class="privacy-content legal-body">
         <section>
           <h3>1. Information We Collect</h3>
           <p>We collect information you provide directly to us, such as when you create an account, use our services, or contact us for support. This includes:</p>
@@ -1777,7 +959,7 @@
           <p>If you have any questions about this privacy policy or our privacy practices, please contact us at:</p>
           <p>
             <strong>Email:</strong> <a href="mailto:support@patent1024.com">support@patent1024.com</a><br>
-            <strong>Address:</strong> Patent 1024, LLC<br>
+            <strong>Address:</strong> Patent 1024<br>
             <strong>Subject:</strong> Privacy Policy Inquiry
           </p>
         </section>
@@ -1793,7 +975,7 @@
         <h2>Terms of Service</h2>
         <p>Last updated: May 2025</p>
       </div>
-      <div class="terms-content">
+      <div class="terms-content legal-body">
         <section>
           <h3>1. Acceptance of Terms</h3>
           <p>By accessing and using Patent 1024's services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
@@ -1917,7 +1099,7 @@
           <p>If you have any questions about these terms of service, please contact us at:</p>
           <p>
             <strong>Email:</strong> <a href="mailto:support@patent1024.com">support@patent1024.com</a><br>
-            <strong>Address:</strong> Patent 1024, LLC<br>
+            <strong>Address:</strong> Patent 1024<br>
             <strong>Subject:</strong> Terms of Service Inquiry
           </p>
         </section>
@@ -1935,319 +1117,175 @@
   </div>
 
   <!-- Footer -->
-  <footer>
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-section">
-          <h4><img src="/static/assets/images/patent-1024.svg" alt="Patent 1024 Logo" style="height: 34px;"></h4>
-          <p style="color: var(--p4-blue);">Advanced patent data analytics to navigate the complex world of intellectual property.</p>
-        </div>
-        <div class="footer-section">
-          <h4>Product</h4>
-          <ul class="footer-links">
-            <li><a href="#features">Features</a></li>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="/login/">Dashboard</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h4>Solutions</h4>
-          <ul class="footer-links">
-            <li><a href="/patent-analytics-software/">Patent Analytics Software</a></li>
-            <li><a href="/uspto-data-analysis/">USPTO Data Analysis Tools</a></li>
-            <li><a href="/patent-portfolio-intelligence/">Patent Portfolio Intelligence</a></li>
-            <li><a href="/ai-patent-search/">AI Patent Search Platform</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h4>Resources</h4>
-          <ul class="footer-links">
-            <li><a href="#">Documentation</a></li>
-            <li><a href="#">Blog</a></li>
-            <li><a href="mailto:support@patent1024.com">Support</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h4>Company</h4>
-          <ul class="footer-links">
-            <li><a href="#about">About Us</a></li>
-            <li><a href="#privacy">Privacy Policy</a></li>
-            <li><a href="#terms">Terms of Service</a></li>
-          </ul>
-        </div>
+
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="/static/assets/images/patent-1024-inverse.svg" alt="Patent 1024">
+        <p>Questions about the USPTO record, answered from the primary prosecution documents.</p>
       </div>
-      <div class="copyright">
-        &copy; 2025 Patent 1024, LLC. All rights reserved. | <a href="#" id="disclaimer-link">Data Disclaimer</a>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#questions">Features</a></li>
+          <li><a href="/ai-query">AI query engine</a></li>
+          <li><a href="#" class="pricing-open">Pricing</a></li>
+          <li><a href="/superset/welcome/">Dashboard</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Rankings</h4>
+        <ul>
+          <li><a href="/rankings/attorneys">Attorneys</a></li>
+          <li><a href="/rankings/firms">Law firms</a></li>
+          <li><a href="/rankings/companies">Applicants</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Solutions</h4>
+        <ul>
+          <li><a href="/patent-analytics-software/">Patent analytics software</a></li>
+          <li><a href="/uspto-data-analysis/">USPTO data analysis</a></li>
+          <li><a href="/patent-portfolio-intelligence/">Portfolio intelligence</a></li>
+          <li><a href="/ai-patent-search/">AI patent search</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/blog/">Blog</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#" id="privacy-link">Privacy policy</a></li>
+          <li><a href="#" id="terms-link">Terms of service</a></li>
+        </ul>
       </div>
     </div>
-  </footer>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Patent 1024. All rights reserved.</span>
+      <nav>
+        <a href="#" id="disclaimer-link">Data disclaimer</a>
+        <a href="#" class="privacy-open">Privacy</a>
+        <a href="#" class="terms-open">Terms</a>
+      </nav>
+    </div>
+  </div>
+</footer>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Pricing modal functionality
-    const pricingLinks = document.querySelectorAll('a[href="#pricing"]');
-    const pricingModal = document.getElementById('pricing-modal');
-    const closeModalBtn = document.getElementById('close-modal-btn');
+  document.addEventListener('DOMContentLoaded', function () {
 
-    const openPricingModal = (e) => {
-      e.preventDefault();
-      pricingModal.classList.add('active');
-    };
+    /* ---------- hero slideshow ---------- */
+    var CAPTIONS = [
+      'Practitioners ranked by signed applications, grant rate and pendency',
+      'One company’s portfolio: filings, grant rate and CPC distribution',
+      'How law firms rank inside a single applicant’s representation',
+      'Examiner volume, allowance rate and technology mix',
+      'Aggregate composition reporting across a firm’s practitioners'
+    ];
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.shots-slide'));
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.shots-tab'));
+    var dotsWrap = document.getElementById('shotsDots');
+    var caption = document.getElementById('shotsCaption');
+    var shots = document.getElementById('shots');
+    var current = 0, timer = null;
 
-    const closePricingModal = () => {
-      pricingModal.classList.remove('active');
-    };
-
-    if (pricingLinks.length > 0 && pricingModal) {
-      pricingLinks.forEach(link => {
-        link.addEventListener('click', openPricingModal);
+    if (slides.length && dotsWrap) {
+      slides.forEach(function (_, i) {
+        var d = document.createElement('button');
+        d.className = 'shots-dot' + (i === 0 ? ' active' : '');
+        d.type = 'button';
+        d.setAttribute('aria-label', 'Show preview ' + (i + 1));
+        d.addEventListener('click', function () { show(i); restart(); });
+        dotsWrap.appendChild(d);
       });
-    }
+      var dots = Array.prototype.slice.call(dotsWrap.children);
 
-    if (closeModalBtn) {
-      closeModalBtn.addEventListener('click', closePricingModal);
-    }
-
-    pricingModal.addEventListener('click', (e) => {
-      if (e.target === pricingModal) {
-        closePricingModal();
-      }
-    });
-
-    // Privacy policy modal functionality
-    const privacyLinks = document.querySelectorAll('a[href="#privacy"]');
-    const privacyModal = document.getElementById('privacy-modal');
-    const closePrivacyBtn = document.getElementById('close-privacy-btn');
-
-    const openPrivacyModal = (e) => {
-      e.preventDefault();
-      privacyModal.classList.add('active');
-    };
-
-    const closePrivacyModal = () => {
-      privacyModal.classList.remove('active');
-    };
-
-    if (privacyLinks.length > 0 && privacyModal) {
-      privacyLinks.forEach(link => {
-        link.addEventListener('click', openPrivacyModal);
-      });
-    }
-
-    if (closePrivacyBtn) {
-      closePrivacyBtn.addEventListener('click', closePrivacyModal);
-    }
-
-    privacyModal.addEventListener('click', (e) => {
-      if (e.target === privacyModal) {
-        closePrivacyModal();
-      }
-    });
-
-    // Terms of service modal functionality
-    const termsLinks = document.querySelectorAll('a[href="#terms"]');
-    const termsModal = document.getElementById('terms-modal');
-    const closeTermsBtn = document.getElementById('close-terms-btn');
-
-    const openTermsModal = (e) => {
-      e.preventDefault();
-      termsModal.classList.add('active');
-    };
-
-    const closeTermsModal = () => {
-      termsModal.classList.remove('active');
-    };
-
-    if (termsLinks.length > 0 && termsModal) {
-      termsLinks.forEach(link => {
-        link.addEventListener('click', openTermsModal);
-      });
-    }
-
-    if (closeTermsBtn) {
-      closeTermsBtn.addEventListener('click', closeTermsModal);
-    }
-
-    termsModal.addEventListener('click', (e) => {
-      if (e.target === termsModal) {
-        closeTermsModal();
-      }
-    });
-
-        // Question tabs functionality
-    const questionTabs = document.querySelectorAll('.question-tab');
-    const questionPanels = document.querySelectorAll('.question-panel');
-
-    if (questionTabs.length > 0 && questionPanels.length > 0) {
-      const activateTab = (targetTab) => {
-        const targetId = targetTab.dataset.target;
-
-        // Remove active class from all tabs and panels
-        questionTabs.forEach(tab => tab.classList.remove('active'));
-        questionPanels.forEach(panel => panel.classList.remove('active'));
-
-        // Add active class to clicked tab and corresponding panel
-        targetTab.classList.add('active');
-        document.getElementById(targetId).classList.add('active');
-      };
-
-      questionTabs.forEach(tab => {
-        tab.addEventListener('click', () => activateTab(tab));
-      });
-    }
-
-    // Image lightbox functionality
-    const lightbox = document.getElementById('image-lightbox');
-    const lightboxImage = document.getElementById('lightbox-image');
-    const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
-    const panelImages = document.querySelectorAll('.panel-visual img');
-
-    if (lightbox && lightboxImage && lightboxCloseBtn && panelImages.length > 0) {
-      const openLightbox = (imageSrc, imageAlt) => {
-        lightboxImage.src = imageSrc;
-        lightboxImage.alt = imageAlt;
-        lightbox.classList.add('active');
-        // Prevent body scroll when lightbox is open
-        document.body.style.overflow = 'hidden';
-      };
-
-      const closeLightbox = () => {
-        lightbox.classList.remove('active');
-        // Restore body scroll
-        document.body.style.overflow = '';
-      };
-
-      // Add click event to all panel images
-      panelImages.forEach(img => {
-        img.addEventListener('click', () => {
-          openLightbox(img.src, img.alt);
+      function show(i) {
+        current = i;
+        slides.forEach(function (s, k) { s.classList.toggle('active', k === i); });
+        tabs.forEach(function (t, k) {
+          t.classList.toggle('active', k === i);
+          t.setAttribute('aria-selected', k === i ? 'true' : 'false');
         });
-      });
-
-      // Close lightbox when close button is clicked
-      lightboxCloseBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeLightbox();
-      });
-
-      // Close lightbox when clicking outside the image
-      lightbox.addEventListener('click', (e) => {
-        if (e.target === lightbox) {
-          closeLightbox();
-        }
-      });
-
-      // Close lightbox with Escape key
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
-          closeLightbox();
-        }
-      });
-    }
-
-    // Disclaimer popup functionality
-    const disclaimerLink = document.getElementById('disclaimer-link');
-    const disclaimerPopup = document.getElementById('disclaimer-popup');
-    const closeDisclaimerBtn = document.getElementById('close-disclaimer-btn');
-
-    if (disclaimerLink && disclaimerPopup && closeDisclaimerBtn) {
-      const openDisclaimer = (e) => {
-        e.preventDefault();
-        disclaimerPopup.classList.add('active');
-      };
-
-      const closeDisclaimer = () => {
-        disclaimerPopup.classList.remove('active');
-      };
-
-      disclaimerLink.addEventListener('click', openDisclaimer);
-      closeDisclaimerBtn.addEventListener('click', closeDisclaimer);
-
-      // Close disclaimer when clicking outside
-      document.addEventListener('click', (e) => {
-        if (disclaimerPopup.classList.contains('active') &&
-            !disclaimerPopup.contains(e.target) &&
-            e.target !== disclaimerLink) {
-          closeDisclaimer();
-        }
-      });
-
-      // Close disclaimer with Escape key
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && disclaimerPopup.classList.contains('active')) {
-          closeDisclaimer();
-        }
-      });
-    }
-
-    // Close modals with Escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (pricingModal.classList.contains('active')) {
-          closePricingModal();
-        }
-        if (privacyModal.classList.contains('active')) {
-          closePrivacyModal();
-        }
-        if (termsModal.classList.contains('active')) {
-          closeTermsModal();
-        }
+        dots.forEach(function (d, k) { d.classList.toggle('active', k === i); });
+        if (caption) caption.textContent = CAPTIONS[i] || '';
       }
+      function next() { show((current + 1) % slides.length); }
+      function start() { timer = setInterval(next, 5200); }
+      function restart() { clearInterval(timer); start(); }
+
+      tabs.forEach(function (t) {
+        t.addEventListener('click', function () { show(parseInt(t.dataset.i, 10)); restart(); });
+      });
+      if (shots) {
+        shots.addEventListener('mouseenter', function () { clearInterval(timer); });
+        shots.addEventListener('mouseleave', start);
+      }
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) start();
+    }
+
+    /* ---------- solutions dropdown ---------- */
+    var dd = document.getElementById('solutionsDropdown');
+    if (dd) {
+      var ddBtn = dd.querySelector('button');
+      ddBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = dd.classList.toggle('open');
+        ddBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', function () {
+        dd.classList.remove('open');
+        ddBtn.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    /* ---------- mobile menu ---------- */
+    var toggle = document.getElementById('menuToggle');
+    var navLinks = document.getElementById('navLinks');
+    if (toggle && navLinks) {
+      toggle.addEventListener('click', function () {
+        var open = navLinks.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      navLinks.addEventListener('click', function (e) {
+        if (e.target.tagName === 'A') navLinks.classList.remove('open');
+      });
+    }
+
+    /* ---------- modals ---------- */
+    function wire(modalId, openSelectors) {
+      var modal = document.getElementById(modalId);
+      if (!modal) return null;
+      function open(e) { if (e) e.preventDefault(); modal.classList.add('active'); document.body.style.overflow = 'hidden'; }
+      function close() { modal.classList.remove('active'); document.body.style.overflow = ''; }
+      openSelectors.forEach(function (sel) {
+        document.querySelectorAll(sel).forEach(function (el) { el.addEventListener('click', open); });
+      });
+      modal.querySelectorAll('.close-modal').forEach(function (b) { b.addEventListener('click', close); });
+      modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+      return { modal: modal, close: close };
+    }
+    var pricing = wire('pricing-modal', ['#pricing-link', '.pricing-open']);
+    var privacy = wire('privacy-modal', ['#privacy-link', '.privacy-open']);
+    var terms = wire('terms-modal', ['#terms-link', '.terms-open']);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      [pricing, privacy, terms].forEach(function (m) {
+        if (m && m.modal.classList.contains('active')) m.close();
+      });
     });
 
-    // AI Demo function
-    window.showAIDemo = function() {
-      // Create and show a simple demo modal
-      const demoContent = `
-        <div style="text-align: center; padding: 2rem;">
-          <h3 style="color: var(--p4-dark-blue); margin-bottom: 1rem;">🤖 AI Query Demo</h3>
-          <p style="color: var(--p4-blue); margin-bottom: 2rem;">Experience the power of natural language database querying!</p>
-
-          <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
-            <div style="margin-bottom: 1rem;">
-              <strong>Try asking:</strong>
-            </div>
-            <div style="text-align: left; margin-bottom: 1rem;">
-              • "Show me all patents filed by Google in 2024"<br>
-              • "Which law firms have the most AI patents?"<br>
-              • "Find applications with 'machine learning' in the title"<br>
-              • "Compare patent activity between Apple and Microsoft"
-            </div>
-          </div>
-
-          <div style="margin-bottom: 2rem;">
-            <strong>Key Features:</strong><br>
-            ⚡ Real-time query execution with performance tracking<br>
-            🔒 Enterprise-grade security and access control<br>
-            📊 Comprehensive analytics and event logging<br>
-            🚀 No SQL knowledge required - just ask naturally!
-          </div>
-
-          <a href="/ai-query" style="
-            display: inline-block;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            margin-top: 1rem;
-          ">Launch AI Query Now →</a>
-        </div>
-      `;
-
-      // Show in existing modal or create a simple alert
-      if (typeof pricingModal !== 'undefined' && pricingModal) {
-        const modalBody = pricingModal.querySelector('.modal-content');
-        if (modalBody) {
-          modalBody.innerHTML = demoContent;
-          pricingModal.classList.add('active');
-        }
-      } else {
-        // Fallback to alert if modal system isn't available
-        alert('🤖 AI Query Demo\\n\\nTry our revolutionary natural language database querying!\\n\\n✨ Ask questions in plain English\\n⚡ Get instant SQL results\\n🔒 Enterprise security\\n📊 Advanced analytics\\n\\nClick "Try AI Query Now" to get started!');
-      }
-    };
+    /* ---------- data disclaimer ---------- */
+    var pop = document.getElementById('disclaimer-popup');
+    var popLink = document.getElementById('disclaimer-link');
+    if (pop && popLink) {
+      popLink.addEventListener('click', function (e) { e.preventDefault(); pop.classList.add('active'); });
+      var closeBtn = document.getElementById('close-disclaimer-btn');
+      if (closeBtn) closeBtn.addEventListener('click', function () { pop.classList.remove('active'); });
+    }
   });
 </script>
 
