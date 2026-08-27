@@ -36,14 +36,14 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from geometry import (  # noqa: E402  (path set above)
-    BASE_NUM,
-    BASE_WORD,
-    CAP_NUM,
-    CAP_WORD,
+    BASE,
+    CAP,
+    charge_field,
     CYAN,
     draw_text,
     hex2rgb,
     INTER,
+    is_dot,
     LEVEL_COLORS_COMPACT_DARK,
     LEVEL_COLORS_DARK,
     LEVEL_COLORS_LIGHT,
@@ -55,23 +55,20 @@ from geometry import (  # noqa: E402  (path set above)
     raster_tree,
     rgba,
     rounded_tile,
-    RULE_X,
-    RULE_Y0,
-    RULE_Y1,
     SKY,
+    SPLIT,
     TEXT_X,
     TOTAL_H,
     TOTAL_W,
-    TRACK_NUM,
-    TRACK_WORD,
+    TRACK,
     TREE_COMPACT,
     TREE_DX,
     TREE_DY,
-    tree_field,
     TREE_FULL,
     TREE_MINI,
     tree_rgb,
     WHITE,
+    WORDMARK,
 )
 
 # Source of truth for images; webpack copies this whole directory to
@@ -107,38 +104,22 @@ def raster_lockup(scale, dark=False, bg=None):
     rgb, a = raster_tree(TREE_FULL, colors, w, h, scale, TREE_DX, TREE_DY, ss=3)
     img = rgba(rgb, a)
 
-    rule = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    ImageDraw.Draw(rule).rectangle(
-        [
-            RULE_X * scale,
-            RULE_Y0 * scale,
-            RULE_X * scale + max(1, round(scale)),
-            RULE_Y1 * scale,
-        ],
-        fill=hex2rgb("#3B546B" if dark else "#C6D2DE") + (255,),
-    )
-    img.alpha_composite(rule)
-
-    draw_text(
-        img,
-        INTER,
-        "PATENT",
-        CAP_WORD * scale,
-        TRACK_WORD * scale,
-        TEXT_X * scale,
-        BASE_WORD * scale,
-        hex2rgb(WHITE if dark else NAVY) + (255,),
-    )
-    draw_text(
-        img,
-        MONO,
-        "1024",
-        CAP_NUM * scale,
-        TRACK_NUM * scale,
-        TEXT_X * scale,
-        BASE_NUM * scale,
-        hex2rgb(CYAN) + (255,),
-    )
+    for lo, hi, col in (
+        (0, SPLIT, WHITE if dark else NAVY),
+        (SPLIT, None, SKY if dark else CYAN),
+    ):
+        draw_text(
+            img,
+            INTER,
+            WORDMARK,
+            CAP * scale,
+            TRACK * scale,
+            TEXT_X * scale,
+            BASE * scale,
+            hex2rgb(col) + (255,),
+            lo,
+            hi,
+        )
 
     if bg:
         flat = Image.new("RGBA", img.size, hex2rgb(bg) + (255,))
@@ -201,7 +182,7 @@ def social_card(lines, kicker):
 
     # oversized tree as a watermark, bleeding off the right edge
     big = 900
-    rgb, a = raster_tree(TREE_FULL, [SKY] * 4, big, big, big / 56.0, dx=-4, dy=-4, ss=2)
+    rgb, a = raster_tree(TREE_FULL, [SKY] * 5, big, big, big / 56.0, dx=-4, dy=-4, ss=2)
     a = a * 0.075
     x0, y0 = 700, -110
     xs = slice(max(0, x0), min(w, x0 + big))
@@ -225,38 +206,85 @@ def social_card(lines, kicker):
     return img.convert("RGB")
 
 
+# The spinner, from the "Charge" spec: a band of light runs each generation
+# from its parent node to its child nodes, the generations firing one after
+# another so three are lit at once and the doubling - not an easing curve - is
+# what reads as motion. The tips then bloom and settle as the charge clears.
+#
+# Two departures from the design's CSS, both to keep a spinner moving. Its
+# dash ran on a pathLength normalised across a whole generation at once, so a
+# band meant to be 38% of a branch came out three times an outer branch's
+# length and parked there, fully covering it; and one charge crossed the tree
+# in the first 47% of the loop, leaving 638ms of still tree. Between them the
+# loop held 11 identical frames. The band is a fraction of the branch it runs
+# along - which is what the design's own notes describe - and the travel is
+# stretched so the outer band clears the tips exactly as the next charge
+# leaves the root. Same choreography, nothing held.
+SS = 3  # supersampling
+BAND = 0.38  # band length, as a fraction of the branch it runs along
+STAGGER_OF_RUN = 0.12 / 0.34  # generation-to-generation gap, per unit of travel
+# Tip pulse, keyed to the moment the outer band clears the tips.
+TIP_PULSE = ((0.0, 1.1), (0.10, 3.4), (0.26, 2.0), (0.54, 1.1), (1.0, 1.1))
+
+
 def loading_gif(size=88, frames=60, duration=20):
-    """A charge travelling root to tips, looping.
+    """A charge running root to tips, looping.
 
     Matches the cadence of Superset's own spinner (60 frames at 20ms, 1.2s,
-    transparent ground) so it drops in without feeling different.
+    transparent ground) so it drops in without feeling different. The ground
+    tree is flat navy rather than the logo's ramp: the accent has to belong to
+    the moving band, or the motion competes with the colour for attention.
     """
-    alpha, along = tree_field(TREE_FULL, size, pad=3.0, ss=3)
+    tip_max = max(r for _, r in TIP_PULSE)
+    alpha, lvl, along, tip_d, kk = charge_field(
+        TREE_FULL, size, pad=3.0, ss=SS, tip_r_max=tip_max
+    )
 
-    base = np.array(hex2rgb("#AFC0CE"), dtype=np.float32)  # resting tree
+    branches = [s for s in TREE_FULL if not is_dot(s)]
+    gens = sorted({s[5] for s in branches})
+    feather = {}
+    for lv in gens:
+        seg = next(s for s in branches if s[5] == lv)
+        px = np.hypot(seg[2] - seg[0], seg[3] - seg[1]) * kk
+        feather[lv] = 1.2 / px  # a soft edge about a pixel wide
+
+    last = max(gens)
+    run = 1.0 / (STAGGER_OF_RUN * last + 1.0)
+    stagger = STAGGER_OF_RUN * run
+
+    base = np.array(hex2rgb(NAVY), dtype=np.float32)
     hot = np.array(hex2rgb(CYAN), dtype=np.float32)
-    warm = np.array(hex2rgb(NAVY), dtype=np.float32)
+    aa = 0.8 * SS
+    tp, tr = [p for p, _ in TIP_PULSE], [r for _, r in TIP_PULSE]
 
     imgs = []
     for f in range(frames):
-        # the pulse re-enters at the root as the previous one leaves the tips,
-        # so the loop has no dead frame at the seam
-        phase = (f / frames) * 1.20 - 0.05
-        d = along - phase
-        # sharp leading edge, long trailing tail: reads as flow, not a blink
-        head = np.exp(-(np.clip(d, 0, None) ** 2) / (2 * 0.045**2))
-        tail = np.exp(np.clip(d, None, 0) / 0.26)
-        e = np.clip(np.where(d >= 0, head, tail), 0, 1) * (alpha > 0.02)
+        t = f / frames
 
-        col = (
-            base[None, None, :] * (1 - e[..., None])
-            + (warm[None, None, :] * 0.35 + hot[None, None, :] * 0.65) * e[..., None]
-        )
-        col = col * (1 - (e**3)[..., None]) + hot[None, None, :] * (e**3)[..., None]
+        lit = np.zeros(alpha.shape, dtype=np.float32)
+        for lv in gens:
+            local = (t - stagger * lv) % 1.0
+            if local >= run:
+                continue  # band is past the end of the branch
+            tail = (1.0 + BAND) * (local / run) - BAND
+            band = np.minimum(along - tail, tail + BAND - along) / feather[lv] + 0.5
+            lit = np.maximum(lit, np.clip(band, 0, 1) * (lvl == lv))
+
+        col = base + (hot - base) * lit[..., None]
+
+        # tips hold the accent throughout and pulse on radius alone, so they
+        # never have to fade - which 1-bit alpha could not carry anyway
+        a_tip = np.clip((np.interp(t, tp, tr) * kk + aa / 2 - tip_d) / aa, 0.0, 1.0)
+        col = col * (1 - a_tip[..., None]) + hot * a_tip[..., None]
+        a = np.maximum(alpha, a_tip)
+
+        pm = (col * a[..., None]).reshape(size, SS, size, SS, 3).mean(axis=(1, 3))
+        cov = a.reshape(size, SS, size, SS).mean(axis=(1, 3))
+        rgb = pm / np.maximum(cov, 1e-6)[..., None]
 
         # GIF alpha is 1-bit, so cut low to keep the thin outer branches solid
-        opaque = alpha > 0.35
-        q = Image.fromarray(np.clip(col, 0, 255).astype(np.uint8), "RGB").convert(
+        opaque = cov > 0.35
+        q = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB").convert(
             "P", palette=Image.ADAPTIVE, colors=255
         )
         pal = q.getpalette()[: 255 * 3] + [0, 0, 0]  # reserve 255 as transparent

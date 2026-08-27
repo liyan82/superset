@@ -22,11 +22,11 @@ truth, which webpack copies to `superset/static/assets/images/`) and mirrored
 straight into `superset/static/assets/images/` so a running instance picks the
 new assets up without a rebuild.
 
-The wordmark is set in Inter SemiBold and IBM Plex Mono Medium and converted to
-outlines, so no font ships with the logo and it renders identically everywhere.
-Both faces are already frontend dependencies (`@fontsource/inter`,
-`@fontsource/ibm-plex-mono`) and both are SIL Open Font License 1.1, which
-permits embedding their outlines. They are located by family name, so a webpack
+The wordmark is set in Inter SemiBold and converted to outlines, so no font
+ships with the logo and it renders identically everywhere. IBM Plex Mono Medium
+sets the kicker on the social cards. Both faces are already frontend
+dependencies (`@fontsource/inter`, `@fontsource/ibm-plex-mono`) and both are SIL
+Open Font License 1.1, which permits embedding their outlines. They are located by family name, so a webpack
 rehash does not break this script — but the frontend must have been built, or
 its `node_modules` installed, for them to be found.
 
@@ -45,11 +45,14 @@ its `node_modules` installed, for them to be found.
 
 ## Three drawings, not one
 
-The mark is reduced as it shrinks, which is why it survives a 16px tab:
+The mark is reduced as it shrinks, which is why it survives a 16px tab. Each
+drawing comes from the same rule — constant rise, halving spread, thinning
+stroke — re-run with different constants, and each closes on accent-coloured
+tip dots:
 
-- **full** (1-2-4-8) at 40px and up — all four generations, navy stepping to cyan
+- **full** (1-2-4-8) at 40px and up — four generations, navy through slate to sky
 - **compact** (1-2-4) from 24 to 40px — outer generation dropped, strokes thickened
-- **mini** (1-2) below 24px — just the fork
+- **mini** (1-2) below 24px — just the fork, on a much heavier stroke
 
 `p4-favicon.ico` is assembled by hand so each entry carries its own drawing
 rather than a downscale of the largest.

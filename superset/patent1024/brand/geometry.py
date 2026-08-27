@@ -22,7 +22,6 @@ See README.md in this directory for how to regenerate the assets.
 """
 
 import glob
-import math
 import os
 
 import numpy as np
@@ -55,22 +54,38 @@ def hex2rgb(h):
 # --------------------------------------------------------------------------
 
 
+# (x0, y0, x1, y1, stroke_width, level)
+Seg = tuple[float, float, float, float, float, int]
+
+
+def is_dot(seg: Seg) -> bool:
+    """Tip dots are zero-length segments; round caps draw them as circles."""
+    return seg[0] == seg[2] and seg[1] == seg[3]
+
+
 def build_tree(levels=4):
-    """Root at bottom centre, branching upward. Returns segments by level."""
-    if levels == 4:
-        # Even rises and halving spreads: the canonical dendrogram, which also
-        # lands the eight tips at near-uniform spacing.
-        ys = [58, 48, 34, 21, 9]
-        widths = [6.0, 5.0, 3.6, 2.4]
-        spreads = [0, 15, 7.5, 4]
-    elif levels == 3:  # compact 1 -> 2 -> 4, for roughly 20-40px
-        ys = [58, 45, 28, 11]
-        widths = [8.5, 7.0, 5.0]
+    """Root at bottom centre, branching upward. Returns segments by level.
+
+    One rule generates every drawing: a constant rise per generation, a spread
+    that halves, and a stroke that thins by a constant step. The leaf nodes
+    carry a dot, emitted as a zero-length segment tagged one level past the
+    last branch so it can take the accent colour on its own.
+    """
+    if levels == 4:  # full 1 -> 2 -> 4 -> 8, for 40px and up
+        ys = [60, 48, 36, 24, 12]
+        widths = [4.0, 3.5, 3.0, 2.5]
+        spreads = [0, 14, 7, 3.5]
+        tip_r = 2.1
+    elif levels == 3:  # compact 1 -> 2 -> 4, for roughly 24-40px
+        ys = [58, 44, 30, 16]
+        widths = [4.5, 4.0, 3.5]
         spreads = [0, 16, 8]
+        tip_r = 2.8
     else:  # mini 1 -> 2, the last reduction that still reads at 16px
-        ys = [58, 40, 12]
-        widths = [11.0, 9.0]
-        spreads = [0, 19]
+        ys = [58, 38, 20]
+        widths = [7.0, 6.0]
+        spreads = [0, 18]
+        tip_r = 4.0
 
     segs = []
     # level 0: the trunk, a vertical stem
@@ -84,6 +99,8 @@ def build_tree(levels=4):
                 segs.append((x, ys[lv], x2, ys[lv + 1], widths[lv], lv))
                 nxt.append(x2)
         nodes = nxt
+    for x in nodes:
+        segs.append((x, ys[-1], x, ys[-1], tip_r * 2, len(widths)))
     return segs
 
 
@@ -91,19 +108,22 @@ TREE_FULL = build_tree(4)
 TREE_COMPACT = build_tree(3)
 TREE_MINI = build_tree(2)
 
-# Each generation steps toward the accent, so the doubling is legible as colour
-# as well as geometry.
-LEVEL_COLORS_LIGHT = [NAVY, "#2E5273", "#2A7CAC", CYAN]
-LEVEL_COLORS_DARK = [WHITE, "#D3E4F0", SKY, CYAN]
-LEVEL_COLORS_COMPACT_LIGHT = [NAVY, NAVY, CYAN]
-LEVEL_COLORS_COMPACT_DARK = [WHITE, WHITE, CYAN]
-LEVEL_COLORS_MINI_DARK = [WHITE, CYAN]
+# The branches hold the structure and the tips hold the accent, so the eye
+# lands on the doubling rather than on the trunk.
+LEVEL_COLORS_LIGHT = [NAVY, NAVY, SLATE, SKY, CYAN]
+LEVEL_COLORS_DARK = [WHITE, WHITE, SKY, SKY, CYAN]
+LEVEL_COLORS_COMPACT_LIGHT = [NAVY, NAVY, SLATE, CYAN]
+LEVEL_COLORS_COMPACT_DARK = [WHITE, WHITE, SKY, CYAN]
+LEVEL_COLORS_MINI_DARK = [WHITE, WHITE, CYAN]
 
 
 def tree_svg(segs, colors, dx=0.0, dy=0.0, scale=1.0, indent="  "):
     """Emit the tree as grouped <path> elements, one group per stroke weight."""
     by_key = {}
-    for x0, y0, x1, y1, w, lv in segs:
+    for seg in segs:
+        if is_dot(seg):
+            continue
+        x0, y0, x1, y1, w, lv = seg
         by_key.setdefault((round(w, 2), colors[lv]), []).append((x0, y0, x1, y1))
     out = []
     for (w, col), items in by_key.items():
@@ -121,6 +141,15 @@ def tree_svg(segs, colors, dx=0.0, dy=0.0, scale=1.0, indent="  "):
             f'{indent}<path d="{d}" fill="none" stroke="{col}" '
             f'stroke-width="{fmt(w * scale)}" stroke-linecap="round" '
             f'stroke-linejoin="round"/>'
+        )
+    for seg in segs:
+        if not is_dot(seg):
+            continue
+        x0, y0, _, _, w, lv = seg
+        out.append(
+            f'{indent}<circle cx="{fmt(x0 * scale + dx)}" '
+            f'cy="{fmt(y0 * scale + dy)}" r="{fmt(w * scale / 2)}" '
+            f'fill="{colors[lv]}"/>'
         )
     return "\n".join(out)
 
@@ -208,10 +237,16 @@ class Face:
         width = x - tracking_px if runs else 0.0
         return placed, width, scale
 
-    def path(self, text, cap_height, tracking_px, ox, oy):
+    def path(self, text, cap_height, tracking_px, ox, oy, lo=0, hi=None):
+        """Outlines for glyphs [lo:hi) of `text`, laid out as the whole run.
+
+        Slicing after layout rather than shaping the parts separately keeps the
+        kerning of the full string, so a two-colour wordmark sets identically
+        to a one-colour one.
+        """
         placed, width, scale = self.layout(text, cap_height, tracking_px)
         pen = SVGPathPen(self.gs, ntos=fmt)
-        for gname, gx, gy in placed:
+        for gname, gx, gy in placed[lo:hi]:
             t = Transform(scale, 0, 0, -scale, ox + gx, oy + gy)
             self.gs[gname].draw(TransformPen(pen, t))
         return pen.getCommands(), width
@@ -240,51 +275,44 @@ _bx0, _by0, _bx1, _by1 = tree_ink_bbox(TREE_FULL)
 TREE_DX, TREE_DY = -_bx0, -_by0
 TREE_W, TREE_H = _bx1 - _bx0, _by1 - _by0
 
-CAP_WORD = 21.0  # cap height of PATENT
-CAP_NUM = 11.5  # cap height of 1024
-TRACK_WORD = 0.5
-TRACK_NUM = 0.42 * CAP_NUM  # letterspaced, drafting-label style
-GAP_LINES = 12.0  # PATENT baseline down to the 1024 cap line
+# The wordmark sits on one line: the mark, a fixed gap, then "Patent 1024"
+# with the number in the accent, so the name and the reason for the drawing
+# are the same object. No rule between them - the gap does that work.
+WORDMARK = "Patent 1024"
+SPLIT = WORDMARK.index(" ")  # "Patent" | " 1024"
+EM = 26.0  # against a mark 53 units tall, as drawn
+CAP = EM * INTER.cap / INTER.upem
+TRACK = -0.015 * EM  # -0.015em
+GAP = 14.0
 
-# Centre the two-line text block on the mark's optical centre.
-_block_h = CAP_WORD + GAP_LINES + CAP_NUM
-_top = TREE_H / 2 - _block_h / 2
-BASE_WORD = _top + CAP_WORD
-BASE_NUM = _top + _block_h
+TEXT_X = TREE_W + GAP
+BASE = TREE_H / 2 + CAP / 2  # cap box centred on the mark
 
-GAP = 13.0
-RULE_X = TREE_W + GAP
-TEXT_X = RULE_X + GAP
-RULE_Y0, RULE_Y1 = _top - 1.5, BASE_NUM + 1.5
-
-_, W_WORD = INTER.path("PATENT", CAP_WORD, TRACK_WORD, 0, 0)
-_, W_NUM = MONO.path("1024", CAP_NUM, TRACK_NUM, 0, 0)
-TOTAL_W = TEXT_X + W_WORD
+_, W_TEXT = INTER.path(WORDMARK, CAP, TRACK, 0, 0)
+TOTAL_W = TEXT_X + W_TEXT
 TOTAL_H = TREE_H
 
-D_WORD, _ = INTER.path("PATENT", CAP_WORD, TRACK_WORD, TEXT_X, BASE_WORD)
-D_NUM, _ = MONO.path("1024", CAP_NUM, TRACK_NUM, TEXT_X, BASE_NUM)
+D_NAME, _ = INTER.path(WORDMARK, CAP, TRACK, TEXT_X, BASE, 0, SPLIT)
+D_NUM, _ = INTER.path(WORDMARK, CAP, TRACK, TEXT_X, BASE, SPLIT, None)
 
 LICENSE = """<!--
-  Patent 1024 - primary logo. Type is converted to outlines: Inter SemiBold and
-  IBM Plex Mono Medium, both SIL Open Font License 1.1.
+  Patent 1024 - primary logo. Type is converted to outlines from Inter
+  SemiBold, SIL Open Font License 1.1.
 -->"""
 
 
 def lockup_svg(dark=False):
     colors = LEVEL_COLORS_DARK if dark else LEVEL_COLORS_LIGHT
-    word_fill = WHITE if dark else NAVY
-    rule = "#3B546B" if dark else "#C6D2DE"
+    name_fill = WHITE if dark else NAVY
+    num_fill = SKY if dark else CYAN
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {fmt(TOTAL_W)} \
 {fmt(TOTAL_H)}" width="{fmt(TOTAL_W)}" height="{fmt(TOTAL_H)}" role="img" \
 aria-label="Patent 1024">
 {LICENSE}
   <title>Patent 1024</title>
 {tree_svg(TREE_FULL, colors, dx=TREE_DX, dy=TREE_DY)}
-  <line x1="{fmt(RULE_X)}" y1="{fmt(RULE_Y0)}" x2="{fmt(RULE_X)}" y2="{fmt(RULE_Y1)}" \
-stroke="{rule}" stroke-width="1"/>
-  <path d="{D_WORD}" fill="{word_fill}"/>
-  <path d="{D_NUM}" fill="{CYAN}"/>
+  <path d="{D_NAME}" fill="{name_fill}"/>
+  <path d="{D_NUM}" fill="{num_fill}"/>
 </svg>
 """
 
@@ -317,63 +345,64 @@ height="64" role="img" aria-label="Patent 1024">
 # --------------------------------------------------------------------------
 
 
-def tree_field(segs, size, pad=0.0, ss=1):
-    """Return (alpha, along) arrays. `along` is normalised distance from root."""
+def charge_field(segs, size, pad=0.0, ss=3, tip_r_max=0.0):
+    """Rasterise the tree once for the spinner, keeping per-pixel structure.
+
+    Returns ``(alpha, lvl, along, tip_d, k)``: stroke coverage, the generation
+    of the nearest branch, the position along that branch from its parent node
+    (0) to its child node (1), the distance in pixels to the nearest tip
+    centre, and the pixels-per-unit scale. Animating then costs one pass of
+    array arithmetic per frame instead of a re-render.
+
+    Tip dots are excluded from the strokes and reported through ``tip_d``, so a
+    frame can draw them at whatever radius the pulse has reached; ``tip_r_max``
+    reserves room for the largest of those radii in the layout.
+    """
+    strokes = [s for s in segs if not is_dot(s)]
+    tips = [(s[0], s[1]) for s in segs if is_dot(s)]
+
+    bx0, by0, bx1, by1 = tree_ink_bbox(strokes)
+    for tx, ty in tips:
+        bx0, bx1 = min(bx0, tx - tip_r_max), max(bx1, tx + tip_r_max)
+        by0, by1 = min(by0, ty - tip_r_max), max(by1, ty + tip_r_max)
+
     n = size * ss
-    bx0, by0, bx1, by1 = tree_ink_bbox(segs)
     iw, ih = bx1 - bx0, by1 - by0
-    k = (size - 2 * pad) / max(iw, ih) * ss
-    odx = ((size - iw * k / ss) / 2 - bx0 * k / ss) * ss
-    ody = ((size - ih * k / ss) / 2 - by0 * k / ss) * ss
+    k = (size - 2 * pad) / max(iw, ih)
+    dx = (size - iw * k) / 2 / k - bx0
+    dy = (size - ih * k) / 2 / k - by0
+    kk = k * ss
 
     xs = (np.arange(n) + 0.5).reshape(1, n)
     ys = (np.arange(n) + 0.5).reshape(n, 1)
 
-    # cumulative distance from the root, walked by matching endpoints
-    total = 0.0
-    starts = {}
-    for x0, y0, x1, y1, w, lv in segs:
-        starts.setdefault((round(x0, 3), round(y0, 3)), []).append(
-            (x0, y0, x1, y1, w, lv)
-        )
-    root = segs[0]
-    order = []
-    stack = [(root, 0.0)]
-    while stack:
-        seg, dist = stack.pop()
-        x0, y0, x1, y1, w, lv = seg
-        ln = math.hypot(x1 - x0, y1 - y0)
-        order.append((seg, dist, ln))
-        total = max(total, dist + ln)
-        for child in starts.get((round(x1, 3), round(y1, 3)), []):
-            stack.append((child, dist + ln))
-
     best = np.full((n, n), 1e9, dtype=np.float32)
-    along = np.zeros((n, n), dtype=np.float32)
     alpha = np.zeros((n, n), dtype=np.float32)
+    lvl = np.zeros((n, n), dtype=np.int8)
+    along = np.zeros((n, n), dtype=np.float32)
+    aa = 0.8 * ss
 
-    aa = 0.7 * ss
-    for seg, dist, ln in order:
-        x0, y0, x1, y1, w, lv = seg
-        ax, ay = x0 * k + odx, y0 * k + ody
-        bx, by = x1 * k + odx, y1 * k + ody
+    for x0, y0, x1, y1, w, lv in strokes:
+        ax, ay = (x0 + dx) * kk, (y0 + dy) * kk
+        bx, by = (x1 + dx) * kk, (y1 + dy) * kk
         vx, vy = bx - ax, by - ay
-        seg_len_sq = vx * vx + vy * vy
-        t = ((xs - ax) * vx + (ys - ay) * vy) / seg_len_sq
-        t = np.clip(t, 0.0, 1.0)
-        px, py = ax + t * vx, ay + t * vy
-        d = np.hypot(xs - px, ys - py)
-        r = w * k / 2.0
-        a = np.clip((r + aa / 2 - d) / aa, 0.0, 1.0)
+        t = np.clip(((xs - ax) * vx + (ys - ay) * vy) / (vx * vx + vy * vy), 0, 1)
+        d = np.hypot(xs - (ax + t * vx), ys - (ay + t * vy))
+        a = np.clip((w * kk / 2.0 + aa / 2 - d) / aa, 0.0, 1.0)
         alpha = np.maximum(alpha, a)
+        # nearest branch wins the pixel, so a join takes the colour of
+        # whichever generation actually covers it
         upd = (d < best) & (a > 0)
         best = np.where(upd, d, best)
-        along = np.where(upd, (dist + t * ln) / total, along)
+        lvl = np.where(upd, lv, lvl).astype(np.int8)
+        along = np.where(upd, t, along)
 
-    if ss > 1:
-        alpha = alpha.reshape(size, ss, size, ss).mean(axis=(1, 3))
-        along = along.reshape(size, ss, size, ss).mean(axis=(1, 3))
-    return alpha, along
+    tip_d = np.full((n, n), 1e9, dtype=np.float32)
+    for tx, ty in tips:
+        cx, cy = (tx + dx) * kk, (ty + dy) * kk
+        tip_d = np.minimum(tip_d, np.hypot(xs - cx, ys - cy))
+
+    return alpha, lvl, along, tip_d, kk
 
 
 def raster_tree(segs, colors, w_px, h_px, k, dx=0.0, dy=0.0, ss=3):
@@ -390,13 +419,17 @@ def raster_tree(segs, colors, w_px, h_px, k, dx=0.0, dy=0.0, ss=3):
     acc_c = np.zeros((high, wide, 3), dtype=np.float32)
     aa = 0.8 * ss
 
-    # paint thinnest/outermost first so the trunk sits on top at the joins
-    for x0, y0, x1, y1, w, lv in sorted(segs, key=lambda s: -s[5]):
+    # Paint thinnest/outermost first so the trunk sits on top at the joins,
+    # then the tip dots last so they cap the outer generation rather than
+    # being swallowed by it.
+    order = sorted(segs, key=lambda s: (is_dot(s), -s[5]))
+    for x0, y0, x1, y1, w, lv in order:
         col = np.array(hex2rgb(colors[lv]), dtype=np.float32)
         ax, ay = (x0 + dx) * k, (y0 + dy) * k
         bx, by = (x1 + dx) * k, (y1 + dy) * k
         vx, vy = bx - ax, by - ay
-        t = np.clip(((xs - ax) * vx + (ys - ay) * vy) / (vx * vx + vy * vy), 0, 1)
+        span = vx * vx + vy * vy
+        t = np.clip(((xs - ax) * vx + (ys - ay) * vy) / span, 0, 1) if span else 0.0
         d = np.hypot(xs - (ax + t * vx), ys - (ay + t * vy))
         a = np.clip((w * k / 2.0 + aa / 2 - d) / aa, 0.0, 1.0)
         acc_c = acc_c * (1 - a[..., None]) + col * a[..., None]
@@ -445,15 +478,19 @@ def rounded_tile(size, radius_ratio=14 / 64.0, bg=NAVY):
     return a.reshape(size, ss, size, ss).mean(axis=(1, 3))
 
 
-def draw_text(img, face, text, cap_height, tracking, ox, oy, fill):
-    """Draw shaped text onto an RGBA image using per-glyph placement."""
+def draw_text(img, face, text, cap_height, tracking, ox, oy, fill, lo=0, hi=None):
+    """Draw shaped text onto an RGBA image using per-glyph placement.
+
+    `lo`/`hi` slice the laid-out run, matching Face.path, so the raster lockup
+    colours the same glyphs as the SVG one.
+    """
     from PIL import ImageDraw, ImageFont
 
     placed, width, scale = face.layout(text, cap_height, tracking)
     px = int(round(face.upem * scale))
     font = ImageFont.truetype(face.file, px)
     d = ImageDraw.Draw(img)
-    for gname, gx, gy in placed:
+    for gname, gx, gy in placed[lo:hi]:
         ch = None
         for cp, gn in face.tt.getBestCmap().items():
             if gn == gname:
