@@ -36,13 +36,8 @@ x-common-build: &common-build
     - apache/superset-cache:3.11-slim-trixie
 
 services:
-  redis:
-    image: redis:7
-    container_name: superset_cache
-    restart: unless-stopped
-    volumes:
-      - redis:/data
-
+  # Redis and Postgres run on the production host, not in containers; see
+  # superset/patent1024/PRODUCTION.md.
   superset:
     env_file:
       - path: docker/.env # default
@@ -56,7 +51,10 @@ services:
     user: "root"
     restart: unless-stopped
     ports:
-      - 8088:8088
+      # Loopback only: the host nginx is the public entry point. Docker's
+      # published ports bypass the host firewall, so 8088:8088 would expose
+      # Superset directly.
+      - 127.0.0.1:8088:8088
     depends_on:
       superset-init:
         condition: service_completed_successfully
@@ -74,15 +72,12 @@ services:
         required: true
       - path: docker/.env-local # optional override
         required: false
-    depends_on:
-      redis:
-        condition: service_started
     user: "root"
     volumes: *superset-volumes
     healthcheck:
       disable: true
     environment:
-      SUPERSET_LOAD_EXAMPLES: "${SUPERSET_LOAD_EXAMPLES:-yes}"
+      SUPERSET_LOAD_EXAMPLES: "${SUPERSET_LOAD_EXAMPLES:-no}"
       SUPERSET_LOG_LEVEL: "${SUPERSET_LOG_LEVEL:-info}"
       DATABASE_HOST: "${DATABASE_HOST:-172.18.0.1}"
       DATABASE_PORT: "${DATABASE_PORT:-5432}"
@@ -139,6 +134,4 @@ services:
 
 volumes:
   superset_home:
-    external: false
-  redis:
     external: false

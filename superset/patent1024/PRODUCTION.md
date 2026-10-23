@@ -6,6 +6,25 @@ and Redis 7 are not containers: they run on the host as systemd services
 Docker bridge address `172.18.0.1`, which is why `DATABASE_HOST` and
 `REDIS_HOST` point there on the server.
 
+## Configuration files
+
+The server checkout at `/root/superset` should have no local edits to tracked
+files, so `git pull` always applies cleanly. Prod-only values live in two
+gitignored files instead:
+
+| File | Read by | Holds |
+|---|---|---|
+| `docker/.env` (tracked) | containers, via `env_file:` | production defaults, no real secrets |
+| `docker/.env-local` | containers, via `env_file:`, after `docker/.env` | `SECRET_KEY`, `SUPERSET_SECRET_KEY`, `ADMIN_PASSWORD` |
+| `.env` (repo root) | Compose itself, for `${...}` in the YAML | `DATABASE_PASSWORD` |
+
+The root `.env` matters because Compose interpolates `${...}` from the shell and
+that file only, never from `env_file:` entries. Without `DATABASE_PASSWORD`
+there, `docker compose up` stops with `DATABASE_PASSWORD must be set`.
+
+Start the stack with `docker compose -f docker-compose-non-dev.yml up -d`.
+Never add `-v` to `down`: it deletes the `superset_home` volume.
+
 ## Host services must start after Docker
 
 Both services bind `172.18.0.1` explicitly (`listen_addresses` in
